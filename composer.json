@@ -1,27 +1,23 @@
 {
-	"keywords" : [
-		"map",
-		"structure",
-		"mapping"
-	],
-	"autoload" : {
-		"psr-4" : {
-			"Bytemap\\" : "src"
-		}
-	},
-	"name" : "bytemap/bytemap",
-	"type" : "library",
-	"description" : "PHP data structures with low memory footprint",
-	"license" : "MIT",
-	"require" : {
-		"php" : ">=7.1"
-	},
-	"minimum-stability" : "stable",
-	"authors" : [{
-			"name" : "Robert Gust-Bardon",
-			"email" : "robert@gust-bardon.org",
-			"homepage" : "https://robert.gust-bardon.org"
-		}
-	],
-	"homepage" : "https://github.com/RGustBardon/bytemap"
+    "name": "bytemap/bytemap",
+    "description": "PHP data structures with low memory footprint",
+	"keywords": ["map", "mapping", "structure"],
+    "homepage": "https://github.com/RGustBardon/bytemap",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Robert Gust-Bardon",
+            "email": "robert@gust-bardon.org",
+            "homepage": "https://robert.gust-bardon.org"
+        }
+    ],
+    "require": {
+        "php": "^7.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bytemap\\": "src"
+        }
+    }
 }
