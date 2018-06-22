@@ -1,1 +1,1 @@
-# bytemap - Data structures with low memory footprint [![Build Status](https://img.shields.io/travis/RGustBardon/bytemap.svg)](https://travis-ci.org/RGustBardon/bytemap)
+# bytemap - Data structures with low memory footprint [![Build Status](https://api.travis-ci.org/RGustBardon/bytemap.svg?branch=master)](https://travis-ci.org/RGustBardon/bytemap)
