@@ -1,4 +1,5 @@
+/.editorconfig
+/.php_cs*
+/composer.lock
+/phpunit.xml
 /vendor/
-composer.phar
-composer.lock
-phpunit.xml

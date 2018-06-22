@@ -15,8 +15,16 @@
     "require": {
         "php": "^7.1"
     },
+    "conflict": {
+        "hhvm": "*"
+    },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "jakub-onderka/php-parallel-lint": "^1.0",
         "phpunit/phpunit": "^7.2"
+    },
+    "config": {
+        "sort-packages": true
     },
     "autoload": {
         "psr-4": {"Bytemap\\": "src/Bytemap"}
@@ -26,6 +34,7 @@
     },
     "scripts": {
         "test": [
+            "parallel-lint . --exclude vendor",
             "phpunit"
         ]
     }
