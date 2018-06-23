@@ -21,7 +21,7 @@ use PHPUnit\Framework\TestCase;
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
  * @internal
- * @coversNothing
+ * @covers \Bytemap\HelloWorld
  */
 final class HelloWorldTest extends TestCase
 {

@@ -3,19 +3,51 @@ language: php
 sudo: false
 dist: trusty
 
-php:
-  - 7.1
-  - 7.2
-  - nightly
+git:
+    depth: 1
 
 cache:
-  directories:
-    - $HOME/.composer/cache
+    directories:
+        - $HOME/.composer/cache
 
-matrix:
-  fast_finish: true
+env:
+    global:
+        - DEFAULT_COMPOSER_FLAGS="--optimize-autoloader --no-interaction --no-progress"
+        - COMPOSER_FLAGS=""
 
-before_script:
-  - composer update --prefer-dist --prefer-lowest --prefer-stable
+before_install:
+    - phpenv config-rm xdebug.ini || return 0
+    - composer global show hirak/prestissimo -q || travis_retry composer global require $DEFAULT_COMPOSER_FLAGS hirak/prestissimo
 
-script: composer test
+jobs:
+    include:
+        - &STANDARD_TEST_JOB
+            stage: Test
+            php: 7.1
+            install:
+                - travis_retry composer update $DEFAULT_COMPOSER_FLAGS $COMPOSER_FLAGS
+                - composer info -D | sort
+            script:
+                - vendor/bin/phpunit || travis_terminate 1
+
+        -
+            <<: *STANDARD_TEST_JOB
+            stage: Test
+            php: 7.2
+
+        -
+            <<: *STANDARD_TEST_JOB
+            stage: Test
+            php: 7.2
+            script:
+                - phpdbg -qrr vendor/bin/phpunit --coverage-clover build/logs/clover.xml || travis_terminate 1
+                - php vendor/bin/php-coveralls -v
+
+        -
+            <<: *STANDARD_TEST_JOB
+            stage: Test
+            php: nightly
+            env: COMPOSER_FLAGS="--ignore-platform-reqs"
+
+    allow_failures:
+        - php: nightly

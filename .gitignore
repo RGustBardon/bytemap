@@ -1,5 +1,6 @@
+/build/
+/vendor/
 /.editorconfig
 /.php_cs*
 /composer.lock
 /phpunit.xml
-/vendor/
