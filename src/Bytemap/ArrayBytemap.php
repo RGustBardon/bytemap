@@ -27,29 +27,43 @@ namespace Bytemap;
  */
 final class ArrayBytemap implements BytemapInterface
 {
+    private $defaultItem;
+
+    private $itemCount = 0;
     private $map = [];
+
+    public function __construct($defaultItem)
+    {
+        $this->defaultItem = $defaultItem;
+    }
 
     public function offsetExists($offset)
     {
-        return isset($this->map[$offset]);
+        return $offset < $this->itemCount;
     }
 
     public function offsetGet($offset)
     {
-        return $this->map[$offset];
+        return $this->map[$offset] ?? $this->defaultItem;
     }
 
     public function offsetSet($offset, $value)
     {
-        if (null === $offset) {
-            $this->map[] = $value;
-        } else {
-            $this->map[$offset] = $value;
+        if (null === $offset) {  // `$bytemap[] = $item`
+            $offset = $this->itemCount;
+        }
+
+        $this->map[$offset] = $value;
+        if ($this->itemCount < $offset + 1) {
+            $this->itemCount = $offset + 1;
         }
     }
 
     public function offsetUnset($offset)
     {
         unset($this->map[$offset]);
+        if ($offset === $this->itemCount - 1) {
+            --$this->itemCount;
+        }
     }
 }

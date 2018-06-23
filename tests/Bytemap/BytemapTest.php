@@ -20,25 +20,28 @@ use PHPUnit\Framework\TestCase;
  *
  * @internal
  * @covers \Bytemap\ArrayBytemap
+ * @covers \Bytemap\Bytemap
  */
 final class BytemapTest extends TestCase
 {
     /**
-     * @dataProvider implementationProvider
+     * @dataProvider arrayAccessProvider
      */
-    public function testArrayAccess(string $impl): void
+    public function testArrayAccess(string $impl, array $items): void
     {
-        $bytemap = new $impl();
+        $bytemap = new $impl($items[0]);
         self::assertFalse(isset($bytemap[0]));
         self::assertFalse(isset($bytemap[2]));
 
-        $bytemap[2] = 'x';
-        self::assertFalse(isset($bytemap[0]));
+        $bytemap[2] = $items[1];
+        self::assertTrue(isset($bytemap[0]));
         self::assertTrue(isset($bytemap[2]));
-        self::assertSame('x', $bytemap[2]);
+        self::assertSame($items[0], $bytemap[0]);
+        self::assertSame($items[0], $bytemap[1]);
+        self::assertSame($items[1], $bytemap[2]);
 
-        $bytemap[2] = 'y';
-        self::assertSame('y', $bytemap[2]);
+        $bytemap[2] = $items[2];
+        self::assertSame($items[2], $bytemap[2]);
 
         unset($bytemap[2]);
         self::assertFalse(isset($bytemap[2]));
@@ -46,19 +49,23 @@ final class BytemapTest extends TestCase
         unset($bytemap[2]);
         self::assertFalse(isset($bytemap[2]));
 
-        $bytemap = new $impl();
-        $bytemap[] = 'a';
-        $bytemap[] = 'b';
+        $bytemap = new $impl($items[0]);
+        $bytemap[] = $items[1];
+        $bytemap[] = $items[2];
 
         self::assertTrue(isset($bytemap[0]));
         self::assertTrue(isset($bytemap[1]));
         self::assertFalse(isset($bytemap[2]));
-        self::assertSame('a', $bytemap[0]);
-        self::assertSame('b', $bytemap[1]);
+        self::assertSame($items[1], $bytemap[0]);
+        self::assertSame($items[2], $bytemap[1]);
     }
 
-    public function implementationProvider(): array
+    public function arrayAccessProvider(): \Generator
     {
-        return [[ArrayBytemap::class]];
+        foreach ([ArrayBytemap::class, Bytemap::class] as $impl) {
+            foreach ([['b', 'd', 'f'], ['bd', 'df', 'gg']] as $items) {
+                yield [$impl, $items];
+            }
+        }
     }
 }
