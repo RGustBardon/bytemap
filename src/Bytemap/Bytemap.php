@@ -115,4 +115,18 @@ class Bytemap extends AbstractBytemap
             }
         })(clone $this);
     }
+
+    // `Serializable`
+    public function serialize(): string
+    {
+        return \serialize([$this->defaultItem, $this->map]);
+    }
+
+    public function unserialize($serialized)
+    {
+        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => false]);
+        $this->bytesPerItem = \strlen($this->defaultItem);
+        $this->bytesInTotal = \strlen($this->map);
+        $this->itemCount = $this->bytesInTotal / $this->bytesPerItem;
+    }
 }

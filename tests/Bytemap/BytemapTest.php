@@ -166,8 +166,8 @@ final class BytemapTest extends TestCase
         $bytemap[] = $items[1];
 
         $clone = clone $bytemap;
-        $count = count($clone);
-        self::assertSame(count($bytemap), $count);
+        $count = \count($clone);
+        self::assertSame(\count($bytemap), $count);
         for ($i = 0; $i < $count; ++$i) {
             self::assertSame($bytemap[$i], $clone[$i]);
         }
@@ -190,21 +190,50 @@ final class BytemapTest extends TestCase
             self::fail();
         }
 
-        foreach ($sequence as $item) {
+        self::pushItems($bytemap, ...$sequence);
+        self::assertSequence($sequence, $bytemap);
+    }
+
+    /**
+     * @covers \Bytemap\ArrayBytemap::serialize
+     * @covers \Bytemap\ArrayBytemap::unserialize
+     * @covers \Bytemap\Bytemap::serialize
+     * @covers \Bytemap\Bytemap::unserialize
+     * @dataProvider arrayAccessProvider
+     * @depends testArrayAccess
+     */
+    public function testSerializable(string $impl, array $items): void
+    {
+        $sequence = [$items[1], $items[2], $items[1], $items[0], $items[0]];
+
+        $bytemap = self::instantiate($impl, $items[0]);
+        self::pushItems($bytemap, ...$sequence);
+
+        $copy = \unserialize(\serialize($bytemap), ['allowed_classes' => [$impl]]);
+        self::assertNotSame($bytemap, $copy);
+        self::assertSequence($sequence, $copy);
+    }
+
+    private static function instantiate(string $impl, ...$args): BytemapInterface
+    {
+        return new $impl(...$args);
+    }
+
+    private static function pushItems(BytemapInterface $bytemap, ...$items): void
+    {
+        foreach ($items as $item) {
             $bytemap[] = $item;
         }
+    }
 
+    private static function assertSequence(array $sequence, BytemapInterface $bytemap): void
+    {
         $i = 0;
         foreach ($bytemap as $key => $value) {
             self::assertSame($i, $key);
             self::assertSame($sequence[$key], $value);
             ++$i;
         }
-        self::assertSame(count($sequence), $i);
-    }
-
-    private static function instantiate(string $impl, ...$args): BytemapInterface
-    {
-        return new $impl(...$args);
+        self::assertSame(\count($sequence), $i);
     }
 }
