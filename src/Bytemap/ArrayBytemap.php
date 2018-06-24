@@ -62,8 +62,13 @@ final class ArrayBytemap implements BytemapInterface
     public function offsetUnset($offset)
     {
         unset($this->map[$offset]);
-        if ($offset === $this->itemCount - 1) {
+        if ($this->itemCount - 1 === $offset) {
             --$this->itemCount;
         }
+    }
+
+    public function count()
+    {
+        return $this->itemCount;
     }
 }

@@ -72,4 +72,28 @@ final class BytemapTest extends TestCase
             }
         }
     }
+
+    /**
+     * @dataProvider arrayAccessProvider
+     * @depends testArrayAccess
+     */
+    public function testCount(string $impl, array $items) {
+        $bytemap = new $impl($items[0]);
+        self::assertCount(0, $bytemap);
+
+        $bytemap[] = $items[1];
+        self::assertCount(1, $bytemap);
+
+        $bytemap[4] = $items[2];
+        self::assertCount(5, $bytemap);
+
+        $bytemap[4] = $items[1];
+        self::assertCount(5, $bytemap);
+
+        unset($bytemap[1]);
+        self::assertCount(5, $bytemap);
+
+        unset($bytemap[4]);
+        self::assertCount(5, $bytemap);
+    }
 }

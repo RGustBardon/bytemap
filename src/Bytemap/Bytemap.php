@@ -88,4 +88,9 @@ class Bytemap implements BytemapInterface
             }
         }
     }
+
+    public function count()
+    {
+        return $this->itemCount;
+    }
 }
