@@ -128,21 +128,21 @@ final class BytemapTest extends TestCase
         $sequence = [$items[1], $items[2], $items[1]];
 
         $bytemap = self::instantiate($impl, $items[0]);
-        $i = 0;
         foreach ($bytemap as $key => $value) {
-            ++$i;
+            self::fail();
         }
-        self::assertSame(0, $i);
 
         foreach ($sequence as $item) {
             $bytemap[] = $item;
         }
 
+        $i = 0;
         foreach ($bytemap as $key => $value) {
             self::assertSame($i, $key);
             self::assertSame($sequence[$key], $value);
             ++$i;
         }
+        self::assertSame(count($sequence), $i);
     }
 
     private static function instantiate(string $impl, ...$args): BytemapInterface
