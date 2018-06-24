@@ -37,6 +37,7 @@ final class ArrayBytemap implements BytemapInterface
         $this->defaultItem = $defaultItem;
     }
 
+    // `ArrayAccess`
     public function offsetExists($offset)
     {
         return $offset < $this->itemCount;
@@ -67,6 +68,7 @@ final class ArrayBytemap implements BytemapInterface
         }
     }
 
+    // `Countable`
     public function count()
     {
         return $this->itemCount;

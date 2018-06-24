@@ -97,4 +97,27 @@ final class BytemapTest extends TestCase
         unset($bytemap[4]);
         self::assertCount(4, $bytemap);
     }
+
+    /**
+     * @dataProvider arrayAccessProvider
+     * @depends testCount
+     */
+    public function testCloning(string $impl, array $items): void
+    {
+        $sequence = [$items[1], $items[2], $items[1]];
+
+        $bytemap = new $impl($items[0]);
+        $bytemap[] = $items[1];
+        $bytemap[] = $items[2];
+        $bytemap[] = $items[1];
+
+        $clone = clone $bytemap;
+        $count = count($clone);
+        self::assertSame(count($bytemap), $count);
+        for ($i = 0; $i < $count; ++$i) {
+            self::assertSame($bytemap[$i], $clone[$i]);
+        }
+        $clone[10] = $items[2];
+        self::assertSame($items[0], $clone[9]);
+    }
 }

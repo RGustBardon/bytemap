@@ -37,6 +37,7 @@ class Bytemap implements BytemapInterface
         $this->bytesPerItem = \strlen($defaultItem);
     }
 
+    // `ArrayAccess`
     public function offsetExists($offset)
     {
         return $offset < $this->itemCount;
@@ -89,6 +90,7 @@ class Bytemap implements BytemapInterface
         }
     }
 
+    // `Countable`
     public function count()
     {
         return $this->itemCount;
