@@ -84,6 +84,14 @@ final class ArrayBytemap extends AbstractBytemap
         })(clone $this);
     }
 
+    // `JsonSerializable`
+    public function jsonSerialize(): array
+    {
+        \ksort($this->map, \SORT_NUMERIC);
+
+        return [$this->defaultItem, $this->map];
+    }
+
     // `Serializable`
     public function serialize(): string
     {

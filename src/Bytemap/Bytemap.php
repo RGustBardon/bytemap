@@ -116,6 +116,12 @@ class Bytemap extends AbstractBytemap
         })(clone $this);
     }
 
+    // `JsonSerializable`
+    public function jsonSerialize(): array
+    {
+        return [$this->defaultItem, \str_split($this->map, $this->bytesPerItem)];
+    }
+
     // `Serializable`
     public function serialize(): string
     {

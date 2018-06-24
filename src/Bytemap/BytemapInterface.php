@@ -16,6 +16,6 @@ namespace Bytemap;
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
-interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \Serializable
+interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
 {
 }

@@ -171,8 +171,11 @@ final class BytemapTest extends TestCase
         for ($i = 0; $i < $count; ++$i) {
             self::assertSame($bytemap[$i], $clone[$i]);
         }
+        $bytemap[10] = $items[1];
         $clone[10] = $items[2];
+        self::assertSame($items[1], $bytemap[10]);
         self::assertSame($items[0], $clone[9]);
+        self::assertSame($items[2], $clone[10]);
     }
 
     /**
@@ -192,6 +195,22 @@ final class BytemapTest extends TestCase
 
         self::pushItems($bytemap, ...$sequence);
         self::assertSequence($sequence, $bytemap);
+    }
+
+    /**
+     * @covers \Bytemap\ArrayBytemap::jsonSerialize
+     * @covers \Bytemap\Bytemap::jsonSerialize
+     * @dataProvider arrayAccessProvider
+     * @depends testArrayAccess
+     */
+    public function testJsonSerializable(string $impl, array $items): void
+    {
+        $sequence = [$items[1], $items[2], $items[1], $items[0], $items[0]];
+
+        $bytemap = self::instantiate($impl, $items[0]);
+        self::pushItems($bytemap, ...$sequence);
+
+        self::assertSame(\json_encode([$items[0], $sequence]), \json_encode($bytemap));
     }
 
     /**
