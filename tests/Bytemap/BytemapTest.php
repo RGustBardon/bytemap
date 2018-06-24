@@ -24,6 +24,56 @@ use PHPUnit\Framework\TestCase;
  */
 final class BytemapTest extends TestCase
 {
+    public static function implementationProvider(): \Generator
+    {
+        yield from [[ArrayBytemap::class], [Bytemap::class]];
+    }
+
+    /**
+     * @dataProvider implementationProvider
+     * @expectedException \ErrorException
+     */
+    public function testMagicGet(string $impl): void
+    {
+        (self::instantiate($impl, 'a'))->undefinedProperty;
+    }
+
+    /**
+     * @dataProvider implementationProvider
+     * @expectedException \ErrorException
+     */
+    public function testMagicSet(string $impl): void
+    {
+        (self::instantiate($impl, 'a'))->undefinedProperty = 42;
+    }
+
+    /**
+     * @dataProvider implementationProvider
+     * @expectedException \ErrorException
+     */
+    public function testMagicIsset(string $impl): void
+    {
+        isset((self::instantiate($impl, 'a'))->undefinedProperty);
+    }
+
+    /**
+     * @dataProvider implementationProvider
+     * @expectedException \ErrorException
+     */
+    public function testMagicUnset(string $impl): void
+    {
+        unset((self::instantiate($impl, 'a'))->undefinedProperty);
+    }
+
+    public static function arrayAccessProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([['b', 'd', 'f'], ['bd', 'df', 'gg']] as $items) {
+                yield [$impl, $items];
+            }
+        }
+    }
+
     /**
      * @dataProvider arrayAccessProvider
      */
@@ -62,15 +112,6 @@ final class BytemapTest extends TestCase
         self::assertFalse(isset($bytemap[2]));
         self::assertSame($items[1], $bytemap[0]);
         self::assertSame($items[2], $bytemap[1]);
-    }
-
-    public function arrayAccessProvider(): \Generator
-    {
-        foreach ([ArrayBytemap::class, Bytemap::class] as $impl) {
-            foreach ([['b', 'd', 'f'], ['bd', 'df', 'gg']] as $items) {
-                yield [$impl, $items];
-            }
-        }
     }
 
     /**

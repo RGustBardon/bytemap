@@ -20,7 +20,7 @@ namespace Bytemap;
  *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
-class Bytemap implements BytemapInterface
+class Bytemap extends AbstractBytemap
 {
     private $defaultItem;
 

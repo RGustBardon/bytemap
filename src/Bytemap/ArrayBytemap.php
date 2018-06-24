@@ -25,7 +25,7 @@ namespace Bytemap;
  *
  * @internal
  */
-final class ArrayBytemap implements BytemapInterface
+final class ArrayBytemap extends AbstractBytemap
 {
     private $defaultItem;
 
