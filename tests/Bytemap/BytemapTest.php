@@ -30,6 +30,7 @@ final class BytemapTest extends TestCase
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider
      * @expectedException \ErrorException
      */
@@ -39,6 +40,7 @@ final class BytemapTest extends TestCase
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider
      * @expectedException \ErrorException
      */
@@ -48,6 +50,7 @@ final class BytemapTest extends TestCase
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider
      * @expectedException \ErrorException
      */
@@ -57,6 +60,7 @@ final class BytemapTest extends TestCase
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider
      * @expectedException \ErrorException
      */
@@ -75,6 +79,14 @@ final class BytemapTest extends TestCase
     }
 
     /**
+     * @covers \Bytemap\ArrayBytemap::offsetExists
+     * @covers \Bytemap\ArrayBytemap::offsetGet
+     * @covers \Bytemap\ArrayBytemap::offsetSet
+     * @covers \Bytemap\ArrayBytemap::offsetUnset
+     * @covers \Bytemap\Bytemap::offsetExists
+     * @covers \Bytemap\Bytemap::offsetGet
+     * @covers \Bytemap\Bytemap::offsetSet
+     * @covers \Bytemap\Bytemap::offsetUnset
      * @dataProvider arrayAccessProvider
      */
     public function testArrayAccess(string $impl, array $items): void
@@ -115,6 +127,8 @@ final class BytemapTest extends TestCase
     }
 
     /**
+     * @covers \Bytemap\ArrayBytemap::count
+     * @covers \Bytemap\Bytemap::count
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
@@ -140,6 +154,7 @@ final class BytemapTest extends TestCase
     }
 
     /**
+     * @coversNothing
      * @dataProvider arrayAccessProvider
      * @depends testCount
      */
@@ -161,6 +176,8 @@ final class BytemapTest extends TestCase
     }
 
     /**
+     * @covers \Bytemap\ArrayBytemap::getIterator
+     * @covers \Bytemap\Bytemap::getIterator
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
