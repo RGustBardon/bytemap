@@ -77,7 +77,8 @@ final class BytemapTest extends TestCase
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
-    public function testCount(string $impl, array $items) {
+    public function testCount(string $impl, array $items): void
+    {
         $bytemap = new $impl($items[0]);
         self::assertCount(0, $bytemap);
 
@@ -94,6 +95,6 @@ final class BytemapTest extends TestCase
         self::assertCount(5, $bytemap);
 
         unset($bytemap[4]);
-        self::assertCount(5, $bytemap);
+        self::assertCount(4, $bytemap);
     }
 }
