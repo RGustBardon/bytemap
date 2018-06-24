@@ -49,6 +49,10 @@ final class BytemapTest extends TestCase
         unset($bytemap[2]);
         self::assertFalse(isset($bytemap[2]));
 
+        unset($bytemap[0]);
+        self::assertTrue(isset($bytemap[0]));
+        self::assertSame($items[0], $bytemap[0]);
+
         $bytemap = new $impl($items[0]);
         $bytemap[] = $items[1];
         $bytemap[] = $items[2];
