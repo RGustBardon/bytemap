@@ -29,7 +29,7 @@ final class BytemapTest extends TestCase
      */
     public function testArrayAccess(string $impl, array $items): void
     {
-        $bytemap = new $impl($items[0]);
+        $bytemap = self::instantiate($impl, $items[0]);
         self::assertFalse(isset($bytemap[0]));
         self::assertFalse(isset($bytemap[2]));
 
@@ -53,7 +53,7 @@ final class BytemapTest extends TestCase
         self::assertTrue(isset($bytemap[0]));
         self::assertSame($items[0], $bytemap[0]);
 
-        $bytemap = new $impl($items[0]);
+        $bytemap = self::instantiate($impl, $items[0]);
         $bytemap[] = $items[1];
         $bytemap[] = $items[2];
 
@@ -79,7 +79,7 @@ final class BytemapTest extends TestCase
      */
     public function testCount(string $impl, array $items): void
     {
-        $bytemap = new $impl($items[0]);
+        $bytemap = self::instantiate($impl, $items[0]);
         self::assertCount(0, $bytemap);
 
         $bytemap[] = $items[1];
@@ -104,9 +104,7 @@ final class BytemapTest extends TestCase
      */
     public function testCloning(string $impl, array $items): void
     {
-        $sequence = [$items[1], $items[2], $items[1]];
-
-        $bytemap = new $impl($items[0]);
+        $bytemap = self::instantiate($impl, $items[0]);
         $bytemap[] = $items[1];
         $bytemap[] = $items[2];
         $bytemap[] = $items[1];
@@ -119,5 +117,36 @@ final class BytemapTest extends TestCase
         }
         $clone[10] = $items[2];
         self::assertSame($items[0], $clone[9]);
+    }
+
+    /**
+     * @dataProvider arrayAccessProvider
+     * @depends testArrayAccess
+     */
+    public function testIteratorAggregate(string $impl, array $items): void
+    {
+        $sequence = [$items[1], $items[2], $items[1]];
+
+        $bytemap = self::instantiate($impl, $items[0]);
+        $i = 0;
+        foreach ($bytemap as $key => $value) {
+            ++$i;
+        }
+        self::assertSame(0, $i);
+
+        foreach ($sequence as $item) {
+            $bytemap[] = $item;
+        }
+
+        foreach ($bytemap as $key => $value) {
+            self::assertSame($i, $key);
+            self::assertSame($sequence[$key], $value);
+            ++$i;
+        }
+    }
+
+    private static function instantiate(string $impl, ...$args): BytemapInterface
+    {
+        return new $impl(...$args);
     }
 }

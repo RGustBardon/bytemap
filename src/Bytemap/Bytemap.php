@@ -38,17 +38,21 @@ class Bytemap implements BytemapInterface
     }
 
     // `ArrayAccess`
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return $offset < $this->itemCount;
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset): string
     {
+        if (1 === $this->bytesPerItem) {
+            return $this->map[$offset];
+        }
+
         return \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
     }
 
-    public function offsetSet($offset, $item)
+    public function offsetSet($offset, $item): void
     {
         if (null === $offset) {  // `$bytemap[] = $item`
             $offset = $this->itemCount;
@@ -74,7 +78,7 @@ class Bytemap implements BytemapInterface
         }
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         if ($offset < $this->itemCount) {
             if ($offset === $this->itemCount - 1) {
@@ -91,8 +95,24 @@ class Bytemap implements BytemapInterface
     }
 
     // `Countable`
-    public function count()
+    public function count(): int
     {
         return $this->itemCount;
+    }
+
+    // `IteratorAggregate`
+    public function getIterator(): \Generator
+    {
+        return (static function (self $bytemap): \Generator {
+            if (1 === $bytemap->bytesPerItem) {
+                for ($i = 0; $i < $bytemap->itemCount; ++$i) {
+                    yield $i => $bytemap->map[$i];
+                }
+            } else {
+                for ($i = 0; $i < $bytemap->itemCount; ++$i) {
+                    yield $i => $bytemap[$i];
+                }
+            }
+        })(clone $this);
     }
 }
