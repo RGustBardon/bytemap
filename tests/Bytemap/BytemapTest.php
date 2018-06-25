@@ -192,6 +192,30 @@ final class BytemapTest extends TestCase
 
         self::pushItems($bytemap, ...$sequence);
         self::assertSequence($sequence, $bytemap);
+
+        $iterations = [];
+        foreach ($bytemap as $outerKey => $outerItem) {
+            if (1 === $outerKey) {
+                $bytemap[] = $items[2];
+            }
+            $innerIteration = [];
+            foreach ($bytemap as $innerKey => $innerItem) {
+                if (1 === $innerKey) {
+                    $bytemap[2] = $items[0];
+                }
+                $innerIteration[] = [$innerKey, $innerItem];
+            }
+            $iterations[] = $innerIteration;
+            $iterations[] = [$outerKey, $outerItem];
+        }
+        self::assertSame([
+            [[0, $items[1]], [1, $items[2]], [2, $items[1]]],
+            [0, $items[1]],
+            [[0, $items[1]], [1, $items[2]], [2, $items[0]], [3, $items[2]]],
+            [1, $items[2]],
+            [[0, $items[1]], [1, $items[2]], [2, $items[0]], [3, $items[2]]],
+            [2, $items[1]],
+        ], $iterations);
     }
 
     /**
@@ -200,7 +224,7 @@ final class BytemapTest extends TestCase
      * @covers \Bytemap\Bytemap::jsonSerialize
      * @covers \Bytemap\Bytemap::parseJsonStream
      * @dataProvider arrayAccessProvider
-     * @depends testArrayAccess
+     * @depends testCount
      */
     public function testJson(string $impl, array $items): void
     {
@@ -227,7 +251,7 @@ final class BytemapTest extends TestCase
      * @covers \Bytemap\Bytemap::serialize
      * @covers \Bytemap\Bytemap::unserialize
      * @dataProvider arrayAccessProvider
-     * @depends testArrayAccess
+     * @depends testCount
      */
     public function testSerializable(string $impl, array $items): void
     {
