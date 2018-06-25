@@ -171,11 +171,8 @@ final class BytemapTest extends TestCase
         for ($i = 0; $i < $count; ++$i) {
             self::assertSame($bytemap[$i], $clone[$i]);
         }
-        $bytemap[10] = $items[1];
-        $clone[10] = $items[2];
-        self::assertSame($items[1], $bytemap[10]);
-        self::assertSame($items[0], $clone[9]);
-        self::assertSame($items[2], $clone[10]);
+        self::assertDefaultItem($items[0], $clone, $items[1]);
+        self::assertDefaultItem($items[0], $bytemap, $items[2]);
     }
 
     /**
@@ -220,6 +217,8 @@ final class BytemapTest extends TestCase
         $copy = $bytemap::parseJsonStream($jsonStream);
         self::assertNotSame($bytemap, $copy);
         self::assertSequence($sequence, $copy);
+        self::assertDefaultItem($items[0], $copy, $items[1]);
+        self::assertDefaultItem($items[0], $bytemap, $items[2]);
     }
 
     /**
@@ -240,6 +239,8 @@ final class BytemapTest extends TestCase
         $copy = \unserialize(\serialize($bytemap), ['allowed_classes' => [$impl]]);
         self::assertNotSame($bytemap, $copy);
         self::assertSequence($sequence, $copy);
+        self::assertDefaultItem($items[0], $copy, $items[1]);
+        self::assertDefaultItem($items[0], $bytemap, $items[2]);
     }
 
     private static function instantiate(string $impl, ...$args): BytemapInterface
@@ -252,6 +253,23 @@ final class BytemapTest extends TestCase
         foreach ($items as $item) {
             $bytemap[] = $item;
         }
+    }
+
+    /**
+     * Ensure that the information on the default item is preserved when cloning and serializing.
+     *
+     * @param bool|int|string $defaultItem
+     * @param bool|int|string $newItem
+     */
+    private static function assertDefaultItem($defaultItem, BytemapInterface $bytemap, $newItem): void
+    {
+        $indexOfDefaultItem = count($bytemap);
+        $indexOfNewItem = $indexOfDefaultItem + 1;
+        $bytemap[$indexOfNewItem] = $newItem;
+        self::assertSame($defaultItem, $bytemap[$indexOfDefaultItem]);
+        self::assertSame($newItem, $bytemap[$indexOfNewItem]);
+        unset($bytemap[$indexOfNewItem]);
+        unset($bytemap[$indexOfDefaultItem]);
     }
 
     private static function assertSequence(array $sequence, BytemapInterface $bytemap): void
