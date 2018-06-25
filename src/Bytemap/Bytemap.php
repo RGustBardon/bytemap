@@ -131,6 +131,22 @@ class Bytemap extends AbstractBytemap
     public function unserialize($serialized)
     {
         [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => false]);
+        $this->deriveProperties();
+    }
+
+    // `BytemapInterface`
+    public static function parseJsonStream($jsonStream): BytemapInterface
+    {
+        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream));
+        $bytemap = new self($defaultItem);
+        $bytemap->map = \implode('', $map);
+        $bytemap->deriveProperties();
+
+        return $bytemap;
+    }
+
+    private function deriveProperties(): void
+    {
         $this->bytesPerItem = \strlen($this->defaultItem);
         $this->bytesInTotal = \strlen($this->map);
         $this->itemCount = $this->bytesInTotal / $this->bytesPerItem;

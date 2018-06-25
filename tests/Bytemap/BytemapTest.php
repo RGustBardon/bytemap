@@ -199,18 +199,27 @@ final class BytemapTest extends TestCase
 
     /**
      * @covers \Bytemap\ArrayBytemap::jsonSerialize
+     * @covers \Bytemap\ArrayBytemap::parseJsonStream
      * @covers \Bytemap\Bytemap::jsonSerialize
+     * @covers \Bytemap\Bytemap::parseJsonStream
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
-    public function testJsonSerializable(string $impl, array $items): void
+    public function testJson(string $impl, array $items): void
     {
         $sequence = [$items[1], $items[2], $items[1], $items[0], $items[0]];
 
         $bytemap = self::instantiate($impl, $items[0]);
         self::pushItems($bytemap, ...$sequence);
 
-        self::assertSame(\json_encode([$items[0], $sequence]), \json_encode($bytemap));
+        $json = \json_encode($bytemap);
+        $jsonStream = \fopen('php://memory', 'r+');
+        \fwrite($jsonStream, $json);
+        \rewind($jsonStream);
+
+        $copy = $bytemap::parseJsonStream($jsonStream);
+        self::assertNotSame($bytemap, $copy);
+        self::assertSequence($sequence, $copy);
     }
 
     /**
