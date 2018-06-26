@@ -135,12 +135,33 @@ class Bytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public static function parseJsonStream($jsonStream): BytemapInterface
+    public static function parseJsonStream($jsonStream, bool $useStreamingParser = true): BytemapInterface
     {
-        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream));
+        if ($useStreamingParser && \class_exists('\\JsonStreamingParser\\Parser')) {
+            return self::parseBytemapJsonOnTheFly($jsonStream, __CLASS__);
+        }
+
+        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream), true);
         $bytemap = new self($defaultItem);
-        $bytemap->map = \implode('', $map);
-        $bytemap->deriveProperties();
+        $cnt = \count($map);
+        if ($cnt > 0) {
+            // `\max(\array_keys($map))` would affect peak memory usage.
+            $maxKey = -1;
+            foreach ($map as $key => $value) {
+                if ($maxKey < $key) {
+                    $maxKey = $key;
+                }
+            }
+            if (\count($map) === $maxKey + 1) {
+                $bytemap->map = \implode('', $map);
+            } else {
+                $bytemap[$maxKey] = $map[$maxKey];  // Avoid unnecessary resizing.
+                foreach ($map as $key => $value) {
+                    $bytemap[$key] = $value;
+                }
+            }
+            $bytemap->deriveProperties();
+        }
 
         return $bytemap;
     }

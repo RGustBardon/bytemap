@@ -18,5 +18,11 @@ namespace Bytemap;
  */
 interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
 {
-    public static function parseJsonStream($jsonStream): self;
+    /**
+     * @param resource $jsonStream
+     * @param bool     $useStreamingParser an internal parameter that should only be used while testing
+     *
+     * @return self
+     */
+    public static function parseJsonStream($jsonStream, bool $useStreamingParser = true): self;
 }

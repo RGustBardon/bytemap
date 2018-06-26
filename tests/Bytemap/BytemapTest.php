@@ -218,29 +218,47 @@ final class BytemapTest extends TestCase
         ], $iterations);
     }
 
+    public static function jsonProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            foreach ([false, true] as $useStreamingParser) {
+                yield [$impl, $useStreamingParser, $items];
+            }
+        }
+    }
+
     /**
+     * @covers \Bytemap\AbstractBytemap::parseBytemapJsonOnTheFly
      * @covers \Bytemap\ArrayBytemap::jsonSerialize
      * @covers \Bytemap\ArrayBytemap::parseJsonStream
      * @covers \Bytemap\Bytemap::jsonSerialize
      * @covers \Bytemap\Bytemap::parseJsonStream
-     * @dataProvider arrayAccessProvider
+     * @covers \Bytemap\JsonListener\BytemapListener
+     * @dataProvider jsonProvider
      * @depends testCount
      */
-    public function testJson(string $impl, array $items): void
+    public function testJson(string $impl, bool $useStreamingParser, array $items): void
     {
         $sequence = [$items[1], $items[2], $items[1], $items[0], $items[0]];
 
         $bytemap = self::instantiate($impl, $items[0]);
         self::pushItems($bytemap, ...$sequence);
 
-        $json = \json_encode($bytemap);
-        $jsonStream = \fopen('php://memory', 'r+');
-        \fwrite($jsonStream, $json);
-        \rewind($jsonStream);
-
-        $copy = $bytemap::parseJsonStream($jsonStream);
+        $copy = $bytemap::parseJsonStream(self::getJsonStream($bytemap), $useStreamingParser);
         self::assertNotSame($bytemap, $copy);
         self::assertSequence($sequence, $copy);
+        self::assertDefaultItem($items[0], $copy, $items[1]);
+        self::assertDefaultItem($items[0], $bytemap, $items[2]);
+
+        $sequence = [2 => $items[2], 4 => $items[1], 5 => $items[1], 6 => $items[0]];
+        $bytemap = self::instantiate($impl, $items[0]);
+        foreach ($sequence as $key => $value) {
+            $bytemap[$key] = $value;
+        }
+
+        $copy = $bytemap::parseJsonStream(self::getJsonStream($bytemap), $useStreamingParser);
+        self::assertNotSame($bytemap, $copy);
+        self::assertSequence($sequence + [$items[0], $items[0], 3 => $items[0]], $copy);
         self::assertDefaultItem($items[0], $copy, $items[1]);
         self::assertDefaultItem($items[0], $bytemap, $items[2]);
     }
@@ -277,6 +295,16 @@ final class BytemapTest extends TestCase
         foreach ($items as $item) {
             $bytemap[] = $item;
         }
+    }
+
+    private static function getJsonStream(BytemapInterface $bytemap)
+    {
+        $json = \json_encode($bytemap);
+        $jsonStream = \fopen('php://memory', 'r+');
+        \fwrite($jsonStream, $json);
+        \rewind($jsonStream);
+
+        return $jsonStream;
     }
 
     /**

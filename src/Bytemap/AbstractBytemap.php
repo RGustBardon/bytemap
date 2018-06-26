@@ -13,8 +13,13 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
+use Bytemap\JsonListener\BytemapListener;
+use JsonStreamingParser\Parser;
+
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
+ *
+ * @internal
  */
 abstract class AbstractBytemap implements BytemapInterface
 {
@@ -36,5 +41,22 @@ abstract class AbstractBytemap implements BytemapInterface
     public function __unset($name): void
     {
         self::__get($name);
+    }
+
+    protected static function parseBytemapJsonOnTheFly($jsonStream, $impl): BytemapInterface
+    {
+        $bytemap = null;
+        $listener = new BytemapListener(function ($value, $key) use (&$bytemap, $impl) {
+            if (null === $bytemap) {
+                $bytemap = new $impl($value);
+            } elseif (null === $key) {
+                $bytemap[] = $value;
+            } else {
+                $bytemap[$key] = $value;
+            }
+        });
+        (new Parser($jsonStream, $listener))->parse();
+
+        return $bytemap;
     }
 }

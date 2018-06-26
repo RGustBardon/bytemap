@@ -21,10 +21,14 @@
     "require-dev": {
         "jakub-onderka/php-parallel-lint": "^1.0",
         "php-coveralls/php-coveralls": "^2.1",
-        "phpunit/phpunit": "^7.2"
+        "phpunit/phpunit": "^7.2",
+        "salsify/json-streaming-parser": "^6.0"
     },
     "config": {
         "sort-packages": true
+    },
+    "suggest": {
+        "salsify/json-streaming-parser": "For instantiating bytemaps from JSON with low memory footprint"
     },
     "autoload": {
         "psr-4": {"Bytemap\\": "src/Bytemap"}

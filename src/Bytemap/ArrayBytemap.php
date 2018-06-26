@@ -105,9 +105,13 @@ final class ArrayBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public static function parseJsonStream($jsonStream): BytemapInterface
+    public static function parseJsonStream($jsonStream, bool $useStreamingParser = true): BytemapInterface
     {
-        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream));
+        if ($useStreamingParser && \class_exists('\\JsonStreamingParser\\Parser')) {
+            return self::parseBytemapJsonOnTheFly($jsonStream, __CLASS__);
+        }
+
+        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream), true);
         $bytemap = new self($defaultItem);
         $bytemap->map = $map;
         $bytemap->deriveProperties();
