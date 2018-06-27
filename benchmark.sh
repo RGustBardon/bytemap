@@ -9,8 +9,9 @@
 
 # docker build -t bytemap . && docker run -it --rm --name bytemap bytemap
 
+php benchmark.php 'Bytemap\Benchmark\ArrayBytemap'
+php benchmark.php 'Bytemap\Benchmark\SplBytemap'
 php benchmark.php 'Bytemap\Benchmark\DsBytemap'
 docker-php-ext-enable ds
-php benchmark.php 'Bytemap\Benchmark\ArrayBytemap'
 php benchmark.php 'Bytemap\Benchmark\DsBytemap'
 php benchmark.php 'Bytemap\Bytemap'

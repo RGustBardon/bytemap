@@ -19,11 +19,11 @@ use Bytemap\JsonListener\BytemapListener;
 use JsonStreamingParser\Parser;
 
 /**
- * An implementation of the `BytemapInterface` using `\Ds\Vector`.
+ * An implementation of the `BytemapInterface` using `\SplFixedArray`.
  *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
-class DsBytemap extends AbstractBytemap
+class SplBytemap extends AbstractBytemap
 {
     private $defaultItem;
 
@@ -34,7 +34,12 @@ class DsBytemap extends AbstractBytemap
     {
         $this->defaultItem = $defaultItem;
 
-        $this->map = new \Ds\Vector();
+        $this->map = new \SplFixedArray();
+    }
+
+    public function __clone()
+    {
+        $this->map = clone $this->map;
     }
 
     // `ArrayAccess`
@@ -45,7 +50,7 @@ class DsBytemap extends AbstractBytemap
 
     public function offsetGet($offset): string
     {
-        return $this->map[$offset];
+        return $this->map[$offset] ?? $this->defaultItem;
     }
 
     public function offsetSet($offset, $item): void
@@ -55,32 +60,19 @@ class DsBytemap extends AbstractBytemap
         }
 
         $unassignedCount = $offset - $this->itemCount;
-        if ($unassignedCount < 0) {
-            // Case 1. Overwrite an existing item.
-            $this->map[$offset] = $item;
-        } elseif (0 === $unassignedCount) {
-            // Case 2. Append an item right after the last one.
-            $this->map[] = $item;
-            ++$this->itemCount;
-        } else {
-            // Case 3. Append to a gap after the last item. Fill the gap with default items.
-            $this->map->allocate($this->itemCount + $unassignedCount + 1);
-            for ($i = 0; $i < $unassignedCount; ++$i) {
-                $this->map[] = $this->defaultItem;
-            }
-            $this->map[] = $item;
+        if ($unassignedCount >= 0) {
+            $this->map->setSize($this->itemCount + $unassignedCount + 1);
             $this->itemCount += $unassignedCount + 1;
         }
+        $this->map[$offset] = $item;
     }
 
     public function offsetUnset($offset): void
     {
         if ($this->itemCount > $offset) {
+            unset($this->map[$offset]);
             if ($this->itemCount - 1 === $offset) {
-                unset($this->map[$offset]);
                 --$this->itemCount;
-            } else {
-                $this->map[$offset] = $this->defaultItem;
             }
         }
     }
@@ -94,7 +86,11 @@ class DsBytemap extends AbstractBytemap
     // `IteratorAggregate`
     public function getIterator(): \Traversable
     {
-        return clone $this->map;
+        return (static function (self $bytemap): \Generator {
+            for ($i = 0; $i < $bytemap->itemCount; ++$i) {
+                yield $i => $bytemap[$i];
+            }
+        })(clone $this);
     }
 
     // `JsonSerializable`
@@ -111,7 +107,8 @@ class DsBytemap extends AbstractBytemap
 
     public function unserialize($serialized)
     {
-        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => ['Ds\\Vector']]);
+        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => ['SplFixedArray']]);
+        $this->map->__wakeup();
         $this->deriveProperties();
     }
 
@@ -132,10 +129,7 @@ class DsBytemap extends AbstractBytemap
                         $bytemap[$key] = $value;
                     } else {
                         if (0 < $unassignedCount) {
-                            $bytemap->map->allocate($maxKey + 1);
-                            for ($i = 0; $i < $unassignedCount; ++$i) {
-                                $bytemap[] = $bytemap->defaultItem;
-                            }
+                            $bytemap->map->setSize($maxKey + 1);
                         }
                         $bytemap[] = $value;
                         $maxKey = $key;
@@ -150,20 +144,7 @@ class DsBytemap extends AbstractBytemap
         [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream), true);
         $bytemap = new self($defaultItem);
         if ($map) {
-            // `\max(\array_keys($map))` would affect peak memory usage.
-            $maxKey = -1;
-            foreach ($map as $key => $value) {
-                if ($maxKey < $key) {
-                    $maxKey = $key;
-                }
-            }
-            $bytemap->map->allocate($maxKey + 1);
-            for ($i = 0; $i < $maxKey; ++$i) {
-                $bytemap[] = $defaultItem;
-            }
-            foreach ($map as $key => $value) {
-                $bytemap[$key] = $value;
-            }
+            $bytemap->map = \SplFixedArray::fromArray($map);
             $bytemap->deriveProperties();
         }
 

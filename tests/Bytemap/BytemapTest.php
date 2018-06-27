@@ -15,6 +15,7 @@ namespace Bytemap;
 
 use Bytemap\Benchmark\ArrayBytemap;
 use Bytemap\Benchmark\DsBytemap;
+use Bytemap\Benchmark\SplBytemap;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -23,13 +24,14 @@ use PHPUnit\Framework\TestCase;
  * @internal
  * @covers \Bytemap\Benchmark\ArrayBytemap
  * @covers \Bytemap\Benchmark\DsBytemap
+ * @covers \Bytemap\Benchmark\SplBytemap
  * @covers \Bytemap\Bytemap
  */
 final class BytemapTest extends TestCase
 {
     public static function implementationProvider(): \Generator
     {
-        yield from [[ArrayBytemap::class], [DsBytemap::class], [Bytemap::class]];
+        yield from [[ArrayBytemap::class], [DsBytemap::class], [SplBytemap::class], [Bytemap::class]];
     }
 
     /**
@@ -90,6 +92,10 @@ final class BytemapTest extends TestCase
      * @covers \Bytemap\Benchmark\DsBytemap::offsetGet
      * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
      * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetExists
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
      * @covers \Bytemap\Bytemap::offsetExists
      * @covers \Bytemap\Bytemap::offsetGet
      * @covers \Bytemap\Bytemap::offsetSet
@@ -136,6 +142,7 @@ final class BytemapTest extends TestCase
     /**
      * @covers \Bytemap\Benchmark\ArrayBytemap::count
      * @covers \Bytemap\Benchmark\DsBytemap::count
+     * @covers \Bytemap\Benchmark\SplBytemap::count
      * @covers \Bytemap\Bytemap::count
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
@@ -186,6 +193,7 @@ final class BytemapTest extends TestCase
     /**
      * @covers \Bytemap\Benchmark\ArrayBytemap::getIterator
      * @covers \Bytemap\Benchmark\DsBytemap::getIterator
+     * @covers \Bytemap\Benchmark\SplBytemap::getIterator
      * @covers \Bytemap\Bytemap::getIterator
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
@@ -242,6 +250,8 @@ final class BytemapTest extends TestCase
      * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
      * @covers \Bytemap\Benchmark\DsBytemap::jsonSerialize
      * @covers \Bytemap\Benchmark\DsBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\SplBytemap::jsonSerialize
+     * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
      * @covers \Bytemap\Bytemap::jsonSerialize
      * @covers \Bytemap\Bytemap::parseJsonStream
      * @covers \Bytemap\JsonListener\BytemapListener
@@ -279,6 +289,8 @@ final class BytemapTest extends TestCase
      * @covers \Bytemap\Benchmark\ArrayBytemap::unserialize
      * @covers \Bytemap\Benchmark\DsBytemap::serialize
      * @covers \Bytemap\Benchmark\DsBytemap::unserialize
+     * @covers \Bytemap\Benchmark\SplBytemap::serialize
+     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
      * @covers \Bytemap\Bytemap::serialize
      * @covers \Bytemap\Bytemap::unserialize
      * @dataProvider arrayAccessProvider
