@@ -11,7 +11,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Bytemap;
+namespace Bytemap\Benchmark;
+
+use Bytemap\AbstractBytemap;
+use Bytemap\BytemapInterface;
 
 /**
  * A naive implementation of the `BytemapInterface` using a built-in array.

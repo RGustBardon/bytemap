@@ -13,15 +13,17 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
+use Bytemap\Benchmark\ArrayBytemap;
+use Bytemap\Benchmark\DsBytemap;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
  * @internal
- * @covers \Bytemap\ArrayBytemap
+ * @covers \Bytemap\Benchmark\ArrayBytemap
+ * @covers \Bytemap\Benchmark\DsBytemap
  * @covers \Bytemap\Bytemap
- * @covers \Bytemap\DsBytemap
  */
 final class BytemapTest extends TestCase
 {
@@ -80,18 +82,18 @@ final class BytemapTest extends TestCase
     }
 
     /**
-     * @covers \Bytemap\ArrayBytemap::offsetExists
-     * @covers \Bytemap\ArrayBytemap::offsetGet
-     * @covers \Bytemap\ArrayBytemap::offsetSet
-     * @covers \Bytemap\ArrayBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetExists
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetExists
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
      * @covers \Bytemap\Bytemap::offsetExists
      * @covers \Bytemap\Bytemap::offsetGet
      * @covers \Bytemap\Bytemap::offsetSet
      * @covers \Bytemap\Bytemap::offsetUnset
-     * @covers \Bytemap\DsBytemap::offsetExists
-     * @covers \Bytemap\DsBytemap::offsetGet
-     * @covers \Bytemap\DsBytemap::offsetSet
-     * @covers \Bytemap\DsBytemap::offsetUnset
      * @dataProvider arrayAccessProvider
      */
     public function testArrayAccess(string $impl, array $items): void
@@ -132,9 +134,9 @@ final class BytemapTest extends TestCase
     }
 
     /**
-     * @covers \Bytemap\ArrayBytemap::count
+     * @covers \Bytemap\Benchmark\ArrayBytemap::count
+     * @covers \Bytemap\Benchmark\DsBytemap::count
      * @covers \Bytemap\Bytemap::count
-     * @covers \Bytemap\DsBytemap::count
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
@@ -182,9 +184,9 @@ final class BytemapTest extends TestCase
     }
 
     /**
-     * @covers \Bytemap\ArrayBytemap::getIterator
+     * @covers \Bytemap\Benchmark\ArrayBytemap::getIterator
+     * @covers \Bytemap\Benchmark\DsBytemap::getIterator
      * @covers \Bytemap\Bytemap::getIterator
-     * @covers \Bytemap\DsBytemap::getIterator
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
@@ -236,12 +238,12 @@ final class BytemapTest extends TestCase
 
     /**
      * @covers \Bytemap\AbstractBytemap::parseBytemapJsonOnTheFly
-     * @covers \Bytemap\ArrayBytemap::jsonSerialize
-     * @covers \Bytemap\ArrayBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\ArrayBytemap::jsonSerialize
+     * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\DsBytemap::jsonSerialize
+     * @covers \Bytemap\Benchmark\DsBytemap::parseJsonStream
      * @covers \Bytemap\Bytemap::jsonSerialize
      * @covers \Bytemap\Bytemap::parseJsonStream
-     * @covers \Bytemap\DsBytemap::jsonSerialize
-     * @covers \Bytemap\DsBytemap::parseJsonStream
      * @covers \Bytemap\JsonListener\BytemapListener
      * @dataProvider jsonProvider
      * @depends testCount
@@ -273,12 +275,12 @@ final class BytemapTest extends TestCase
     }
 
     /**
-     * @covers \Bytemap\ArrayBytemap::serialize
-     * @covers \Bytemap\ArrayBytemap::unserialize
+     * @covers \Bytemap\Benchmark\ArrayBytemap::serialize
+     * @covers \Bytemap\Benchmark\ArrayBytemap::unserialize
+     * @covers \Bytemap\Benchmark\DsBytemap::serialize
+     * @covers \Bytemap\Benchmark\DsBytemap::unserialize
      * @covers \Bytemap\Bytemap::serialize
      * @covers \Bytemap\Bytemap::unserialize
-     * @covers \Bytemap\DsBytemap::serialize
-     * @covers \Bytemap\DsBytemap::unserialize
      * @dataProvider arrayAccessProvider
      * @depends testCount
      */
