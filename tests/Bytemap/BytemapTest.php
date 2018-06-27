@@ -21,12 +21,13 @@ use PHPUnit\Framework\TestCase;
  * @internal
  * @covers \Bytemap\ArrayBytemap
  * @covers \Bytemap\Bytemap
+ * @covers \Bytemap\DsBytemap
  */
 final class BytemapTest extends TestCase
 {
     public static function implementationProvider(): \Generator
     {
-        yield from [[ArrayBytemap::class], [Bytemap::class]];
+        yield from [[ArrayBytemap::class], [DsBytemap::class], [Bytemap::class]];
     }
 
     /**
@@ -87,6 +88,10 @@ final class BytemapTest extends TestCase
      * @covers \Bytemap\Bytemap::offsetGet
      * @covers \Bytemap\Bytemap::offsetSet
      * @covers \Bytemap\Bytemap::offsetUnset
+     * @covers \Bytemap\DsBytemap::offsetExists
+     * @covers \Bytemap\DsBytemap::offsetGet
+     * @covers \Bytemap\DsBytemap::offsetSet
+     * @covers \Bytemap\DsBytemap::offsetUnset
      * @dataProvider arrayAccessProvider
      */
     public function testArrayAccess(string $impl, array $items): void
@@ -129,6 +134,7 @@ final class BytemapTest extends TestCase
     /**
      * @covers \Bytemap\ArrayBytemap::count
      * @covers \Bytemap\Bytemap::count
+     * @covers \Bytemap\DsBytemap::count
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
@@ -178,6 +184,7 @@ final class BytemapTest extends TestCase
     /**
      * @covers \Bytemap\ArrayBytemap::getIterator
      * @covers \Bytemap\Bytemap::getIterator
+     * @covers \Bytemap\DsBytemap::getIterator
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
@@ -233,6 +240,8 @@ final class BytemapTest extends TestCase
      * @covers \Bytemap\ArrayBytemap::parseJsonStream
      * @covers \Bytemap\Bytemap::jsonSerialize
      * @covers \Bytemap\Bytemap::parseJsonStream
+     * @covers \Bytemap\DsBytemap::jsonSerialize
+     * @covers \Bytemap\DsBytemap::parseJsonStream
      * @covers \Bytemap\JsonListener\BytemapListener
      * @dataProvider jsonProvider
      * @depends testCount
@@ -268,6 +277,8 @@ final class BytemapTest extends TestCase
      * @covers \Bytemap\ArrayBytemap::unserialize
      * @covers \Bytemap\Bytemap::serialize
      * @covers \Bytemap\Bytemap::unserialize
+     * @covers \Bytemap\DsBytemap::serialize
+     * @covers \Bytemap\DsBytemap::unserialize
      * @dataProvider arrayAccessProvider
      * @depends testCount
      */

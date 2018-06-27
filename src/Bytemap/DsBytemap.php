@@ -13,28 +13,26 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
+use Bytemap\JsonListener\BytemapListener;
+use JsonStreamingParser\Parser;
+
 /**
- * An implementation of the `BytemapInterface` using a string.
- *
- * The internal string stores items of the same length.
+ * An implementation of the `BytemapInterface` using `\Ds\Vector`.
  *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
-class Bytemap extends AbstractBytemap
+class DsBytemap extends AbstractBytemap
 {
     private $defaultItem;
 
-    private $bytesPerItem;
-
-    private $bytesInTotal = 0;
     private $itemCount = 0;
-    private $map = '';
+    private $map;
 
     public function __construct($defaultItem)
     {
         $this->defaultItem = $defaultItem;
 
-        $this->bytesPerItem = \strlen($defaultItem);
+        $this->map = new \Ds\Vector();
     }
 
     // `ArrayAccess`
@@ -45,11 +43,7 @@ class Bytemap extends AbstractBytemap
 
     public function offsetGet($offset): string
     {
-        if (1 === $this->bytesPerItem) {
-            return $this->map[$offset];
-        }
-
-        return \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
+        return $this->map[$offset];
     }
 
     public function offsetSet($offset, $item): void
@@ -59,37 +53,32 @@ class Bytemap extends AbstractBytemap
         }
 
         $unassignedCount = $offset - $this->itemCount;
-        if (0 > $unassignedCount) {
+        if ($unassignedCount < 0) {
             // Case 1. Overwrite an existing item.
-            $firstByteIndex = $offset * $this->bytesPerItem;
-            for ($i = 0; $i < $this->bytesPerItem; ++$i) {
-                $this->map[$firstByteIndex + $i] = $item[$i];
-            }
+            $this->map[$offset] = $item;
         } elseif (0 === $unassignedCount) {
             // Case 2. Append an item right after the last one.
-            $this->map .= $item;
+            $this->map[] = $item;
             ++$this->itemCount;
-            $this->bytesInTotal += $this->bytesPerItem;
         } else {
             // Case 3. Append to a gap after the last item. Fill the gap with default items.
-            $this->map .= \str_repeat($this->defaultItem, $unassignedCount).$item;
+            $this->map->allocate($this->itemCount + $unassignedCount + 1);
+            for ($i = 0; $i < $unassignedCount; ++$i) {
+                $this->map[] = $this->defaultItem;
+            }
+            $this->map[] = $item;
             $this->itemCount += $unassignedCount + 1;
-            $this->bytesInTotal = $this->itemCount * $this->bytesPerItem;
         }
     }
 
     public function offsetUnset($offset): void
     {
-        if ($offset < $this->itemCount) {
-            if ($offset === $this->itemCount - 1) {
-                $this->bytesInTotal -= $this->bytesPerItem;
-                $this->map = \substr($this->map, 0, $this->bytesInTotal);
+        if ($this->itemCount > $offset) {
+            if ($this->itemCount - 1 === $offset) {
+                unset($this->map[$offset]);
                 --$this->itemCount;
             } else {
-                $firstByteIndex = $offset * $this->bytesPerItem;
-                for ($i = 0; $i < $this->bytesPerItem; ++$i) {
-                    $this->map[$firstByteIndex + $i] = $this->defaultItem[$i];
-                }
+                $this->map[$offset] = $this->defaultItem;
             }
         }
     }
@@ -101,25 +90,15 @@ class Bytemap extends AbstractBytemap
     }
 
     // `IteratorAggregate`
-    public function getIterator(): \Generator
+    public function getIterator(): \Traversable
     {
-        return (static function (self $bytemap): \Generator {
-            if (1 === $bytemap->bytesPerItem) {
-                for ($i = 0; $i < $bytemap->itemCount; ++$i) {
-                    yield $i => $bytemap->map[$i];
-                }
-            } else {
-                for ($i = 0; $i < $bytemap->itemCount; ++$i) {
-                    yield $i => $bytemap[$i];
-                }
-            }
-        })(clone $this);
+        return clone $this->map;
     }
 
     // `JsonSerializable`
     public function jsonSerialize(): array
     {
-        return [$this->defaultItem, \str_split($this->map, $this->bytesPerItem)];
+        return [$this->defaultItem, $this->map->toArray()];
     }
 
     // `Serializable`
@@ -130,7 +109,7 @@ class Bytemap extends AbstractBytemap
 
     public function unserialize($serialized)
     {
-        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => false]);
+        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => ['Ds\\Vector']]);
         $this->deriveProperties();
     }
 
@@ -138,7 +117,32 @@ class Bytemap extends AbstractBytemap
     public static function parseJsonStream($jsonStream, bool $useStreamingParser = true): BytemapInterface
     {
         if ($useStreamingParser && \class_exists('\\JsonStreamingParser\\Parser')) {
-            return self::parseBytemapJsonOnTheFly($jsonStream, __CLASS__);
+            $bytemap = null;
+            $maxKey = -1;
+            $listener = new BytemapListener(function ($value, $key) use (&$bytemap, &$maxKey) {
+                if (null === $bytemap) {
+                    $bytemap = new self($value);
+                } elseif (null === $key) {
+                    $bytemap[] = $value;
+                } else {
+                    $unassignedCount = $key - $maxKey - 1;
+                    if (0 > $unassignedCount) {
+                        $bytemap[$key] = $value;
+                    } else {
+                        if (0 < $unassignedCount) {
+                            $bytemap->map->allocate($maxKey + 1);
+                            for ($i = 0; $i < $unassignedCount; ++$i) {
+                                $bytemap[] = $bytemap->defaultItem;
+                            }
+                        }
+                        $bytemap[] = $value;
+                        $maxKey = $key;
+                    }
+                }
+            });
+            (new Parser($jsonStream, $listener))->parse();
+
+            return $bytemap;
         }
 
         [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream), true);
@@ -152,13 +156,12 @@ class Bytemap extends AbstractBytemap
                     $maxKey = $key;
                 }
             }
-            if (\count($map) === $maxKey + 1) {
-                $bytemap->map = \implode('', $map);
-            } else {
-                $bytemap[$maxKey] = $map[$maxKey];  // Avoid unnecessary resizing.
-                foreach ($map as $key => $value) {
-                    $bytemap[$key] = $value;
-                }
+            $bytemap->map->allocate($maxKey + 1);
+            for ($i = 0; $i < $maxKey; ++$i) {
+                $bytemap[] = $defaultItem;
+            }
+            foreach ($map as $key => $value) {
+                $bytemap[$key] = $value;
             }
             $bytemap->deriveProperties();
         }
@@ -168,8 +171,6 @@ class Bytemap extends AbstractBytemap
 
     private function deriveProperties(): void
     {
-        $this->bytesPerItem = \strlen($this->defaultItem);
-        $this->bytesInTotal = \strlen($this->map);
-        $this->itemCount = $this->bytesInTotal / $this->bytesPerItem;
+        $this->itemCount = \count($this->map);
     }
 }

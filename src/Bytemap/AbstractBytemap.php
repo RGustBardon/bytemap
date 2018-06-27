@@ -46,7 +46,7 @@ abstract class AbstractBytemap implements BytemapInterface
     protected static function parseBytemapJsonOnTheFly($jsonStream, $impl): BytemapInterface
     {
         $bytemap = null;
-        $listener = new BytemapListener(function ($value, $key) use (&$bytemap, $impl) {
+        $listener = new BytemapListener(static function ($value, $key) use (&$bytemap, $impl) {
             if (null === $bytemap) {
                 $bytemap = new $impl($value);
             } elseif (null === $key) {
