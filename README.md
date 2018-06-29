@@ -1,4 +1,8 @@
-# bytemap - Lean data structures for PHP [![Build Status](https://travis-ci.org/RGustBardon/bytemap.svg?branch=master)](https://travis-ci.org/RGustBardon/bytemap) [![Coverage Status](https://coveralls.io/repos/github/RGustBardon/bytemap/badge.svg?branch=master)](https://coveralls.io/github/RGustBardon/bytemap?branch=master)
+# bytemap - Lean data structures for PHP
+
+[![Travis CI Build Status](https://travis-ci.org/RGustBardon/bytemap.svg?branch=master)](https://travis-ci.org/RGustBardon/bytemap)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/RGustBardon/bytemap?branch=master&svg=true)](https://ci.appveyor.com/project/RGustBardon/bytemap)
+[![Coverage Status](https://coveralls.io/repos/github/RGustBardon/bytemap/badge.svg?branch=master)](https://coveralls.io/github/RGustBardon/bytemap?branch=master)
 
 ## Differences to built-in arrays
 
