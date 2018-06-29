@@ -6,7 +6,7 @@ pull_requests:
 init:
   - SET ANSICON=121x90 (121x90)
   - SET COMPOSER_NO_INTERACTION=1
-  - SET PATH=c:\Program Files\OpenSSL;c:\tools\php;%PATH%
+  - SET PATH=c:\Program Files\OpenSSL;c:\php;%PATH%
 
 clone_folder: c:\projects\bytemap
 
@@ -23,8 +23,8 @@ cache:
 
 install:
   - cinst -y OpenSSL.Light
-  - ps: appveyor-retry cinst --params '""/InstallDir:C:\tools\php""' --ignore-checksums -y php --version ((choco search php --exact --all-versions -r | select-string -pattern $env:PHP_VERSION | sort { [version]($_ -split '\|' | select -last 1) } -Descending | Select-Object -first 1) -replace '[php|]','')
-  - cd c:\tools\php
+  - ps: appveyor-retry cinst --params '""/InstallDir:C:\php""' --ignore-checksums -y php --version ((choco search php --exact --all-versions -r | select-string -pattern $env:PHP_VERSION | sort { [version]($_ -split '\|' | select -last 1) } -Descending | Select-Object -first 1) -replace '[php|]','')
+  - cd c:\php
   - copy php.ini-production php.ini /Y
   - echo extension_dir=ext >> php.ini-min
   - echo extension=php_mbstring.dll >> php.ini
