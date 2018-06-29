@@ -1,4 +1,5 @@
 /.* export-ignore
+/appveyor.yml export-ignore
 /benchmark.* export-ignore
 /Dockerfile export-ignore
 /phpunit.xml.dist export-ignore
