@@ -30,8 +30,8 @@ install:
   - echo extension=php_curl.dll >> php.ini
   - echo extension=php_mbstring.dll >> php.ini
   - echo extension=php_openssl.dll >> php.ini
-  - echo extension=zend.assertions=1 >> php.ini
-  - echo extension=assert.exception=On >> php.ini
+  - echo zend.assertions=1 >> php.ini
+  - echo assert.exception=On >> php.ini
   - cd c:\projects\bytemap
   - curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -o composer-setup.php https://getcomposer.org/installer
   - curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -o composer-signature.sig https://composer.github.io/installer.sig
