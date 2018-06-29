@@ -34,7 +34,7 @@ class SplBytemap extends AbstractBytemap
     {
         $this->defaultItem = $defaultItem;
 
-        $this->map = new \SplFixedArray();
+        $this->map = new \SplFixedArray(0);
     }
 
     public function __clone()
@@ -137,6 +137,10 @@ class SplBytemap extends AbstractBytemap
                 }
             });
             (new Parser($jsonStream, $listener))->parse();
+
+            if (null === $bytemap) {
+                throw new \UnexpectedValueException('Bytemap: corrupted JSON stream');
+            }
 
             return $bytemap;
         }

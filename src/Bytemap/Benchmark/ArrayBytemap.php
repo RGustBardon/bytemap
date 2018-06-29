@@ -124,6 +124,6 @@ final class ArrayBytemap extends AbstractBytemap
 
     private function deriveProperties(): void
     {
-        $this->itemCount = \max(\array_keys($this->map)) + 1;
+        $this->itemCount = (int) \max(\array_keys($this->map)) + 1;
     }
 }

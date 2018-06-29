@@ -19,9 +19,12 @@
         "hhvm": "*"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.12",
         "jakub-onderka/php-parallel-lint": "^1.0",
         "php-coveralls/php-coveralls": "^2.1",
         "php-ds/php-ds": "^1.2",
+        "phpstan/phpstan": "^0.10",
+        "phpstan/phpstan-phpunit": "^0.10",
         "phpunit/phpunit": "^7.2",
         "salsify/json-streaming-parser": "^6.0"
     },

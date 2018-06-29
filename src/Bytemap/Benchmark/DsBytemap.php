@@ -144,6 +144,10 @@ class DsBytemap extends AbstractBytemap
             });
             (new Parser($jsonStream, $listener))->parse();
 
+            if (null === $bytemap) {
+                throw new \UnexpectedValueException('Bytemap: corrupted JSON stream');
+            }
+
             return $bytemap;
         }
 

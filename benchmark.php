@@ -95,11 +95,15 @@ new class($GLOBALS['argv'][1]) {
         ];
         $rewound = \rewind($this->statusHandle);
         \assert($rewound, $this->runtimeId);
-        while (false !== ($buffer = \fgets($this->statusHandle))) {
+        while (true) {
+            $buffer = \fgets($this->statusHandle);
+            if (false === $buffer) {
+                break;
+            }
             [$key, $value] = \explode(':', \trim($buffer), 2);
             $value = \preg_replace('~\\s+~', ' ', \trim($value));
             if (\preg_match('~^[0-9]+ kB$~', $value)) {
-                $value = 1024 * \substr($value, 0, -3);
+                $value = 1024 * (int) \substr($value, 0, -3);
             }
             $this->snapshots[$name][$key] = $value;
         }

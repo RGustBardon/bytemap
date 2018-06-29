@@ -325,7 +325,9 @@ final class BytemapTest extends TestCase
     private static function getJsonStream(BytemapInterface $bytemap)
     {
         $json = \json_encode($bytemap);
+        self::assertNotFalse($json);
         $jsonStream = \fopen('php://memory', 'r+');
+        self::assertNotFalse($jsonStream);
         \fwrite($jsonStream, $json);
         \rewind($jsonStream);
 
