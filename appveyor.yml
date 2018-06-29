@@ -1,29 +1,46 @@
-build: false
-clone_depth: 1
-clone_folder: c:\projects\bytemap
+version: '{branch}-{build}'
 
-cache:
-  - vendor -> composer.json
+pull_requests:
+  do_not_increment_build_number: true
 
 init:
-  - SET PATH=c:\Program Files\OpenSSL;c:\tools\php;%PATH%
+  - SET ANSICON=121x90 (121x90)
   - SET COMPOSER_NO_INTERACTION=1
+  - SET PATH=c:\Program Files\OpenSSL;c:\tools\php;%PATH%
+
+clone_folder: c:\projects\bytemap
 
 environment:
   matrix:
     - PHP_VERSION: 7.1
     - PHP_VERSION: 7.2
 
+matrix:
+  fast_finish: true
+
+cache:
+  - vendor -> composer.json
+
 install:
   - cinst -y OpenSSL.Light
   - ps: appveyor-retry cinst --params '""/InstallDir:C:\tools\php""' --ignore-checksums -y php --version ((choco search php --exact --all-versions -r | select-string -pattern $env:PHP_VERSION | sort { [version]($_ -split '\|' | select -last 1) } -Descending | Select-Object -first 1) -replace '[php|]','')
+  - cd c:\tools\php
+  - copy php.ini-production php.ini /Y
+  - echo extension_dir=ext >> php.ini-min
+  - echo extension=php_mbstring.dll >> php.ini
+  - echo extension=php_openssl.dll >> php.ini
   - cd c:\projects\bytemap
   - curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -o composer-setup.php https://getcomposer.org/installer
   - curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -o composer-signature.sig https://composer.github.io/installer.sig
   - php -r "if (hash_file('SHA384', 'composer-setup.php') === rtrim(file_get_contents('composer-signature.sig'))) {echo 'Installer verified';unlink('composer-signature.sig');} else {echo 'Installer corrupt';unlink('composer-setup.php');unlink('composer-signature.sig');exit (1);}"
   - php .\composer-setup.php
   - php -r "unlink('composer-setup.php');"
-  - php composer.phar install
+  - php composer.phar update --optimize-autoloader --no-ansi --no-interaction --no-progress --no-suggest
+  - php composer.phar global show hirak/prestissimo -q || php composer.phar global require hirak/prestissimo
+  - php composer.phar show -p
+  - php composer.phar show
+
+build: false
 
 test_script:
   - cd c:\projects\bytemap
