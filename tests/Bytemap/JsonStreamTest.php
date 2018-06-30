@@ -126,6 +126,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         }
         $bytemap = $instance::parseJsonStream($jsonStream, $defaultItem);
 
+        self::assertSame('resource', \gettype($jsonStream));
         self::assertNotSame($instance, $bytemap);
         self::assertSequence($expectedSequence, $bytemap);
         self::assertDefaultItem($defaultItem, $bytemap, \str_repeat("\xff", \strlen($defaultItem)));
