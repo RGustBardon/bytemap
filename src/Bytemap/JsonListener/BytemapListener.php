@@ -21,21 +21,15 @@ use JsonStreamingParser\Listener;
 class BytemapListener implements Listener
 {
     private const STATE_INITIAL = 'Initial';
-    private const STATE_BEFORE_OUTER_ARRAY = 'BeforeOuterArray';
-    private const STATE_BEFORE_DEFAULT_ITEM = 'BeforeDefaultItem';
-    private const STATE_BEFORE_ITEMS = 'BeforeItems';
-    private const STATE_BEFORE_ITEM = 'BeforeItem';
-    private const STATE_AFTER_ITEMS = 'AfterItems';
-    private const STATE_AFTER_OUTER_ARRAY = 'AfterOuterArray';
+    private const STATE_DOCUMENT_STARTED = 'DocumentStarted';
+    private const STATE_AWAITING_ITEM = 'AwaitingItem';
+    private const STATE_DOCUMENT_ENDED = 'DocumentEnded';
 
     private const TRANSITIONS = [
-        self::STATE_INITIAL => [self::STATE_BEFORE_OUTER_ARRAY],
-        self::STATE_BEFORE_OUTER_ARRAY => [self::STATE_BEFORE_DEFAULT_ITEM],
-        self::STATE_BEFORE_DEFAULT_ITEM => [self::STATE_BEFORE_ITEMS],
-        self::STATE_BEFORE_ITEMS => [self::STATE_BEFORE_ITEM, self::STATE_AFTER_ITEMS],
-        self::STATE_BEFORE_ITEM => [self::STATE_BEFORE_ITEM, self::STATE_AFTER_ITEMS],
-        self::STATE_AFTER_ITEMS => [self::STATE_AFTER_OUTER_ARRAY],
-        self::STATE_AFTER_OUTER_ARRAY => [self::STATE_INITIAL],
+        self::STATE_INITIAL => self::STATE_DOCUMENT_STARTED,
+        self::STATE_DOCUMENT_STARTED => self::STATE_AWAITING_ITEM,
+        self::STATE_AWAITING_ITEM => self::STATE_DOCUMENT_ENDED,
+        self::STATE_DOCUMENT_ENDED => self::STATE_INITIAL,
     ];
 
     private $closure;
@@ -50,7 +44,7 @@ class BytemapListener implements Listener
 
     public function startDocument()
     {
-        $this->transition(self::STATE_BEFORE_OUTER_ARRAY);
+        $this->transition(self::STATE_DOCUMENT_STARTED);
     }
 
     public function endDocument()
@@ -60,60 +54,32 @@ class BytemapListener implements Listener
 
     public function startObject()
     {
-        $this->transition(self::STATE_BEFORE_ITEM);
+        $this->transition(self::STATE_AWAITING_ITEM);
     }
 
     public function endObject()
     {
-        $this->transition(self::STATE_AFTER_ITEMS);
+        $this->transition(self::STATE_DOCUMENT_ENDED);
     }
 
     public function startArray()
     {
-        switch ($this->state) {
-            case self::STATE_BEFORE_OUTER_ARRAY:
-                $this->transition(self::STATE_BEFORE_DEFAULT_ITEM);
-
-                break;
-            case self::STATE_BEFORE_ITEMS:
-                $this->transition(self::STATE_BEFORE_ITEM);
-
-                break;
-            default:
-                throw new \UnexpectedValueException('Bytemap: unexpected array in '.$this->state);
-        }
+        $this->transition(self::STATE_AWAITING_ITEM);
     }
 
     public function endArray()
     {
-        switch ($this->state) {
-            case self::STATE_BEFORE_ITEM:
-                $this->transition(self::STATE_AFTER_ITEMS);
-
-                break;
-            case self::STATE_AFTER_ITEMS:
-                $this->transition(self::STATE_AFTER_OUTER_ARRAY);
-
-                break;
-            default:
-                throw new \UnexpectedValueException('Bytemap: unexpected array end in '.$this->state);
-        }
+        $this->transition(self::STATE_DOCUMENT_ENDED);
     }
 
     public function key($key)
     {
-        $this->transition(self::STATE_BEFORE_ITEM);
         $this->key = $key;
     }
 
     public function value($value)
     {
-        if (self::STATE_BEFORE_DEFAULT_ITEM === $this->state) {
-            $this->transition(self::STATE_BEFORE_ITEMS);
-        } else {
-            $this->transition(self::STATE_BEFORE_ITEM);
-        }
-        ($this->closure)($value, $this->key);
+        ($this->closure)($value, null === $this->key ? null : (int) $this->key);
         $this->key = null;
     }
 
@@ -124,12 +90,12 @@ class BytemapListener implements Listener
 
     private function transition($newState): void
     {
-        if (!\in_array($newState, self::TRANSITIONS[$this->state], true)) {
+        if (self::TRANSITIONS[$this->state] === $newState) {
+            $this->state = $newState;
+        } else {
             $message = \sprintf('Bytemap: invalid JSON transition (%s to %s).', $this->state, $newState);
 
             throw new \UnexpectedValueException($message);
         }
-
-        $this->state = $newState;
     }
 }

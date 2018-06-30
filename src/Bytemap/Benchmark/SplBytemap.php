@@ -25,17 +25,7 @@ use JsonStreamingParser\Parser;
  */
 class SplBytemap extends AbstractBytemap
 {
-    private $defaultItem;
-
-    private $itemCount = 0;
-    private $map;
-
-    public function __construct($defaultItem)
-    {
-        $this->defaultItem = $defaultItem;
-
-        $this->map = new \SplFixedArray(0);
-    }
+    protected const UNSERIALIZED_CLASSES = ['SplFixedArray'];
 
     public function __clone()
     {
@@ -43,16 +33,6 @@ class SplBytemap extends AbstractBytemap
     }
 
     // `ArrayAccess`
-    public function offsetExists($offset): bool
-    {
-        return $offset < $this->itemCount;
-    }
-
-    public function offsetGet($offset): string
-    {
-        return $this->map[$offset] ?? $this->defaultItem;
-    }
-
     public function offsetSet($offset, $item): void
     {
         if (null === $offset) {  // `$bytemap[] = $item`
@@ -77,85 +57,51 @@ class SplBytemap extends AbstractBytemap
         }
     }
 
-    // `Countable`
-    public function count(): int
-    {
-        return $this->itemCount;
-    }
-
-    // `IteratorAggregate`
-    public function getIterator(): \Traversable
-    {
-        return (static function (self $bytemap): \Generator {
-            for ($i = 0; $i < $bytemap->itemCount; ++$i) {
-                yield $i => $bytemap[$i];
-            }
-        })(clone $this);
-    }
-
-    // `JsonSerializable`
-    public function jsonSerialize(): array
-    {
-        return [$this->defaultItem, $this->map->toArray()];
-    }
-
     // `Serializable`
-    public function serialize(): string
-    {
-        return \serialize([$this->defaultItem, $this->map]);
-    }
-
     public function unserialize($serialized)
     {
-        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => ['SplFixedArray']]);
+        [$this->defaultItem, $this->map] =
+            \unserialize($serialized, ['allowed_classes' => self::UNSERIALIZED_CLASSES]);
         $this->map->__wakeup();
         $this->deriveProperties();
     }
 
     // `BytemapInterface`
-    public static function parseJsonStream($jsonStream, bool $useStreamingParser = true): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
-        if ($useStreamingParser && \class_exists('\\JsonStreamingParser\\Parser')) {
-            $bytemap = null;
+        $bytemap = new self($defaultItem);
+        if (self::hasStreamingParser()) {
             $maxKey = -1;
-            $listener = new BytemapListener(function ($value, $key) use (&$bytemap, &$maxKey) {
-                if (null === $bytemap) {
-                    $bytemap = new self($value);
-                } elseif (null === $key) {
+            $listener = new BytemapListener(function ($value, $key) use ($bytemap, &$maxKey) {
+                if (null === $key) {
                     $bytemap[] = $value;
                 } else {
-                    $unassignedCount = $key - $maxKey - 1;
-                    if (0 > $unassignedCount) {
-                        $bytemap[$key] = $value;
-                    } else {
-                        if (0 < $unassignedCount) {
-                            $bytemap->map->setSize($maxKey + 1);
-                        }
-                        $bytemap[] = $value;
+                    if ($key > $maxKey) {
                         $maxKey = $key;
+                        $bytemap->map->setSize($maxKey + 1);
                     }
+                    $bytemap[$key] = $value;
                 }
             });
             (new Parser($jsonStream, $listener))->parse();
-
-            if (null === $bytemap) {
-                throw new \UnexpectedValueException('Bytemap: corrupted JSON stream');
+        } else {
+            $map = \json_decode(\stream_get_contents($jsonStream), true);
+            if ($map) {
+                $bytemap->map = \SplFixedArray::fromArray($map);
+                $bytemap->deriveProperties();
             }
-
-            return $bytemap;
-        }
-
-        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream), true);
-        $bytemap = new self($defaultItem);
-        if ($map) {
-            $bytemap->map = \SplFixedArray::fromArray($map);
-            $bytemap->deriveProperties();
         }
 
         return $bytemap;
     }
 
-    private function deriveProperties(): void
+    // `AbstractBytemap`
+    protected function createEmptyMap(): void
+    {
+        $this->map = new \SplFixedArray(0);
+    }
+
+    protected function deriveProperties(): void
     {
         $this->itemCount = \count($this->map);
     }

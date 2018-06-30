@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
+use Bytemap\JsonListener\BytemapListener;
+use JsonStreamingParser\Parser;
+
 /**
  * An implementation of the `BytemapInterface` using a string.
  *
@@ -22,27 +25,17 @@ namespace Bytemap;
  */
 class Bytemap extends AbstractBytemap
 {
-    private $defaultItem;
-
-    private $bytesPerItem;
-
     private $bytesInTotal = 0;
-    private $itemCount = 0;
-    private $map = '';
+    private $bytesPerItem;
 
     public function __construct($defaultItem)
     {
-        $this->defaultItem = $defaultItem;
+        parent::__construct($defaultItem);
 
         $this->bytesPerItem = \strlen($defaultItem);
     }
 
     // `ArrayAccess`
-    public function offsetExists($offset): bool
-    {
-        return $offset < $this->itemCount;
-    }
-
     public function offsetGet($offset): string
     {
         if (1 === $this->bytesPerItem) {
@@ -95,24 +88,16 @@ class Bytemap extends AbstractBytemap
         }
     }
 
-    // `Countable`
-    public function count(): int
-    {
-        return $this->itemCount;
-    }
-
     // `IteratorAggregate`
-    public function getIterator(): \Generator
+    public function getIterator(): \Traversable
     {
+        if (1 < $this->bytesPerItem) {
+            return parent::getIterator();
+        }
+
         return (static function (self $bytemap): \Generator {
-            if (1 === $bytemap->bytesPerItem) {
-                for ($i = 0; $i < $bytemap->itemCount; ++$i) {
-                    yield $i => $bytemap->map[$i];
-                }
-            } else {
-                for ($i = 0; $i < $bytemap->itemCount; ++$i) {
-                    yield $i => $bytemap[$i];
-                }
+            for ($i = 0; $i < $bytemap->itemCount; ++$i) {
+                yield $i => $bytemap->map[$i];
             }
         })(clone $this);
     }
@@ -120,54 +105,61 @@ class Bytemap extends AbstractBytemap
     // `JsonSerializable`
     public function jsonSerialize(): array
     {
-        return [$this->defaultItem, \str_split($this->map, $this->bytesPerItem)];
-    }
+        if (0 === $this->itemCount) {
+            return [];
+        }
 
-    // `Serializable`
-    public function serialize(): string
-    {
-        return \serialize([$this->defaultItem, $this->map]);
-    }
+        $data = \str_split($this->map, $this->bytesPerItem);
 
-    public function unserialize($serialized)
-    {
-        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => false]);
-        $this->deriveProperties();
+        // @codeCoverageIgnoreStart
+        if (false === $data) {
+            throw new \UnexpectedValueException('Bytemap: \\str_split returned false when serializing to JSON');
+        }
+        // @codeCoverageIgnoreEnd
+
+        return $data;
     }
 
     // `BytemapInterface`
-    public static function parseJsonStream($jsonStream, bool $useStreamingParser = true): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
-        if ($useStreamingParser && \class_exists('\\JsonStreamingParser\\Parser')) {
-            return self::parseBytemapJsonOnTheFly($jsonStream, __CLASS__);
-        }
-
-        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream), true);
         $bytemap = new self($defaultItem);
-        $cnt = \count($map);
-        if ($cnt > 0) {
-            // `\max(\array_keys($map))` would affect peak memory usage.
-            $maxKey = -1;
-            foreach ($map as $key => $value) {
-                if ($maxKey < $key) {
-                    $maxKey = $key;
-                }
-            }
-            if (\count($map) === $maxKey + 1) {
-                $bytemap->map = \implode('', $map);
-            } else {
-                $bytemap[$maxKey] = $map[$maxKey];  // Avoid unnecessary resizing.
-                foreach ($map as $key => $value) {
+        if (self::hasStreamingParser()) {
+            $listener = new BytemapListener(static function ($value, $key) use ($bytemap) {
+                if (null === $key) {
+                    $bytemap[] = $value;
+                } else {
                     $bytemap[$key] = $value;
                 }
+            });
+            (new Parser($jsonStream, $listener))->parse();
+        } else {
+            $map = \json_decode(\stream_get_contents($jsonStream), true);
+            $size = \count($map);
+            if ($size > 0) {
+                $maxKey = self::getMaxKey($map);
+                if ($maxKey + 1 === $size) {
+                    $bytemap->map = \implode('', $map);
+                } else {
+                    $bytemap[$maxKey] = $map[$maxKey];  // Avoid unnecessary resizing.
+                    foreach ($map as $key => $value) {
+                        $bytemap[$key] = $value;
+                    }
+                }
+                $bytemap->deriveProperties();
             }
-            $bytemap->deriveProperties();
         }
 
         return $bytemap;
     }
 
-    private function deriveProperties(): void
+    // `AbstractBytemap`
+    protected function createEmptyMap(): void
+    {
+        $this->map = '';
+    }
+
+    protected function deriveProperties(): void
     {
         $this->bytesPerItem = \strlen($this->defaultItem);
         $this->bytesInTotal = \strlen($this->map);

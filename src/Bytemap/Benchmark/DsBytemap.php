@@ -25,29 +25,14 @@ use JsonStreamingParser\Parser;
  */
 class DsBytemap extends AbstractBytemap
 {
-    private $defaultItem;
+    protected const UNSERIALIZED_CLASSES = ['Ds\\Vector'];
 
-    private $itemCount = 0;
-    private $map;
-
-    public function __construct($defaultItem)
+    public function __clone()
     {
-        $this->defaultItem = $defaultItem;
-
-        $this->map = new \Ds\Vector();
+        $this->map = clone $this->map;
     }
 
     // `ArrayAccess`
-    public function offsetExists($offset): bool
-    {
-        return $offset < $this->itemCount;
-    }
-
-    public function offsetGet($offset): string
-    {
-        return $this->map[$offset];
-    }
-
     public function offsetSet($offset, $item): void
     {
         if (null === $offset) {  // `$bytemap[] = $item`
@@ -85,12 +70,6 @@ class DsBytemap extends AbstractBytemap
         }
     }
 
-    // `Countable`
-    public function count(): int
-    {
-        return $this->itemCount;
-    }
-
     // `IteratorAggregate`
     public function getIterator(): \Traversable
     {
@@ -100,31 +79,17 @@ class DsBytemap extends AbstractBytemap
     // `JsonSerializable`
     public function jsonSerialize(): array
     {
-        return [$this->defaultItem, $this->map->toArray()];
-    }
-
-    // `Serializable`
-    public function serialize(): string
-    {
-        return \serialize([$this->defaultItem, $this->map]);
-    }
-
-    public function unserialize($serialized)
-    {
-        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => ['Ds\\Vector']]);
-        $this->deriveProperties();
+        return $this->map->toArray();
     }
 
     // `BytemapInterface`
-    public static function parseJsonStream($jsonStream, bool $useStreamingParser = true): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
-        if ($useStreamingParser && \class_exists('\\JsonStreamingParser\\Parser')) {
-            $bytemap = null;
+        $bytemap = new self($defaultItem);
+        if (self::hasStreamingParser()) {
             $maxKey = -1;
-            $listener = new BytemapListener(function ($value, $key) use (&$bytemap, &$maxKey) {
-                if (null === $bytemap) {
-                    $bytemap = new self($value);
-                } elseif (null === $key) {
+            $listener = new BytemapListener(function ($value, $key) use ($bytemap, &$maxKey) {
+                if (null === $key) {
                     $bytemap[] = $value;
                 } else {
                     $unassignedCount = $key - $maxKey - 1;
@@ -143,38 +108,31 @@ class DsBytemap extends AbstractBytemap
                 }
             });
             (new Parser($jsonStream, $listener))->parse();
-
-            if (null === $bytemap) {
-                throw new \UnexpectedValueException('Bytemap: corrupted JSON stream');
-            }
-
-            return $bytemap;
-        }
-
-        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream), true);
-        $bytemap = new self($defaultItem);
-        if ($map) {
-            // `\max(\array_keys($map))` would affect peak memory usage.
-            $maxKey = -1;
-            foreach ($map as $key => $value) {
-                if ($maxKey < $key) {
-                    $maxKey = $key;
+        } else {
+            $map = \json_decode(\stream_get_contents($jsonStream), true);
+            if ($map) {
+                $maxKey = self::getMaxKey($map);
+                $bytemap->map->allocate($maxKey + 1);
+                for ($i = 0; $i < $maxKey; ++$i) {
+                    $bytemap[] = $defaultItem;
                 }
+                foreach ($map as $key => $value) {
+                    $bytemap[$key] = $value;
+                }
+                $bytemap->deriveProperties();
             }
-            $bytemap->map->allocate($maxKey + 1);
-            for ($i = 0; $i < $maxKey; ++$i) {
-                $bytemap[] = $defaultItem;
-            }
-            foreach ($map as $key => $value) {
-                $bytemap[$key] = $value;
-            }
-            $bytemap->deriveProperties();
         }
 
         return $bytemap;
     }
 
-    private function deriveProperties(): void
+    // `AbstractBytemap`
+    protected function createEmptyMap(): void
+    {
+        $this->map = new \Ds\Vector();
+    }
+
+    protected function deriveProperties(): void
     {
         $this->itemCount = \count($this->map);
     }

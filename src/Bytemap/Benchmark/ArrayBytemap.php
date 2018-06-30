@@ -15,6 +15,8 @@ namespace Bytemap\Benchmark;
 
 use Bytemap\AbstractBytemap;
 use Bytemap\BytemapInterface;
+use Bytemap\JsonListener\BytemapListener;
+use JsonStreamingParser\Parser;
 
 /**
  * A naive implementation of the `BytemapInterface` using a built-in array.
@@ -30,27 +32,14 @@ use Bytemap\BytemapInterface;
  */
 final class ArrayBytemap extends AbstractBytemap
 {
-    private $defaultItem;
-
-    private $itemCount = 0;
-    private $map = [];
-
     public function __construct($defaultItem)
     {
-        $this->defaultItem = $defaultItem;
+        parent::__construct($defaultItem);
+
+        $this->map = [];
     }
 
     // `ArrayAccess`
-    public function offsetExists($offset): bool
-    {
-        return $offset < $this->itemCount;
-    }
-
-    public function offsetGet($offset)
-    {
-        return $this->map[$offset] ?? $this->defaultItem;
-    }
-
     public function offsetSet($offset, $value): void
     {
         if (null === $offset) {  // `$bytemap[] = $item`
@@ -71,59 +60,35 @@ final class ArrayBytemap extends AbstractBytemap
         }
     }
 
-    // `Countable`
-    public function count(): int
-    {
-        return $this->itemCount;
-    }
-
-    // `IteratorAggregate`
-    public function getIterator(): \Generator
-    {
-        return (static function (self $bytemap): \Generator {
-            for ($i = 0; $i < $bytemap->itemCount; ++$i) {
-                yield $i => $bytemap[$i];
-            }
-        })(clone $this);
-    }
-
-    // `JsonSerializable`
-    public function jsonSerialize(): array
-    {
-        \ksort($this->map, \SORT_NUMERIC);
-
-        return [$this->defaultItem, $this->map];
-    }
-
-    // `Serializable`
-    public function serialize(): string
-    {
-        return \serialize([$this->defaultItem, $this->map]);
-    }
-
-    public function unserialize($serialized)
-    {
-        [$this->defaultItem, $this->map] = \unserialize($serialized, ['allowed_classes' => false]);
-        $this->deriveProperties();
-    }
-
     // `BytemapInterface`
-    public static function parseJsonStream($jsonStream, bool $useStreamingParser = true): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
-        if ($useStreamingParser && \class_exists('\\JsonStreamingParser\\Parser')) {
-            return self::parseBytemapJsonOnTheFly($jsonStream, __CLASS__);
-        }
-
-        [$defaultItem, $map] = \json_decode(\stream_get_contents($jsonStream), true);
         $bytemap = new self($defaultItem);
-        $bytemap->map = $map;
-        $bytemap->deriveProperties();
+        if (self::hasStreamingParser()) {
+            $listener = new BytemapListener(static function ($value, $key) use ($bytemap) {
+                if (null === $key) {
+                    $bytemap[] = $value;
+                } else {
+                    $bytemap[$key] = $value;
+                }
+            });
+            (new Parser($jsonStream, $listener))->parse();
+        } else {
+            $bytemap->map = \json_decode(\stream_get_contents($jsonStream), true);
+            $bytemap->deriveProperties();
+        }
 
         return $bytemap;
     }
 
-    private function deriveProperties(): void
+    // `AbstractBytemap`
+    protected function createEmptyMap(): void
     {
-        $this->itemCount = (int) \max(\array_keys($this->map)) + 1;
+        $this->map = [];
+    }
+
+    protected function deriveProperties(): void
+    {
+        $this->itemCount = self::getMaxKey($this->map) + 1;
     }
 }
