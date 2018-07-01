@@ -107,6 +107,91 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // `BytemapInterface`
+    public function insert(iterable $items, int $firstItemOffset = -1): void
+    {
+        $originalFirstItemOffset = $firstItemOffset;
+
+        // Resize the bytemap if the positive first item offset is greater than the item count.
+        if ($firstItemOffset > $this->itemCount) {
+            $this[$firstItemOffset - 1] = $this->defaultItem;
+        }
+
+        // Calculate the positive offset corresponding to the negative one.
+        if (0 > $firstItemOffset) {
+            $firstItemOffset += $this->itemCount;
+        }
+
+        // Keep the offsets within the bounds.
+        $firstItemOffset = \max(0, $firstItemOffset);
+
+        // Add the items.
+        $originalItemCount = $this->itemCount;
+        foreach ($items as $item) {
+            $this[] = $item;
+        }
+
+        // Resize the bytemap if the negative first item offset is greater than the new item count.
+        if ($originalFirstItemOffset < 0 && \abs($originalFirstItemOffset) > $this->itemCount) {
+            $lastItemOffset = \abs($originalFirstItemOffset) - ($this->itemCount > $originalItemCount ? 1 : 2);
+            if ($lastItemOffset >= $this->itemCount) {
+                $this[$lastItemOffset] = $this->defaultItem;
+            }
+        }
+
+        // The juggling algorithm.
+        $n = $this->itemCount - $firstItemOffset;
+        $shift = $n - $this->itemCount + $originalItemCount;
+        $gcd = self::calculateGreatestCommonDivisor($n, $shift);
+
+        for ($i = 0; $i < $gcd; ++$i) {
+            $tmp = $this[$firstItemOffset + $i];
+            $j = $i;
+            while (true) {
+                $k = $j + $shift;
+                if ($k >= $n) {
+                    $k -= $n;
+                }
+                if ($k === $i) {
+                    break;
+                }
+                $this[$firstItemOffset + $j] = $this[$firstItemOffset + $k];
+                $j = $k;
+            }
+            $this[$firstItemOffset + $j] = $tmp;
+        }
+    }
+
+    public function remove(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
+    {
+        // Check if there is anything to remove.
+        if (1 > $howMany || 0 === $this->itemCount) {
+            return;
+        }
+
+        // Calculate the positive offset corresponding to the negative one.
+        if (0 > $firstItemOffset) {
+            $firstItemOffset += $this->itemCount;
+        }
+
+        // Keep the offsets within the bounds.
+        $firstItemOffset = \max(0, $firstItemOffset);
+        $howMany = \min($howMany, $this->itemCount - $firstItemOffset);
+
+        $howManyLeft = $howMany;
+
+        // Shift all the subsequent items left by the numbers of items removed.
+        $lastItemOffset = $firstItemOffset + $howMany - 1;
+        for ($i = $this->itemCount - 1; $i > $lastItemOffset; --$i, --$howManyLeft) {
+            $this[$i - $howMany] = $this[$i];
+            unset($this[$i]);
+        }
+
+        // If there are still items to be removed, remove the trailing ones.
+        for (; $howManyLeft > 0; --$howManyLeft) {
+            unset($this[$this->itemCount - 1]);
+        }
+    }
+
     public function streamJson($stream): void
     {
         \fwrite($stream, '[');
@@ -138,4 +223,15 @@ abstract class AbstractBytemap implements BytemapInterface
     abstract protected function createEmptyMap(): void;
 
     abstract protected function deriveProperties(): void;
+
+    private static function calculateGreatestCommonDivisor(int $a, int $b): int
+    {
+        while (0 !== $b) {
+            $tmp = $b;
+            $b = $a % $b;
+            $a = $tmp;
+        }
+
+        return $a;
+    }
 }

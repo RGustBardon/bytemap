@@ -19,8 +19,6 @@ use JsonStreamingParser\Parser;
 /**
  * An implementation of the `BytemapInterface` using a string.
  *
- * The internal string stores items of the same length.
- *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
 class Bytemap extends AbstractBytemap
