@@ -32,15 +32,15 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
     public function insert(iterable $items, int $firstItemOffset = -1): void;
 
     /**
-     * Removes a certain number of items.
+     * Delete a certain number of items.
      *
-     * Subsequent bytemap items are shifted left by the number of items removed.
+     * Subsequent bytemap items are shifted left by the number of items deleted.
      *
-     * @param int $firstItemOffset The offset that the first newly inserted item is going to have.
+     * @param int $firstItemOffset The offset of the first item that is to be deleted.
      *                             If negative, `-1` represents the last item, `-2` the item preceding it, etc.
-     * @param int $howMany         the number of items to be removed from the bytemap
+     * @param int $howMany         the number of items to be deleted from the bytemap
      */
-    public function remove(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void;
+    public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void;
 
     /**
      * Writes a JSON representation of the bytemap to a stream.

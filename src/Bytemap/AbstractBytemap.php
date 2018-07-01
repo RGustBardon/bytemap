@@ -161,9 +161,9 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    public function remove(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
+    public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
     {
-        // Check if there is anything to remove.
+        // Check if there is anything to delete.
         if (1 > $howMany || 0 === $this->itemCount) {
             return;
         }
@@ -179,14 +179,14 @@ abstract class AbstractBytemap implements BytemapInterface
 
         $howManyLeft = $howMany;
 
-        // Shift all the subsequent items left by the numbers of items removed.
+        // Shift all the subsequent items left by the numbers of items deleted.
         $lastItemOffset = $firstItemOffset + $howMany - 1;
         for ($i = $this->itemCount - 1; $i > $lastItemOffset; --$i, --$howManyLeft) {
             $this[$i - $howMany] = $this[$i];
             unset($this[$i]);
         }
 
-        // If there are still items to be removed, remove the trailing ones.
+        // If there are still items to be deleted, delete the trailing ones.
         for (; $howManyLeft > 0; --$howManyLeft) {
             unset($this[$this->itemCount - 1]);
         }

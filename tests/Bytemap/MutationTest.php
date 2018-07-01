@@ -85,7 +85,7 @@ final class MutationTest extends AbstractTestOfBytemap
         self::assertSequence($expectedSequence, $bytemap);
     }
 
-    public static function removalProvider(): \Generator
+    public static function deletionProvider(): \Generator
     {
         foreach (self::implementationProvider() as [$impl]) {
             foreach ([
@@ -137,10 +137,10 @@ final class MutationTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::remove
-     * @dataProvider removalProvider
+     * @covers \Bytemap\AbstractBytemap::delete
+     * @dataProvider deletionProvider
      */
-    public function testRemoval(
+    public function testDeletion(
         string $impl,
         array $items,
         array $sequence,
@@ -156,7 +156,7 @@ final class MutationTest extends AbstractTestOfBytemap
         foreach ($sequence as $key) {
             $bytemap[] = $items[$key];
         }
-        $bytemap->remove($firstItemOffset, $howMany);
+        $bytemap->delete($firstItemOffset, $howMany);
         self::assertSequence($expectedSequence, $bytemap);
     }
 }
