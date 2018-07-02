@@ -51,12 +51,12 @@ jobs:
 workflows:
     version: 2
 
-    phpunit:
+    test:
         jobs:
             - composer
             - php71:
-                - requires:
+                requires:
                     - composer
             - php72:
-                - requires:
+                requires:
                     - composer
