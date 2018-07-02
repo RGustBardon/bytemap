@@ -21,6 +21,21 @@ namespace Bytemap;
 interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
 {
     /**
+     * Returns the items that match a certain whitelist or a certain blacklist.
+     *
+     * Values are compared strictly.
+     *
+     * @param ?iterable $items     The items to look for (whitelist) or to ignore (blacklist).
+     *                             `null` means all the items except for the default one.
+     * @param bool      $whitelist `true` if the first argument is a whitelist
+     * @param int       $howMany   The maximum number of matches. By default, all the matches are included.
+     *                             If negative, the search starts from the end.
+     *
+     * @return \Generator items found (including their keys)
+     */
+    public function find(?iterable $items = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator;
+
+    /**
      * Inserts items at a certain offset.
      *
      * Subsequent bytemap items are shifted right by the number of items inserted.

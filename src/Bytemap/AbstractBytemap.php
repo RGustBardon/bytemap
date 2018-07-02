@@ -107,6 +107,42 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // `BytemapInterface`
+    public function find(?iterable $items = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator
+    {
+        if (0 === $howMany) {
+            yield from [];
+
+            return;
+        }
+
+        if (null === $items) {
+            $items = [$this->defaultItem];
+            $whiteList = !$whitelist;
+        } elseif (!\is_array($items)) {
+            $items = \iterator_to_array($items);
+        }
+
+        if ($howMany > 0) {
+            foreach ($this as $key => $item) {
+                if (!($whitelist xor \in_array($item, $items, true))) {
+                    yield $key => $item;
+                    if (0 === --$howMany) {
+                        break;
+                    }
+                }
+            }
+        } else {
+            for ($i = $this->itemCount - 1; $i >= 0; --$i) {
+                if (!($whitelist xor \in_array($this[$i], $items, true))) {
+                    yield $i => $this[$i];
+                    if (0 === ++$howMany) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     public function insert(iterable $items, int $firstItemOffset = -1): void
     {
         $originalFirstItemOffset = $firstItemOffset;

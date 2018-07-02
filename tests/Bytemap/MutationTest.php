@@ -49,6 +49,7 @@ final class MutationTest extends AbstractTestOfBytemap
                     [[], [1], 0, [1]],
                     [[], [1], 1, [0, 1]],
                     [[0, 1, 2, 3, 0, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
+                    [[0, 1, 2, 3, null, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
                 ] as [$sequence, $inserted, $firstItemOffset, $expected]) {
                     yield [$impl, $items, $sequence, $inserted, $firstItemOffset, $expected];
                 }
@@ -73,8 +74,10 @@ final class MutationTest extends AbstractTestOfBytemap
             $expectedSequence[] = $items[$key];
         }
         $bytemap = self::instantiate($impl, $items[0]);
-        foreach ($sequence as $key) {
-            $bytemap[] = $items[$key];
+        foreach ($sequence as $index => $key) {
+            if (null !== $key) {
+                $bytemap[$index] = $items[$key];
+            }
         }
         $generator = (function () use ($items, $inserted) {
             foreach ($inserted as $key) {
@@ -127,8 +130,10 @@ final class MutationTest extends AbstractTestOfBytemap
                     [[0, 1, 2, 3, 4, 5], -3, 3, [0, 1, 2]],
                     [[0, 1, 2, 3, 4, 5], -4, 3, [0, 1, 5]],
                     [[0, 1, 2, 3, 4, 5], -5, 3, [0, 4, 5]],
+                    [[null, 1, 2, 3, 4, 5], -5, 3, [0, 4, 5]],
                     [[0, 1, 2, 3, 4, 5], -6, 3, [3, 4, 5]],
                     [[1, 2, 1, 2, 1, 2], 2, 3, [1, 2, 2]],
+                    [[1, null, 1, 2, 1, 0], 2, 3, [1, 0, 0]],
                 ] as [$sequence, $firstItemOffset, $howMany, $expected]) {
                     yield [$impl, $items, $sequence, $firstItemOffset, $howMany, $expected];
                 }
@@ -153,8 +158,10 @@ final class MutationTest extends AbstractTestOfBytemap
             $expectedSequence[] = $items[$key];
         }
         $bytemap = self::instantiate($impl, $items[0]);
-        foreach ($sequence as $key) {
-            $bytemap[] = $items[$key];
+        foreach ($sequence as $index => $key) {
+            if (null !== $key) {
+                $bytemap[$index] = $items[$key];
+            }
         }
         $bytemap->delete($firstItemOffset, $howMany);
         self::assertSequence($expectedSequence, $bytemap);
