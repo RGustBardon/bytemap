@@ -36,6 +36,18 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
     public function find(?iterable $items = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator;
 
     /**
+     * Returns the items that either match or do not match a certain POSIX regular expression.
+     *
+     * @param string $regex     the POSIX regular expression that the items will be tested against
+     * @param int    $howMany   The maximum number of matches. By default, all the matches are included.
+     *                          If negative, the search starts from the end.
+     * @param bool   $whitelist `true` if the first argument represents a whitelist
+     *
+     * @return \Generator items found (including their keys)
+     */
+    public function grep(string $regex, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator;
+
+    /**
      * Inserts items at a certain offset.
      *
      * Subsequent bytemap items are shifted right by the number of items inserted.

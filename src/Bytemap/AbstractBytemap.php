@@ -110,8 +110,6 @@ abstract class AbstractBytemap implements BytemapInterface
     public function find(?iterable $items = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator
     {
         if (0 === $howMany) {
-            yield from [];
-
             return;
         }
 
@@ -134,6 +132,29 @@ abstract class AbstractBytemap implements BytemapInterface
         } else {
             for ($i = $this->itemCount - 1; $i >= 0; --$i) {
                 if (!($whitelist xor \in_array($this[$i], $items, true))) {
+                    yield $i => $this[$i];
+                    if (0 === ++$howMany) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    public function grep(string $regex, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator
+    {
+        if ($howMany > 0) {
+            foreach ($this as $key => $item) {
+                if (!($whitelist xor \preg_match($regex, $item))) {
+                    yield $key => $item;
+                    if (0 === --$howMany) {
+                        break;
+                    }
+                }
+            }
+        } elseif ($howMany < 0) {
+            for ($i = $this->itemCount - 1; $i >= 0; --$i) {
+                if (!($whitelist xor \preg_match($regex, $this[$i]))) {
                     yield $i => $this[$i];
                     if (0 === ++$howMany) {
                         break;
