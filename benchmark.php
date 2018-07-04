@@ -24,7 +24,10 @@ require_once __DIR__.'/tests/bootstrap.php';
  *
  * @internal
  */
-new class($GLOBALS['argv'][1]) {
+new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
+    private const BENCHMARK_MEMORY = 'Memory';
+    private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
+
     private const JSON_FLAGS =
         \JSON_NUMERIC_CHECK | \JSON_PRESERVE_ZERO_FRACTION | \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES;
 
@@ -38,48 +41,89 @@ new class($GLOBALS['argv'][1]) {
 
     private $snapshots = [];
 
-    public function __construct(string $impl)
+    public function __construct(string $impl, ?string $benchmark)
     {
         \error_reporting(\E_ALL);
         \ini_set('assert.exception', '1');
 
+        if ('--list-benchmarks' === $impl) {
+            echo implode(\PHP_EOL, self::getBenchmarkNames()), PHP_EOL;
+            exit(0);
+        }
+
         $this->impl = $impl;
         $dsStatus = \extension_loaded('ds') ? 'extension' : 'polyfill';
-        $this->runtimeId = \sprintf('%s (%s, php-ds/%s)', $impl, \PHP_VERSION, $dsStatus);
+        $this->runtimeId = \sprintf('%s %s (%s, php-ds/%s)', $benchmark, $impl, \PHP_VERSION, $dsStatus);
         $this->statusHandle = \fopen('/proc/'.\getmypid().'/status', 'r');
         \assert(\is_resource($this->statusHandle), $this->runtimeId);
 
         $this->instantiate("\x00");
-        $this->initialMemUsage = \memory_get_usage(true);
-        $this->initialMemPeak = \memory_get_peak_usage(true);
-        $this->initialTimestamp = \microtime(true);
-
-        $this->benchmark();
+        $this->resetMeasurements();
+        $this->benchmark($benchmark);
     }
 
     public function __destruct()
     {
-        \fclose($this->statusHandle);
-        echo \json_encode($this->snapshots, self::JSON_FLAGS), \PHP_EOL;
+        if (\is_resource($this->statusHandle)) {
+            \fclose($this->statusHandle);
+        }
+        if ($this->snapshots) {
+            echo \json_encode($this->snapshots, self::JSON_FLAGS), \PHP_EOL;
+        }
     }
 
-    public function benchmark(): void
+    public function benchmark(string $benchmark): void
     {
-        $this->takeSnapshot('Initial');
-        $bytemap = $this->instantiate("\x00");
-        for ($i = 0; $i < 2000000; ++$i) {
-            $bytemap[] = "\x02";
+        switch ($benchmark) {
+            case self::BENCHMARK_MEMORY:
+                $this->takeSnapshot('Initial');
+                $bytemap = $this->instantiate("\x00");
+                $i = 0;
+                foreach (range(100000, 1000000, 100000) as $itemCount) {
+                    for (; $i < $itemCount; ++$i) {
+                        $bytemap[] = "\x02";
+                    }
+                    $this->takeSnapshot(\sprintf('%dk items', $itemCount / 1000));
+                }
+                \assert("\x02" === $bytemap[42], $this->runtimeId);
+                \assert("\x02" === $bytemap[1000000 - 1], $this->runtimeId);
+                $bytemap = null;
+                $this->takeSnapshot('AfterUnset');
+
+                break;
+            case self::BENCHMARK_NATIVE_SERIALIZE:
+                $this->takeSnapshot('Initial');
+                $bytemap = $this->instantiate("\x00");
+                $i = 0;
+                foreach (range(100000, 1000000, 100000) as $itemCount) {
+                    for (; $i < $itemCount; ++$i) {
+                        $bytemap[] = "\x02";
+                    }
+                    $this->takeSnapshot(\sprintf('After resizing to %dk', $itemCount / 1000));
+                    $length = \strlen(\serialize($bytemap));
+                    $this->takeSnapshot(\sprintf('After serializing %dk items (%d bytes)', $itemCount / 1000, $length));
+                }
+                \assert("\x02" === $bytemap[42], $this->runtimeId);
+                \assert("\x02" === $bytemap[1000000 - 1], $this->runtimeId);
+                $bytemap = null;
+                $this->takeSnapshot('AfterUnset');
+
+                break;
+            default:
+                throw new \UnexpectedValueException('Invalid benchmark id.');
         }
-        \assert("\x02" === $bytemap[42], $this->runtimeId);
-        \assert("\x02" === $bytemap[2000000 - 1], $this->runtimeId);
-        $this->takeSnapshot('BeforeUnset');
-        $bytemap = null;
-        $this->takeSnapshot('AfterUnset');
     }
 
     private function instantiate(...$args): BytemapInterface
     {
         return new $this->impl(...$args);
+    }
+
+    private function resetMeasurements(): void
+    {
+        $this->initialMemUsage = \memory_get_usage(true);
+        $this->initialMemPeak = \memory_get_peak_usage(true);
+        $this->initialTimestamp = \microtime(true);
     }
 
     private function takeSnapshot(string $name): void
@@ -107,5 +151,18 @@ new class($GLOBALS['argv'][1]) {
             }
             $this->snapshots[$name][$key] = $value;
         }
+    }
+
+    private static function getBenchmarkNames(): array
+    {
+        $names = [];
+        $class = new \ReflectionClass(__CLASS__);
+        foreach ($class->getConstants() as $key => $value) {
+            if ('BENCHMARK_' === \substr($key, 0, 10)) {
+                $names[] = $value;
+            }
+        }
+
+        return $names;
     }
 };
