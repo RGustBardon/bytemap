@@ -27,6 +27,8 @@ require_once __DIR__.'/tests/bootstrap.php';
 new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_MEMORY = 'Memory';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
+    private const BENCHMARK_SEARCH_FIND_SINGLE_NONE_FORWARD = 'SearchFindSingleNoneForward';
+    private const BENCHMARK_SEARCH_FIND_SINGLE_NONE_BACKWARD = 'SearchFindSingleNoneBackward';
 
     private const JSON_FLAGS =
         \JSON_NUMERIC_CHECK | \JSON_PRESERVE_ZERO_FRACTION | \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES;
@@ -46,7 +48,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         \error_reporting(\E_ALL);
         \ini_set('assert.exception', '1');
 
-        if ('--list-benchmarks' === $impl) {
+        if ('--list-benchmarks' === $impl || null === $benchmark) {
             echo implode(\PHP_EOL, self::getBenchmarkNames()), PHP_EOL;
             exit(0);
         }
@@ -109,6 +111,30 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('AfterUnset');
 
                 break;
+            case self::BENCHMARK_SEARCH_FIND_SINGLE_NONE_FORWARD:
+                $bytemap = $this->createCyclicBytemap('0', '9');
+
+                $result = $bytemap->find('a', true, \PHP_INT_MAX);
+                $this->takeSnapshot('After attempting to find a going forward');
+                \assert(empty(\iterator_to_array($result)), $this->runtimeId);
+
+                $result = $bytemap->find(\range('a', 'z'), true, \PHP_INT_MAX);
+                $this->takeSnapshot('After attempting to find a-z going forward');
+                \assert(empty(\iterator_to_array($result)), $this->runtimeId);
+
+                break;
+            case self::BENCHMARK_SEARCH_FIND_SINGLE_NONE_BACKWARD:
+                $bytemap = $this->createCyclicBytemap('0', '9');
+
+                $result = $bytemap->find(['a'], true, -\PHP_INT_MAX);
+                $this->takeSnapshot('After attempting to find a going backward');
+                \assert(empty(\iterator_to_array($result)), $this->runtimeId);
+
+                $result = $bytemap->find(\range('a', 'z'), true, -\PHP_INT_MAX);
+                $this->takeSnapshot('After attempting to find a-z going backward');
+                \assert(empty(\iterator_to_array($result)), $this->runtimeId);
+
+                break;
             default:
                 throw new \UnexpectedValueException('Invalid benchmark id.');
         }
@@ -117,6 +143,20 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private function instantiate(...$args): BytemapInterface
     {
         return new $this->impl(...$args);
+    }
+
+    private function createCyclicBytemap(string $firstItem, string $lastItem, int $size = 100000): BytemapInterface
+    {
+        $items = \range($firstItem, $lastItem);
+        $itemCount = \count($items);
+        $bytemap = $this->instantiate("\x00");
+        for ($i = 0; $i < $size; ++$i) {
+            $bytemap[] = (string) $items[$i % $itemCount];
+        }
+        $format = 'After creating a cyclic bytemap of %s-%s (of size %dk)';
+        $this->takeSnapshot(\sprintf($format, $firstItem, $lastItem, \count($bytemap) / 1000));
+
+        return $bytemap;
     }
 
     private function resetMeasurements(): void
