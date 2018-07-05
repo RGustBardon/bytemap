@@ -39,9 +39,9 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * Returns the items that either match or do not match a certain POSIX regular expression.
      *
      * @param string $regex     the POSIX regular expression that the items will be tested against
+     * @param bool   $whitelist `true` if the first argument represents a whitelist
      * @param int    $howMany   The maximum number of matches. By default, all the matches are included.
      *                          If negative, the search starts from the end.
-     * @param bool   $whitelist `true` if the first argument represents a whitelist
      *
      * @return \Generator items found (including their keys)
      */
