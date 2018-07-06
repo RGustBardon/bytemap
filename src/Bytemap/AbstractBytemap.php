@@ -114,15 +114,19 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         if (null === $items) {
-            $items = [$this->defaultItem];
+            $needles = [$this->defaultItem => true];
             $whiteList = !$whitelist;
-        } elseif (!\is_array($items)) {
-            $items = \iterator_to_array($items);
+        } else {
+            foreach ($items as $value) {
+                if (\is_string($value)) {
+                    $needles[$value] = true;
+                }
+            }
         }
 
         if ($howMany > 0) {
             foreach ($this as $key => $item) {
-                if (!($whitelist xor \in_array($item, $items, true))) {
+                if (!($whitelist xor isset($needles[$item]))) {
                     yield $key => $item;
                     if (0 === --$howMany) {
                         break;
@@ -131,7 +135,7 @@ abstract class AbstractBytemap implements BytemapInterface
             }
         } else {
             for ($i = $this->itemCount - 1; $i >= 0; --$i) {
-                if (!($whitelist xor \in_array($this[$i], $items, true))) {
+                if (!($whitelist xor isset($needles[$this[$i]]))) {
                     yield $i => $this[$i];
                     if (0 === ++$howMany) {
                         break;
