@@ -27,8 +27,11 @@ require_once __DIR__.'/tests/bootstrap.php';
 new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_MEMORY = 'Memory';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
-    private const BENCHMARK_SEARCH_FIND_SINGLE_NONE_FORWARD = 'SearchFindSingleNoneForward';
-    private const BENCHMARK_SEARCH_FIND_SINGLE_NONE_BACKWARD = 'SearchFindSingleNoneBackward';
+    private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
+    private const BENCHMARK_SEARCH_FIND_SOME = 'SearchFindSome';
+    private const BENCHMARK_SEARCH_FIND_ALL = 'SearchFindAll';
+
+    private const DEFAULT_BYTEMAP_ITEM_COUNT = 100000;
 
     private const JSON_FLAGS =
         \JSON_NUMERIC_CHECK | \JSON_PRESERVE_ZERO_FRACTION | \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES;
@@ -40,6 +43,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private $initialMemUsage;
     private $initialMemPeak;
     private $initialTimestamp;
+    private $totalTime;
 
     private $snapshots = [];
 
@@ -78,61 +82,75 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     {
         switch ($benchmark) {
             case self::BENCHMARK_MEMORY:
-                $this->takeSnapshot('Initial');
+                $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
                 $i = 0;
                 foreach (range(100000, 1000000, 100000) as $itemCount) {
                     for (; $i < $itemCount; ++$i) {
                         $bytemap[] = "\x02";
                     }
-                    $this->takeSnapshot(\sprintf('%dk items', $itemCount / 1000));
+                    $this->takeSnapshot(\sprintf('%dk items', $itemCount / 1000), true);
                 }
                 \assert("\x02" === $bytemap[42], $this->runtimeId);
                 \assert("\x02" === $bytemap[1000000 - 1], $this->runtimeId);
                 $bytemap = null;
-                $this->takeSnapshot('AfterUnset');
+                $this->takeSnapshot('AfterUnset', true);
 
                 break;
             case self::BENCHMARK_NATIVE_SERIALIZE:
-                $this->takeSnapshot('Initial');
+                $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
                 $i = 0;
                 foreach (range(100000, 1000000, 100000) as $itemCount) {
                     for (; $i < $itemCount; ++$i) {
                         $bytemap[] = "\x02";
                     }
-                    $this->takeSnapshot(\sprintf('After resizing to %dk', $itemCount / 1000));
+                    $this->takeSnapshot(\sprintf('After resizing to %dk', $itemCount / 1000), false);
                     $length = \strlen(\serialize($bytemap));
-                    $this->takeSnapshot(\sprintf('After serializing %dk items (%d bytes)', $itemCount / 1000, $length));
+                    $this->takeSnapshot(\sprintf('After serializing %dk items (%d bytes)', $itemCount / 1000, $length), true);
                 }
                 \assert("\x02" === $bytemap[42], $this->runtimeId);
                 \assert("\x02" === $bytemap[1000000 - 1], $this->runtimeId);
-                $bytemap = null;
-                $this->takeSnapshot('AfterUnset');
 
                 break;
-            case self::BENCHMARK_SEARCH_FIND_SINGLE_NONE_FORWARD:
-                $bytemap = $this->createCyclicBytemap('0', '9');
-
-                $result = $bytemap->find('a', true, \PHP_INT_MAX);
-                $this->takeSnapshot('After attempting to find a going forward');
-                \assert(empty(\iterator_to_array($result)), $this->runtimeId);
-
-                $result = $bytemap->find(\range('a', 'z'), true, \PHP_INT_MAX);
-                $this->takeSnapshot('After attempting to find a-z going forward');
-                \assert(empty(\iterator_to_array($result)), $this->runtimeId);
+            case self::BENCHMARK_SEARCH_FIND_NONE:
+                foreach ([
+                    ['0', '9', [['a'], ['a', 'z']]],
+                    ['10', '99', [['aa'], ['aa', 'zz']]],
+                ] as [$first, $last, $needles]) {
+                    foreach ($needles as $needle) {
+                        foreach ([true, false] as $forward) {
+                            $itemCount = $this->benchmarkSearchFind($first, $last, $forward, $needle[0], $needle[1] ?? null);
+                            \assert(0 === $itemCount, $this->runtimeId);
+                        }
+                    }
+                }
 
                 break;
-            case self::BENCHMARK_SEARCH_FIND_SINGLE_NONE_BACKWARD:
-                $bytemap = $this->createCyclicBytemap('0', '9');
+            case self::BENCHMARK_SEARCH_FIND_SOME:
+                foreach ([
+                    ['0', '9', [[['4'], 10000], [['4', '7'], 40000]]],
+                    ['10', '99', [[['40'], 1111], [['40', '70'], 34441]]],
+                ] as [$first, $last, $needlesAndItemCounts]) {
+                    foreach ($needlesAndItemCounts as [$needle, $expectedItemCount]) {
+                        foreach ([true, false] as $forward) {
+                            $itemCount = $this->benchmarkSearchFind($first, $last, $forward, $needle[0], $needle[1] ?? null);
+                            \assert($expectedItemCount === $itemCount, $this->runtimeId);
+                        }
+                    }
+                }
 
-                $result = $bytemap->find(['a'], true, -\PHP_INT_MAX);
-                $this->takeSnapshot('After attempting to find a going backward');
-                \assert(empty(\iterator_to_array($result)), $this->runtimeId);
-
-                $result = $bytemap->find(\range('a', 'z'), true, -\PHP_INT_MAX);
-                $this->takeSnapshot('After attempting to find a-z going backward');
-                \assert(empty(\iterator_to_array($result)), $this->runtimeId);
+                break;
+            case self::BENCHMARK_SEARCH_FIND_ALL:
+                foreach ([
+                    ['4', '7', '0', '9'],
+                    ['40', '70', '10', '99'],
+                ] as [$firstItem, $lastItem, $firstNeedle, $lastNeedle]) {
+                    foreach ([true, false] as $forward) {
+                        $itemCount = $this->benchmarkSearchFind($firstItem, $lastItem, $forward, $firstNeedle, $lastNeedle);
+                        \assert(self::DEFAULT_BYTEMAP_ITEM_COUNT === $itemCount, $this->runtimeId);
+                    }
+                }
 
                 break;
             default:
@@ -145,16 +163,46 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         return new $this->impl(...$args);
     }
 
-    private function createCyclicBytemap(string $firstItem, string $lastItem, int $size = 100000): BytemapInterface
-    {
-        $items = \range($firstItem, $lastItem);
+    private function benchmarkSearchFind(
+        string $firstCyclicItem,
+        string $lastCyclicItem,
+        bool $forward,
+        string $firstNeedle,
+        ?string $lastNeedle = null
+    ): int {
+        $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem);
+        if (null === $lastNeedle) {
+            $items = [$firstNeedle];
+            $needle = $firstNeedle;
+        } else {
+            $items = \array_map('strval', \range($firstNeedle, $lastNeedle));
+            $needle = \sprintf('%s-%s', $firstNeedle, $lastNeedle);
+        }
+        $direction = $forward ? 'forward' : 'backward';
+
+        $result = $bytemap->find($items, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
+        $itemCount = 0;
+        foreach ($result as $key => $value) {
+            ++$itemCount;
+        }
+        $this->takeSnapshot(\sprintf('After attempting to find %s going %s', $needle, $direction), true);
+
+        return $itemCount;
+    }
+
+    private function createCyclicBytemap(
+        string $firstItem,
+        string $lastItem,
+        int $size = self::DEFAULT_BYTEMAP_ITEM_COUNT
+    ): BytemapInterface {
+        $items = \array_map('strval', \range($firstItem, $lastItem));
         $itemCount = \count($items);
-        $bytemap = $this->instantiate("\x00");
+        $bytemap = $this->instantiate($items[0]);
         for ($i = 0; $i < $size; ++$i) {
-            $bytemap[] = (string) $items[$i % $itemCount];
+            $bytemap[] = $items[$i % $itemCount];
         }
         $format = 'After creating a cyclic bytemap of %s-%s (of size %dk)';
-        $this->takeSnapshot(\sprintf($format, $firstItem, $lastItem, \count($bytemap) / 1000));
+        $this->takeSnapshot(\sprintf($format, $firstItem, $lastItem, \count($bytemap) / 1000), false);
 
         return $bytemap;
     }
@@ -164,16 +212,24 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         $this->initialMemUsage = \memory_get_usage(true);
         $this->initialMemPeak = \memory_get_peak_usage(true);
         $this->initialTimestamp = \microtime(true);
+        $this->totalTime = .0;
     }
 
-    private function takeSnapshot(string $name): void
+    private function takeSnapshot(string $name, bool $isRelevant): void
     {
-        $microtime = \round(\microtime(true) - $this->initialTimestamp, 6);
-        \assert(!isset($this->snapshots[$name]), $this->runtimeId);
-        $this->snapshots[$name] = [
+        $currentTime = \microtime(true);
+        $microtime = \round($currentTime - $this->initialTimestamp, 6);
+        $lastSnapshot = \end($this->snapshots);
+        $totalTime = $lastSnapshot['PhpTotalRelevantTime'] ?: .0;
+        if ($isRelevant && isset($lastSnapshot['PhpTime'])) {
+            $totalTime += $microtime - $lastSnapshot['PhpTime'];
+        }
+        $snapshot = [
             'PhpRuntime' => $this->runtimeId,
             'PhpSnapshot' => $name,
+            'PhpIsRelevantStep' => $isRelevant,
             'PhpTime' => $microtime,
+            'PhpTotalRelevantTime' => \round($totalTime, 6),
             'PhpMem' => \memory_get_usage(true) - $this->initialMemUsage,
             'PhpPeak' => \memory_get_peak_usage(true) - $this->initialMemPeak,
         ];
@@ -189,8 +245,9 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             if (\preg_match('~^[0-9]+ kB$~', $value)) {
                 $value = 1024 * (int) \substr($value, 0, -3);
             }
-            $this->snapshots[$name][$key] = $value;
+            $snapshot[$name][$key] = $value;
         }
+        $this->snapshots[] = $snapshot;
     }
 
     private static function getBenchmarkNames(): array
