@@ -30,6 +30,9 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
     private const BENCHMARK_SEARCH_FIND_SOME = 'SearchFindSome';
     private const BENCHMARK_SEARCH_FIND_ALL = 'SearchFindAll';
+    private const BENCHMARK_SEARCH_GREP_NONE = 'SearchGrepNone';
+    private const BENCHMARK_SEARCH_GREP_SOME = 'SearchGrepSome';
+    private const BENCHMARK_SEARCH_GREP_ALL = 'SearchGrepAll';
 
     private const DEFAULT_BYTEMAP_ITEM_COUNT = 100000;
 
@@ -153,6 +156,48 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 }
 
                 break;
+            case self::BENCHMARK_SEARCH_GREP_NONE:
+                foreach ([
+                    ['0', '9', ['[a-z]']],
+                    ['10', '99', ['^a', 'z$', '[a-z]{2}']],
+                ] as [$first, $last, $regexes]) {
+                    foreach ($regexes as $regex) {
+                        foreach ([true, false] as $forward) {
+                            $itemCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
+                            \assert(0 === $itemCount, $this->runtimeId);
+                        }
+                    }
+                }
+
+                break;
+            case self::BENCHMARK_SEARCH_GREP_SOME:
+                foreach ([
+                    ['0', '9', ['~[24-6]~' => 40000]],
+                    ['10', '99', ['~^1~' => 11120, '~0$~' => 10000, '~1~' => 20008, '~[1-3][4-6]~' => 10002]],
+                ] as [$first, $last, $regexes]) {
+                    foreach ($regexes as $regex => $expectedItemCount) {
+                        foreach ([true, false] as $forward) {
+                            $itemCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
+                            \assert($expectedItemCount === $itemCount, $this->runtimeId);
+                        }
+                    }
+                }
+
+                break;
+            case self::BENCHMARK_SEARCH_GREP_ALL:
+                foreach ([
+                    ['4', '7', ['~~', '~.~', '~[0-9]~', '~[^a-z]~']],
+                    ['40', '70', ['~^[3-8]~', '~[^a-z]$~', '~(?<![b-y])[^a-z]~', '~[3-8][^a-z]~']],
+                ] as [$first, $last, $regexes]) {
+                    foreach ($regexes as $regex) {
+                        foreach ([true, false] as $forward) {
+                            $itemCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
+                            \assert(self::DEFAULT_BYTEMAP_ITEM_COUNT === $itemCount, $this->runtimeId);
+                        }
+                    }
+                }
+
+                break;
             default:
                 throw new \UnexpectedValueException('Invalid benchmark id.');
         }
@@ -186,6 +231,21 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             ++$itemCount;
         }
         $this->takeSnapshot(\sprintf('After attempting to find %s going %s', $needle, $direction), true);
+
+        return $itemCount;
+    }
+
+    private function benchmarkSearchGrep(string $firstCyclicItem, string $lastCyclicItem, bool $forward, string $regex): int
+    {
+        $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem);
+        $direction = $forward ? 'forward' : 'backward';
+
+        $result = $bytemap->grep($regex, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
+        $itemCount = 0;
+        foreach ($result as $key => $value) {
+            ++$itemCount;
+        }
+        $this->takeSnapshot(\sprintf('After attempting to grep %s going %s', $regex, $direction), true);
 
         return $itemCount;
     }
