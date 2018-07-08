@@ -158,8 +158,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 break;
             case self::BENCHMARK_SEARCH_GREP_NONE:
                 foreach ([
-                    ['0', '9', ['[a-z]']],
-                    ['10', '99', ['^a', 'z$', '[a-z]{2}']],
+                    ['0', '9', ['~[a-z]~']],
+                    ['10', '99', ['~^a~', '~z$~', '~[a-z]{2}~']],
                 ] as [$first, $last, $regexes]) {
                     foreach ($regexes as $regex) {
                         foreach ([true, false] as $forward) {
