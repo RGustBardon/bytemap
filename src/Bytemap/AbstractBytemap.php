@@ -117,6 +117,7 @@ abstract class AbstractBytemap implements BytemapInterface
             $needles = [$this->defaultItem => true];
             $whiteList = !$whitelist;
         } else {
+            $needles = [];
             foreach ($items as $value) {
                 if (\is_string($value)) {
                     $needles[$value] = true;
@@ -124,30 +125,25 @@ abstract class AbstractBytemap implements BytemapInterface
             }
         }
 
-        if ($howMany > 0) {
-            foreach ($this as $key => $item) {
-                if (!($whitelist xor isset($needles[$item]))) {
-                    yield $key => $item;
-                    if (0 === --$howMany) {
-                        break;
-                    }
-                }
-            }
-        } else {
-            for ($i = $this->itemCount - 1; $i >= 0; --$i) {
-                if (!($whitelist xor isset($needles[$this[$i]]))) {
-                    yield $i => $this[$i];
-                    if (0 === ++$howMany) {
-                        break;
-                    }
-                }
-            }
-        }
+        yield from $this->findArrayItems($needles, $whitelist, $howMany);
     }
 
     public function grep(string $regex, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator
     {
-        if ($howMany > 0) {
+        if (!isset($this->defaultItem[1])) {
+            $whitelistNeedles = [];
+            $blacklistNeedles = [];
+            for ($i = 0; $i < 256; ++$i) {
+                $needle = chr($i);
+                if ($whitelist xor \preg_match($regex, $needle)) {
+                    $blacklistNeedles[] = $needle;
+                } else {
+                    $whitelistNeedles[] = $needle;
+                }
+            }
+            $whitelist = \count($whitelistNeedles) <= 128;
+            yield from $this->find($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany);
+        } elseif ($howMany > 0) {
             foreach ($this as $key => $item) {
                 if (!($whitelist xor \preg_match($regex, $item))) {
                     yield $key => $item;
@@ -260,6 +256,29 @@ abstract class AbstractBytemap implements BytemapInterface
             \fwrite($stream, \json_encode($this[$i]).',');
         }
         \fwrite($stream, ($this->itemCount > 0 ? \json_encode($this[$i]) : '').']');
+    }
+
+    protected function findArrayItems(array $items, bool $whitelist, int $howMany): \Generator
+    {
+        if ($howMany > 0) {
+            foreach ($this as $key => $item) {
+                if (!($whitelist xor isset($items[$item]))) {
+                    yield $key => $item;
+                    if (0 === --$howMany) {
+                        break;
+                    }
+                }
+            }
+        } else {
+            for ($i = $this->itemCount - 1; $i >= 0; --$i) {
+                if (!($whitelist xor isset($items[$this[$i]]))) {
+                    yield $i => $this[$i];
+                    if (0 === ++$howMany) {
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     // `AbstractBytemap`
