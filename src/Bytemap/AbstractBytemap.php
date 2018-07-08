@@ -130,19 +130,23 @@ abstract class AbstractBytemap implements BytemapInterface
 
     public function grep(string $regex, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator
     {
+        if (0 === $howMany) {
+            return;
+        }
+
         if (!isset($this->defaultItem[1])) {
             $whitelistNeedles = [];
             $blacklistNeedles = [];
             for ($i = 0; $i < 256; ++$i) {
                 $needle = chr($i);
                 if ($whitelist xor \preg_match($regex, $needle)) {
-                    $blacklistNeedles[] = $needle;
+                    $blacklistNeedles[$needle] = true;
                 } else {
-                    $whitelistNeedles[] = $needle;
+                    $whitelistNeedles[$needle] = true;
                 }
             }
             $whitelist = \count($whitelistNeedles) <= 128;
-            yield from $this->find($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany);
+            yield from $this->findArrayItems($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany);
         } elseif ($howMany > 0) {
             foreach ($this as $key => $item) {
                 if (!($whitelist xor \preg_match($regex, $item))) {
@@ -152,7 +156,7 @@ abstract class AbstractBytemap implements BytemapInterface
                     }
                 }
             }
-        } elseif ($howMany < 0) {
+        } else {
             for ($i = $this->itemCount - 1; $i >= 0; --$i) {
                 if (!($whitelist xor \preg_match($regex, $this[$i]))) {
                     yield $i => $this[$i];
