@@ -138,6 +138,34 @@ final class SearchTest extends AbstractTestOfBytemap
         self::assertSame($expectedSequence, \iterator_to_array($bytemap->find($query, $whitelist, $howMany)));
     }
 
+    public static function implementationDirectionProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([true, false] as $forward) {
+                yield [$impl, $forward];
+            }
+        }
+    }
+
+    /**
+     * @depends testFinding
+     * @dataProvider implementationDirectionProvider
+     */
+    public function testFindingCloning(string $impl, bool $forward): void
+    {
+        $bytemap = self::instantiate($impl, "\x00");
+        self::pushItems($bytemap, 'a', 'b', 'c', 'a', 'b', 'c');
+
+        $matchCount = 0;
+        foreach ($bytemap->find(['a', 'c'], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $item) {
+            ++$matchCount;
+            if (1 === $matchCount) {
+                $bytemap[1] = 'a';
+            }
+        }
+        self::assertSame(4, $matchCount);
+    }
+
     public static function greppingProvider(): \Generator
     {
         foreach (self::implementationProvider() as [$impl]) {
@@ -256,5 +284,28 @@ final class SearchTest extends AbstractTestOfBytemap
             }
         }
         self::assertSame($expectedSequence, \iterator_to_array($bytemap->grep($regex, $whitelist, $howMany)));
+    }
+
+    /**
+     * @depends testGrepping
+     * @dataProvider implementationDirectionProvider
+     */
+    public function testGreppingCircularLookup(string $impl, bool $forward): void
+    {
+        $bytemap = self::instantiate($impl, "\x00\x00\x00");
+        for ($item = 'aaa'; $item <= 'pzz'; ++$item) {  // 16 * 26 * 26 = 10816 items.
+            $bytemap[] = $item;
+        }
+        $bytemap[0] = 'akk';
+        $bytemap[] = 'akk';
+        $regex = '~(?<![c-d])(?<=[a-f])([k-p])(?=\\1)(?![m-n])~';  // [abef](kk|ll|oo|pp)
+        $matchCount = 0;
+        foreach ($bytemap->grep($regex, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $item) {
+            ++$matchCount;
+            if (1 === $matchCount) {
+                $bytemap[1] = 'akk';
+            }
+        }
+        self::assertSame(18, $matchCount);
     }
 }
