@@ -25,6 +25,7 @@ require_once __DIR__.'/tests/bootstrap.php';
  * @internal
  */
 new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
+    private const BENCHMARK_JSON_STREAM = 'JsonStream';
     private const BENCHMARK_MEMORY = 'Memory';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
@@ -84,6 +85,28 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     public function benchmark(string $benchmark): void
     {
         switch ($benchmark) {
+            case self::BENCHMARK_JSON_STREAM:
+                \assert(\class_exists('\\JsonStreamingParser\\Parser'));
+                $this->takeSnapshot('Initial', false);
+                $stream = \fopen('php://temp/maxmemory:0', 'r+');
+                \assert(\is_resource($stream));
+                $bytemap = $this->instantiate("\x00\x00\x00");
+                for ($i = 'aaa'; $i <= 'szz'; ++$i) {
+                    $bytemap[] = $i;
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items', \count($bytemap)), false);
+                $bytemap->streamJson($stream);
+                $this->takeSnapshot('After streaming JSON', true);
+                unset($bytemap);
+                \rewind($stream);
+                $bytemap = $this->instantiate("\x00")->parseJsonStream($stream, "\x00\x00\x00");
+                $this->takeSnapshot('After parsing the stream', true);
+                \fclose($stream);
+                \assert('aab' === $bytemap[1], $this->runtimeId);
+                \assert('szy' === $bytemap[$itemCount - 2], $this->runtimeId);
+
+                break;
             case self::BENCHMARK_MEMORY:
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
