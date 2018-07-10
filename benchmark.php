@@ -104,16 +104,22 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
                 $i = 0;
-                foreach (range(100000, 1000000, 100000) as $itemCount) {
+                foreach (range(100000, 800000, 100000) as $itemCount) {
                     for (; $i < $itemCount; ++$i) {
                         $bytemap[] = "\x02";
                     }
                     $this->takeSnapshot(\sprintf('After resizing to %dk', $itemCount / 1000), false);
-                    $length = \strlen(\serialize($bytemap));
+                    $serializedBytemap = \serialize($bytemap);
+                    $length = \strlen($serializedBytemap);
                     $this->takeSnapshot(\sprintf('After serializing %dk items (%d bytes)', $itemCount / 1000, $length), true);
+                    unset($bytemap);
+                    $bytemap = \unserialize($serializedBytemap, ['allowed_classes' => [$this->impl]]);
+                    $this->takeSnapshot(\sprintf('After unserializing %dk items', $itemCount / 1000), true);
+                    \assert("\x02" === $bytemap[42], $this->runtimeId);
+                    \assert("\x02" === $bytemap[$itemCount - 1], $this->runtimeId);
+                    \assert(\count($bytemap) === $itemCount, $this->runtimeId);
                 }
-                \assert("\x02" === $bytemap[42], $this->runtimeId);
-                \assert("\x02" === $bytemap[1000000 - 1], $this->runtimeId);
+                unset($bytemap);
 
                 break;
             case self::BENCHMARK_SEARCH_FIND_NONE:
