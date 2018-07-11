@@ -27,6 +27,7 @@ require_once __DIR__.'/tests/bootstrap.php';
 new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_JSON_STREAM = 'JsonStream';
     private const BENCHMARK_MEMORY = 'Memory';
+    private const BENCHMARK_NATIVE_JSON_SERIALIZE = 'NativeJsonSerialize';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
     private const BENCHMARK_SEARCH_FIND_SOME = 'SearchFindSome';
@@ -121,6 +122,19 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 \assert("\x02" === $bytemap[1000000 - 1], $this->runtimeId);
                 $bytemap = null;
                 $this->takeSnapshot('AfterUnset', true);
+
+                break;
+            case self::BENCHMARK_NATIVE_JSON_SERIALIZE:
+                $this->takeSnapshot('Initial', false);
+                $bytemap = $this->instantiate("\x00\x00\x00");
+                for ($i = 'aaa'; $i <= 'zzz'; ++$i) {
+                    $bytemap[] = $i;
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items', \count($bytemap)), false);
+                \json_encode($bytemap);
+                $this->takeSnapshot('After serializing to JSON natively', true);
+                \assert(\JSON_ERROR_NONE === \json_last_error());
 
                 break;
             case self::BENCHMARK_NATIVE_SERIALIZE:
