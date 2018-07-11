@@ -229,13 +229,13 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     public function testJsonSerializable(string $impl, array $items): void
     {
         $bytemap = self::instantiate($impl, $items[0]);
-        self::assertSame(\json_encode([]), \json_encode($bytemap));
+        self::assertNativeJson([], $bytemap);
 
         $sequence = [$items[1], $items[2], $items[1]];
         self::pushItems($bytemap, ...$sequence);
         $bytemap[4] = $items[0];
         \array_push($sequence, $items[0], $items[0]);
-        self::assertSame(\json_encode($sequence), \json_encode($bytemap));
+        self::assertNativeJson($sequence, $bytemap);
     }
 
     /**
@@ -257,5 +257,16 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertSequence($sequence, $copy);
         self::assertDefaultItem($items[0], $copy, $items[1]);
         self::assertDefaultItem($items[0], $bytemap, $items[2]);
+    }
+
+    private static function assertNativeJson($expected, $actual): void
+    {
+        $expectedJson = \json_encode($expected);
+        self::assertSame(\JSON_ERROR_NONE, \json_last_error());
+
+        $actualJson = \json_encode($actual);
+        self::assertSame(\JSON_ERROR_NONE, \json_last_error());
+
+        self::assertSame($expectedJson, $actualJson);
     }
 }
