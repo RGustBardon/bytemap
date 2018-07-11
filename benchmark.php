@@ -91,8 +91,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $stream = \fopen('php://temp/maxmemory:0', 'r+');
                 \assert(\is_resource($stream));
-                $bytemap = $this->instantiate("\x00\x00\x00");
-                for ($i = 'aaa'; $i <= 'szz'; ++$i) {
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($i = 'aaaa'; 'kaaa' !== $i; ++$i) {
                     $bytemap[] = $i;
                 }
                 $itemCount = \count($bytemap);
@@ -101,11 +101,11 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('After streaming JSON', true);
                 unset($bytemap);
                 \rewind($stream);
-                $bytemap = $this->instantiate("\x00")->parseJsonStream($stream, "\x00\x00\x00");
+                $bytemap = $this->instantiate("\x00")->parseJsonStream($stream, "\x00\x00\x00\x00");
                 $this->takeSnapshot('After parsing the stream', true);
                 \fclose($stream);
-                \assert('aab' === $bytemap[1], $this->runtimeId);
-                \assert('szy' === $bytemap[$itemCount - 2], $this->runtimeId);
+                \assert('aaab' === $bytemap[1], $this->runtimeId);
+                \assert('jzzy' === $bytemap[$itemCount - 2], $this->runtimeId);
 
                 break;
             case self::BENCHMARK_MEMORY:
@@ -126,8 +126,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 break;
             case self::BENCHMARK_NATIVE_JSON_SERIALIZE:
                 $this->takeSnapshot('Initial', false);
-                $bytemap = $this->instantiate("\x00\x00\x00");
-                for ($i = 'aaa'; $i <= 'zzz'; ++$i) {
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($i = 'aaaa'; 'aaaaa' !== $i; ++$i) {
                     $bytemap[] = $i;
                 }
                 $itemCount = \count($bytemap);
