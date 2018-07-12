@@ -27,6 +27,7 @@ require_once __DIR__.'/tests/bootstrap.php';
 new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_JSON_STREAM = 'JsonStream';
     private const BENCHMARK_MEMORY = 'Memory';
+    private const BENCHMARK_NATIVE_FOREACH = 'NativeForeach';
     private const BENCHMARK_NATIVE_JSON_SERIALIZE = 'NativeJsonSerialize';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
@@ -122,6 +123,30 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 \assert("\x02" === $bytemap[1000000 - 1], $this->runtimeId);
                 $bytemap = null;
                 $this->takeSnapshot('AfterUnset', true);
+
+                break;
+            case self::BENCHMARK_NATIVE_FOREACH:
+                $this->takeSnapshot('Initial', false);
+                $bytemap = $this->instantiate("\x00");
+                for ($i = 0; $i < 26 * 26 * 26 * 26; ++$i) {
+                    $bytemap[] = (string) ($i % 10);
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', \count($bytemap)), false);
+                foreach ($bytemap as $item) {
+                }
+                $this->takeSnapshot('After iterating over the bytemap with 1 byte per item', true);
+                unset($bytemap);
+
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($i = 'aaaa'; 'aaaaa' !== $i; ++$i) {
+                    $bytemap[] = $i;
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (4 bytes each)', \count($bytemap)), false);
+                foreach ($bytemap as $item) {
+                }
+                $this->takeSnapshot('After iterating over the bytemap with 4 bytes per item', true);
 
                 break;
             case self::BENCHMARK_NATIVE_JSON_SERIALIZE:
