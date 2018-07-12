@@ -89,15 +89,18 @@ class Bytemap extends AbstractBytemap
     // `IteratorAggregate`
     public function getIterator(): \Traversable
     {
-        if (1 < $this->bytesPerItem) {
-            return parent::getIterator();
-        }
-
-        return (static function (self $bytemap): \Generator {
-            for ($i = 0; $i < $bytemap->itemCount; ++$i) {
-                yield $i => $bytemap->map[$i];
+        $bytesPerItem = (int) $this->bytesPerItem;
+        $itemCount = $this->itemCount;
+        $map = $this->map;
+        if (1 === $bytesPerItem) {
+            for ($i = 0; $i < $itemCount; ++$i) {
+                yield $i => $map[$i];
             }
-        })(clone $this);
+        } else {
+            for ($i = 0, $offset = 0; $i < $itemCount; ++$i, $offset += $bytesPerItem) {
+                yield $i => \substr($map, $offset, $bytesPerItem);
+            }
+        }
     }
 
     // `JsonSerializable`
