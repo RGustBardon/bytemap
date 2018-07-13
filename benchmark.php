@@ -29,6 +29,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_MEMORY = 'Memory';
     private const BENCHMARK_NATIVE_FOREACH = 'NativeForeach';
     private const BENCHMARK_NATIVE_JSON_SERIALIZE = 'NativeJsonSerialize';
+    private const BENCHMARK_NATIVE_RANDOM_ACCESS = 'NativeRandomAccess';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
     private const BENCHMARK_SEARCH_FIND_SOME = 'SearchFindSome';
@@ -160,6 +161,35 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 \json_encode($bytemap);
                 $this->takeSnapshot('After serializing to JSON natively', true);
                 \assert(\JSON_ERROR_NONE === \json_last_error());
+
+                break;
+            case self::BENCHMARK_NATIVE_RANDOM_ACCESS:
+                $this->takeSnapshot('Initial', false);
+                $bytemap = $this->instantiate("\x00");
+                for ($i = 0; $i < 26 * 26 * 26 * 26; ++$i) {
+                    $bytemap[] = (string) ($i % 10);
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', \count($bytemap)), false);
+
+                $iterations = 1000000;
+                for ($i = 0; $i < $iterations; ++$i) {
+                    $bytemap[\random_int(0, $itemCount - 1)];
+                }
+                $this->takeSnapshot(\sprintf('After retrieving %d items (1 byte each) in random order', $iterations), true);
+                unset($bytemap);
+
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($i = 'aaaa'; 'aaaaa' !== $i; ++$i) {
+                    $bytemap[] = $i;
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (4 bytes each)', \count($bytemap)), false);
+
+                for ($i = 0; $i < $iterations; ++$i) {
+                    $bytemap[\random_int(0, $itemCount - 1)];
+                }
+                $this->takeSnapshot(\sprintf('After retrieving %d items (4 bytes each) in random order', $iterations), true);
 
                 break;
             case self::BENCHMARK_NATIVE_SERIALIZE:
