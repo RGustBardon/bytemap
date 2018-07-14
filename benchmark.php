@@ -62,7 +62,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         \mt_srand(0);
 
         if ('--list-benchmarks' === $impl || null === $benchmark) {
-            echo implode(\PHP_EOL, self::getBenchmarkNames()), PHP_EOL;
+            echo \implode(\PHP_EOL, self::getBenchmarkNames()), \PHP_EOL;
             exit(0);
         }
 
@@ -116,7 +116,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
                 $i = 0;
-                foreach (range(100000, 1000000, 100000) as $itemCount) {
+                foreach (\range(100000, 1000000, 100000) as $itemCount) {
                     for (; $i < $itemCount; ++$i) {
                         $bytemap[] = "\x02";
                     }
@@ -227,7 +227,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
                 $i = 0;
-                foreach (range(100000, 800000, 100000) as $itemCount) {
+                foreach (\range(100000, 800000, 100000) as $itemCount) {
                     for (; $i < $itemCount; ++$i) {
                         $bytemap[] = "\x02";
                     }

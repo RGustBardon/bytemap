@@ -140,7 +140,7 @@ abstract class AbstractBytemap implements BytemapInterface
             $whitelistNeedles = [];
             $blacklistNeedles = [];
             for ($i = 0; $i < 256; ++$i) {
-                $needle = chr($i);
+                $needle = \chr($i);
                 if ($whitelist xor \preg_match($regex, $needle)) {
                     $blacklistNeedles[$needle] = true;
                 } else {
