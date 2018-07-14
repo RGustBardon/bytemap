@@ -130,7 +130,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             case self::BENCHMARK_NATIVE_FOREACH:
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 26 * 26 * 26 * 26; ++$i) {
+                for ($i = 0; $i < 26 ** 4; ++$i) {
                     $bytemap[] = (string) ($i % 10);
                 }
                 $itemCount = \count($bytemap);
@@ -167,15 +167,15 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             case self::BENCHMARK_NATIVE_OVERWRITING:
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 26 * 26 * 26 * 26; ++$i) {
+                for ($i = 0; $i < 26 ** 4; ++$i) {
                     $bytemap[] = (string) ($i % 10);
                 }
                 $itemCount = \count($bytemap);
                 $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', \count($bytemap)), false);
 
-                $iterations = 5000;
+                $iterations = 1000000;
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\random_int(0, $itemCount - 1)] = "\x01";
+                    $bytemap[\random_int(0, $itemCount - 1)] = 'a';
                 }
                 $this->takeSnapshot(\sprintf('After updating %d items (1 byte each) in random order', $iterations), true);
                 unset($bytemap);
@@ -188,7 +188,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (4 bytes each)', \count($bytemap)), false);
 
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\random_int(0, $itemCount - 1)] = "\x01";
+                    $bytemap[\random_int(0, $itemCount - 1)] = 'abcd';
                 }
                 $this->takeSnapshot(\sprintf('After updating %d items (4 bytes each) in random order', $iterations), true);
 
@@ -196,7 +196,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             case self::BENCHMARK_NATIVE_RANDOM_ACCESS:
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 26 * 26 * 26 * 26; ++$i) {
+                for ($i = 0; $i < 26 ** 4; ++$i) {
                     $bytemap[] = (string) ($i % 10);
                 }
                 $itemCount = \count($bytemap);
