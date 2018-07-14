@@ -51,22 +51,24 @@ class Bytemap extends AbstractBytemap
 
         /** @var int $unassignedCount */
         $unassignedCount = $offset - $this->itemCount;
+        $bytesPerItem = $this->bytesPerItem;
         if (0 > $unassignedCount) {
             // Case 1. Overwrite an existing item.
-            $firstByteIndex = $offset * $this->bytesPerItem;
-            for ($i = 0; $i < $this->bytesPerItem; ++$i) {
-                $this->map[$firstByteIndex + $i] = $item[$i];
-            }
+            $itemIndex = 0;
+            $offset *= $bytesPerItem;
+            do {
+                $this->map[$offset++] = $item[$itemIndex++];
+            } while ($itemIndex < $bytesPerItem);
         } elseif (0 === $unassignedCount) {
             // Case 2. Append an item right after the last one.
             $this->map .= $item;
             ++$this->itemCount;
-            $this->bytesInTotal += $this->bytesPerItem;
+            $this->bytesInTotal += $bytesPerItem;
         } else {
             // Case 3. Append to a gap after the last item. Fill the gap with default items.
             $this->map .= \str_repeat($this->defaultItem, $unassignedCount).$item;
             $this->itemCount += $unassignedCount + 1;
-            $this->bytesInTotal = $this->itemCount * $this->bytesPerItem;
+            $this->bytesInTotal = $this->itemCount * $bytesPerItem;
         }
     }
 
