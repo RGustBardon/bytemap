@@ -59,6 +59,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     {
         \error_reporting(\E_ALL);
         \ini_set('assert.exception', '1');
+        \mt_srand(0);
 
         if ('--list-benchmarks' === $impl || null === $benchmark) {
             echo implode(\PHP_EOL, self::getBenchmarkNames()), PHP_EOL;
@@ -175,9 +176,9 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
 
                 $iterations = 1000000;
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\random_int(0, $itemCount - 1)] = 'a';
+                    $bytemap[\mt_rand(0, $itemCount - 1)] = 'a';
                 }
-                $this->takeSnapshot(\sprintf('After updating %d items (1 byte each) in random order', $iterations), true);
+                $this->takeSnapshot(\sprintf('After updating %d items (1 byte each) in pseudorandom order', $iterations), true);
                 unset($bytemap);
 
                 $bytemap = $this->instantiate("\x00\x00\x00\x00");
@@ -188,9 +189,9 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (4 bytes each)', \count($bytemap)), false);
 
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\random_int(0, $itemCount - 1)] = 'abcd';
+                    $bytemap[\mt_rand(0, $itemCount - 1)] = 'abcd';
                 }
-                $this->takeSnapshot(\sprintf('After updating %d items (4 bytes each) in random order', $iterations), true);
+                $this->takeSnapshot(\sprintf('After updating %d items (4 bytes each) in pseudorandom order', $iterations), true);
 
                 break;
             case self::BENCHMARK_NATIVE_RANDOM_ACCESS:
@@ -204,9 +205,9 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
 
                 $iterations = 1000000;
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\random_int(0, $itemCount - 1)];
+                    $bytemap[\mt_rand(0, $itemCount - 1)];
                 }
-                $this->takeSnapshot(\sprintf('After retrieving %d items (1 byte each) in random order', $iterations), true);
+                $this->takeSnapshot(\sprintf('After retrieving %d items (1 byte each) in pseudorandom order', $iterations), true);
                 unset($bytemap);
 
                 $bytemap = $this->instantiate("\x00\x00\x00\x00");
@@ -217,9 +218,9 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (4 bytes each)', \count($bytemap)), false);
 
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\random_int(0, $itemCount - 1)];
+                    $bytemap[\mt_rand(0, $itemCount - 1)];
                 }
-                $this->takeSnapshot(\sprintf('After retrieving %d items (4 bytes each) in random order', $iterations), true);
+                $this->takeSnapshot(\sprintf('After retrieving %d items (4 bytes each) in pseudorandom order', $iterations), true);
 
                 break;
             case self::BENCHMARK_NATIVE_SERIALIZE:
