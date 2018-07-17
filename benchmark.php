@@ -27,6 +27,7 @@ require_once __DIR__.'/tests/bootstrap.php';
 new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_JSON_STREAM = 'JsonStream';
     private const BENCHMARK_MEMORY = 'Memory';
+    private const BENCHMARK_NATIVE_EXPAND = 'NativeExpand';
     private const BENCHMARK_NATIVE_FOREACH = 'NativeForeach';
     private const BENCHMARK_NATIVE_JSON_SERIALIZE = 'NativeJsonSerialize';
     private const BENCHMARK_NATIVE_OVERWRITING = 'NativeOverwriting';
@@ -128,6 +129,32 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('AfterUnset', true);
 
                 break;
+            case self::BENCHMARK_NATIVE_EXPAND:
+                $this->takeSnapshot('Initial', false);
+                $iterations = 30000;
+
+                $bytemap = $this->instantiate("\x00");
+                $itemCount = 0;
+                for ($i = 0; $i < $iterations; ++$i) {
+                    $offset = $itemCount + \mt_rand(1, 100);
+                    $bytemap[$offset] = "\x01";
+                    $itemCount = $offset + 1;
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After expanding a single-byte bytemap %d times', $iterations), true);
+                unset($bytemap);
+
+                \mt_srand(0);
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                $itemCount = 0;
+                for ($i = 0; $i < $iterations; ++$i) {
+                    $offset = $itemCount + \mt_rand(1, 100);
+                    $bytemap[$offset] = "\x01\x02\x03\x04";
+                    $itemCount = $offset + 1;
+                }
+                $this->takeSnapshot(\sprintf('After expanding a four-byte bytemap %d times', $iterations), true);
+
+                break;
             case self::BENCHMARK_NATIVE_FOREACH:
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
@@ -167,6 +194,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 break;
             case self::BENCHMARK_NATIVE_OVERWRITING:
                 $this->takeSnapshot('Initial', false);
+                $iterations = 1000000;
+
                 $bytemap = $this->instantiate("\x00");
                 for ($i = 0; $i < 26 ** 4; ++$i) {
                     $bytemap[] = (string) ($i % 10);
@@ -174,7 +203,6 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $itemCount = \count($bytemap);
                 $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', \count($bytemap)), false);
 
-                $iterations = 1000000;
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap[\mt_rand(0, $itemCount - 1)] = 'a';
                 }
@@ -196,6 +224,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 break;
             case self::BENCHMARK_NATIVE_RANDOM_ACCESS:
                 $this->takeSnapshot('Initial', false);
+                $iterations = 1000000;
+
                 $bytemap = $this->instantiate("\x00");
                 for ($i = 0; $i < 26 ** 4; ++$i) {
                     $bytemap[] = (string) ($i % 10);
@@ -203,7 +233,6 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $itemCount = \count($bytemap);
                 $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', \count($bytemap)), false);
 
-                $iterations = 1000000;
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap[\mt_rand(0, $itemCount - 1)];
                 }
