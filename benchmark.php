@@ -33,6 +33,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_NATIVE_OVERWRITING = 'NativeOverwriting';
     private const BENCHMARK_NATIVE_RANDOM_ACCESS = 'NativeRandomAccess';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
+    private const BENCHMARK_NATIVE_UNSET_TAIL = 'NativeUnsetTail';
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
     private const BENCHMARK_SEARCH_FIND_SOME = 'SearchFindSome';
     private const BENCHMARK_SEARCH_FIND_ALL = 'SearchFindAll';
@@ -272,6 +273,36 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                     \assert(\count($bytemap) === $itemCount, $this->runtimeId);
                 }
                 unset($bytemap);
+
+                break;
+            case self::BENCHMARK_NATIVE_UNSET_TAIL:
+                $this->takeSnapshot('Initial', false);
+                $iterations = 30000;
+
+                $bytemap = $this->instantiate("\x00");
+                for ($i = 0; $i < $iterations; ++$i) {
+                    $bytemap[] = "\x01";
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', \count($bytemap)), false);
+
+                for ($i = $itemCount - 1; $i >= 0; --$i) {
+                    unset($bytemap[$i]);
+                }
+                $this->takeSnapshot('After unsetting the tails (1 byte each) one by one', true);
+                unset($bytemap);
+
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($i = 0; $i < $iterations; ++$i) {
+                    $bytemap[] = "\x01\x02\x03\x04";
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (4 bytes each)', \count($bytemap)), false);
+
+                for ($i = $itemCount - 1; $i >= 0; --$i) {
+                    unset($bytemap[$i]);
+                }
+                $this->takeSnapshot('After unsetting the tails (4 bytes each) one by one', true);
 
                 break;
             case self::BENCHMARK_SEARCH_FIND_NONE:
