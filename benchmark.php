@@ -35,6 +35,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
     private const BENCHMARK_NATIVE_UNSET_TAIL = 'NativeUnsetTail';
     private const BENCHMARK_MUTATION_INSERT_PUSH = 'MutationInsertPush';
+    private const BENCHMARK_MUTATION_INSERT_UNSHIFT = 'MutationInsertUnshift';
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
     private const BENCHMARK_SEARCH_FIND_SOME = 'SearchFindSome';
     private const BENCHMARK_SEARCH_FIND_ALL = 'SearchFindAll';
@@ -323,6 +324,23 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                     $bytemap->insert(\array_fill(0, \mt_rand(0, 1000), "\x01\x02\x03\x04"));
                 }
                 $this->takeSnapshot(\sprintf('After pushing %d items (4 bytes each) in random batches', \count($bytemap)), true);
+
+                break;
+            case self::BENCHMARK_MUTATION_INSERT_UNSHIFT:
+                $this->takeSnapshot('Initial', false);
+                $bytemap = $this->instantiate("\x00");
+                for ($i = 0; $i < 200; ++$i) {
+                    $bytemap->insert(\array_fill(0, \mt_rand(0, 100), "\x01"), 0);
+                }
+                $this->takeSnapshot(\sprintf('After unshifting %d items (1 byte each) in random batches', \count($bytemap)), true);
+                unset($bytemap);
+
+                \mt_srand(0);
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($i = 0; $i < 200; ++$i) {
+                    $bytemap->insert(\array_fill(0, \mt_rand(0, 100), "\x01\x02\x03\x04"), 0);
+                }
+                $this->takeSnapshot(\sprintf('After unshifting %d items (4 bytes each) in random batches', \count($bytemap)), true);
 
                 break;
             case self::BENCHMARK_SEARCH_FIND_NONE:
