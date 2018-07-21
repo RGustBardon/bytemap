@@ -31,6 +31,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_NATIVE_FOREACH = 'NativeForeach';
     private const BENCHMARK_NATIVE_JSON_SERIALIZE = 'NativeJsonSerialize';
     private const BENCHMARK_NATIVE_OVERWRITING = 'NativeOverwriting';
+    private const BENCHMARK_NATIVE_PUSH = 'NativePush';
     private const BENCHMARK_NATIVE_RANDOM_ACCESS = 'NativeRandomAccess';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
     private const BENCHMARK_NATIVE_UNSET_TAIL = 'NativeUnsetTail';
@@ -223,6 +224,27 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                     $bytemap[\mt_rand(0, $itemCount - 1)] = 'abcd';
                 }
                 $this->takeSnapshot(\sprintf('After updating %d items (4 bytes each) in pseudorandom order', $iterations), true);
+
+                break;
+            case self::BENCHMARK_NATIVE_PUSH:
+                $this->takeSnapshot('Initial', false);
+
+                $bytemap = $this->instantiate("\x00");
+                for ($i = 0; $i < 2 * 26 ** 4; ++$i) {
+                    $bytemap[] = (string) ($i % 10);
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After pushing %d items (1 byte each) one by one', \count($bytemap)), true);
+                unset($bytemap);
+
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($j = 0; $j < 2; ++$j) {
+                    for ($i = 'aaaa'; 'aaaaa' !== $i; ++$i) {
+                        $bytemap[] = $i;
+                    }
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After pushing %d items (4 bytes each)', \count($bytemap)), true);
 
                 break;
             case self::BENCHMARK_NATIVE_RANDOM_ACCESS:
