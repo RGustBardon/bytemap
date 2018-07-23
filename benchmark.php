@@ -38,6 +38,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_MUTATION_INSERTION_HEAD = 'MutationInsertionHead';
     private const BENCHMARK_MUTATION_INSERTION_TAIL = 'MutationInsertionTail';
     private const BENCHMARK_MUTATION_DELETION_HEAD = 'MutationDeletionHead';
+    private const BENCHMARK_MUTATION_DELETION_TAIL = 'MutationDeletionTail';
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
     private const BENCHMARK_SEARCH_FIND_SOME = 'SearchFindSome';
     private const BENCHMARK_SEARCH_FIND_ALL = 'SearchFindAll';
@@ -391,6 +392,39 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 }
                 $itemCount -= \count($bytemap);
                 $this->takeSnapshot(\sprintf('After deleting the first %d items (4 bytes each) in random batches', $itemCount), true);
+
+                break;
+            case self::BENCHMARK_MUTATION_DELETION_TAIL:
+                $this->takeSnapshot('Initial', false);
+                $iterations = 100;
+
+                $bytemap = $this->instantiate("\x00");
+                for ($i = 0; $i < 26 ** 3; ++$i) {
+                    $bytemap[] = (string) ($i % 10);
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', $itemCount), false);
+
+                for ($i = 0; $i < $iterations; ++$i) {
+                    $bytemap->delete(-\mt_rand(1, 200));
+                }
+                $itemCount -= \count($bytemap);
+                $this->takeSnapshot(\sprintf('After deleting the last %d items (1 byte each) in random batches', $itemCount), true);
+                unset($bytemap);
+
+                \mt_srand(0);
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($i = 'aaaa'; 'baaa' !== $i; ++$i) {
+                    $bytemap[] = $i;
+                }
+                $itemCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (4 bytes each)', $itemCount), false);
+
+                for ($i = 0; $i < $iterations; ++$i) {
+                    $bytemap->delete(-\mt_rand(1, 200));
+                }
+                $itemCount -= \count($bytemap);
+                $this->takeSnapshot(\sprintf('After deleting the last %d items (4 bytes each) in random batches', $itemCount), true);
 
                 break;
             case self::BENCHMARK_SEARCH_FIND_NONE:
