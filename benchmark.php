@@ -35,8 +35,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const BENCHMARK_NATIVE_RANDOM_ACCESS = 'NativeRandomAccess';
     private const BENCHMARK_NATIVE_SERIALIZE = 'NativeSerialize';
     private const BENCHMARK_NATIVE_UNSET_TAIL = 'NativeUnsetTail';
-    private const BENCHMARK_MUTATION_INSERT_PUSH = 'MutationInsertPush';
-    private const BENCHMARK_MUTATION_INSERT_UNSHIFT = 'MutationInsertUnshift';
+    private const BENCHMARK_MUTATION_INSERTION_HEAD = 'MutationInsertionHead';
+    private const BENCHMARK_MUTATION_INSERTION_TAIL = 'MutationInsertionTail';
     private const BENCHMARK_MUTATION_DELETION_HEAD = 'MutationDeletionHead';
     private const BENCHMARK_SEARCH_FIND_NONE = 'SearchFindNone';
     private const BENCHMARK_SEARCH_FIND_SOME = 'SearchFindSome';
@@ -326,24 +326,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 \assert(0 === \count($bytemap), $this->runtimeId);
 
                 break;
-            case self::BENCHMARK_MUTATION_INSERT_PUSH:
-                $this->takeSnapshot('Initial', false);
-                $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 1000; ++$i) {
-                    $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01"));
-                }
-                $this->takeSnapshot(\sprintf('After pushing %d items (1 byte each) in random batches', \count($bytemap)), true);
-                unset($bytemap);
-
-                \mt_srand(0);
-                $bytemap = $this->instantiate("\x00\x00\x00\x00");
-                for ($i = 0; $i < 1000; ++$i) {
-                    $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01\x02\x03\x04"));
-                }
-                $this->takeSnapshot(\sprintf('After pushing %d items (4 bytes each) in random batches', \count($bytemap)), true);
-
-                break;
-            case self::BENCHMARK_MUTATION_INSERT_UNSHIFT:
+            case self::BENCHMARK_MUTATION_INSERTION_HEAD:
                 $this->takeSnapshot('Initial', false);
                 $bytemap = $this->instantiate("\x00");
                 for ($i = 0; $i < 200; ++$i) {
@@ -358,6 +341,23 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                     $bytemap->insert(\array_fill(0, \mt_rand(1, 100), "\x01\x02\x03\x04"), 0);
                 }
                 $this->takeSnapshot(\sprintf('After unshifting %d items (4 bytes each) in random batches', \count($bytemap)), true);
+
+                break;
+            case self::BENCHMARK_MUTATION_INSERTION_TAIL:
+                $this->takeSnapshot('Initial', false);
+                $bytemap = $this->instantiate("\x00");
+                for ($i = 0; $i < 1000; ++$i) {
+                    $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01"));
+                }
+                $this->takeSnapshot(\sprintf('After pushing %d items (1 byte each) in random batches', \count($bytemap)), true);
+                unset($bytemap);
+
+                \mt_srand(0);
+                $bytemap = $this->instantiate("\x00\x00\x00\x00");
+                for ($i = 0; $i < 1000; ++$i) {
+                    $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01\x02\x03\x04"));
+                }
+                $this->takeSnapshot(\sprintf('After pushing %d items (4 bytes each) in random batches', \count($bytemap)), true);
 
                 break;
             case self::BENCHMARK_MUTATION_DELETION_HEAD:
