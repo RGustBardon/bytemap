@@ -252,32 +252,31 @@ abstract class AbstractBytemap implements BytemapInterface
 
     public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
     {
+        $itemCount = $this->itemCount;
+
         // Check if there is anything to delete.
-        if (1 > $howMany || 0 === $this->itemCount) {
+        if (1 > $howMany || 0 === $itemCount) {
             return;
         }
 
         // Calculate the positive offset corresponding to the negative one.
         if (0 > $firstItemOffset) {
-            $firstItemOffset += $this->itemCount;
+            $firstItemOffset += $itemCount;
         }
 
         // Keep the offsets within the bounds.
         $firstItemOffset = \max(0, $firstItemOffset);
-        $howMany = \min($howMany, $this->itemCount - $firstItemOffset);
-
-        $howManyLeft = $howMany;
+        $howMany = \min($howMany, $itemCount - $firstItemOffset);
 
         // Shift all the subsequent items left by the numbers of items deleted.
-        $lastItemOffset = $firstItemOffset + $howMany - 1;
-        for ($i = $this->itemCount - 1; $i > $lastItemOffset; --$i, --$howManyLeft) {
+        for ($i = $firstItemOffset + $howMany; $i < $itemCount; ++$i) {
             $this[$i - $howMany] = $this[$i];
-            unset($this[$i]);
         }
 
-        // If there are still items to be deleted, delete the trailing ones.
-        for (; $howManyLeft > 0; --$howManyLeft) {
-            unset($this[$this->itemCount - 1]);
+        // Delete the trailing items.
+        while ($howMany > 0) {
+            unset($this[--$itemCount]);
+            --$howMany;
         }
     }
 
