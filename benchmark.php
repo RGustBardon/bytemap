@@ -162,11 +162,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 break;
             case self::BENCHMARK_NATIVE_FOREACH:
                 $this->takeSnapshot('Initial', false);
-                $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 26 ** 4; ++$i) {
-                    $bytemap[] = (string) ($i % 10);
-                }
-                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', \count($bytemap)), false);
+
+                $bytemap = $this->createSingleByteBytemap(26 ** 4);
                 foreach ($bytemap as $item) {
                 }
                 $this->takeSnapshot('After iterating over the bytemap with 1 byte per item', true);
@@ -198,13 +195,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $iterations = 1000000;
 
-                $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 26 ** 4; ++$i) {
-                    $bytemap[] = (string) ($i % 10);
-                }
+                $bytemap = $this->createSingleByteBytemap(26 ** 4);
                 $itemCount = \count($bytemap);
-                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', $itemCount), false);
-
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap[\mt_rand(0, $itemCount - 1)] = 'a';
                 }
@@ -247,13 +239,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $iterations = 1000000;
 
-                $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 26 ** 4; ++$i) {
-                    $bytemap[] = (string) ($i % 10);
-                }
+                $bytemap = $this->createSingleByteBytemap(26 ** 4);
                 $itemCount = \count($bytemap);
-                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', $itemCount), false);
-
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap[\mt_rand(0, $itemCount - 1)];
                 }
@@ -299,13 +286,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $iterations = 30000;
 
-                $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[] = "\x01";
-                }
+                $bytemap = $this->createSingleByteBytemap($iterations);
                 $itemCount = \count($bytemap);
-                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', $itemCount), false);
-
                 for ($i = $itemCount - 1; $i >= 0; --$i) {
                     unset($bytemap[$i]);
                 }
@@ -365,13 +347,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $iterations = 100;
 
-                $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 26 ** 3; ++$i) {
-                    $bytemap[] = (string) ($i % 10);
-                }
+                $bytemap = $this->createSingleByteBytemap(26 ** 3);
                 $itemCount = \count($bytemap);
-                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', $itemCount), false);
-
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap->delete(0, \mt_rand(1, 200));
                 }
@@ -398,13 +375,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('Initial', false);
                 $iterations = 100;
 
-                $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 26 ** 3; ++$i) {
-                    $bytemap[] = (string) ($i % 10);
-                }
+                $bytemap = $this->createSingleByteBytemap(26 ** 3);
                 $itemCount = \count($bytemap);
-                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', $itemCount), false);
-
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap->delete(-\mt_rand(1, 200));
                 }
@@ -517,6 +489,18 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private function instantiate(...$args): BytemapInterface
     {
         return new $this->impl(...$args);
+    }
+
+    private function createSingleByteBytemap(int $itemCount): BytemapInterface
+    {
+        $bytemap = $this->instantiate("\x00");
+        for ($i = 0; $i < $itemCount; ++$i) {
+            $bytemap[] = (string) ($i % 10);
+        }
+        $itemCount = \count($bytemap);
+        $this->takeSnapshot(\sprintf('After creating a bytemap with %d items (1 byte each)', $itemCount), false);
+
+        return $bytemap;
     }
 
     private function benchmarkSearchFind(
