@@ -93,10 +93,10 @@ class DsBytemap extends AbstractBytemap
                     $bytemap[] = $value;
                 } else {
                     $unassignedCount = $key - $maxKey - 1;
-                    if (0 > $unassignedCount) {
+                    if ($unassignedCount < 0) {
                         $bytemap[$key] = $value;
                     } else {
-                        if (0 < $unassignedCount) {
+                        if ($unassignedCount > 0) {
                             $bytemap->map->allocate($maxKey + 1);
                             for ($i = 0; $i < $unassignedCount; ++$i) {
                                 $bytemap[] = $bytemap->defaultItem;

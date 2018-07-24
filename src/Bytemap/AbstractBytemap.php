@@ -206,7 +206,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         // Calculate the positive offset corresponding to the negative one.
-        if (0 > $firstItemOffset) {
+        if ($firstItemOffset < 0) {
             $firstItemOffset += $this->itemCount;
         }
 
@@ -255,12 +255,12 @@ abstract class AbstractBytemap implements BytemapInterface
         $itemCount = $this->itemCount;
 
         // Check if there is anything to delete.
-        if (1 > $howMany || 0 === $itemCount) {
+        if ($howMany < 1 || 0 === $itemCount) {
             return;
         }
 
         // Calculate the positive offset corresponding to the negative one.
-        if (0 > $firstItemOffset) {
+        if ($firstItemOffset < 0) {
             $firstItemOffset += $itemCount;
         }
 

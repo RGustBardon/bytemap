@@ -52,7 +52,7 @@ class Bytemap extends AbstractBytemap
         /** @var int $unassignedCount */
         $unassignedCount = $offset - $this->itemCount;
         $bytesPerItem = $this->bytesPerItem;
-        if (0 > $unassignedCount) {
+        if ($unassignedCount < 0) {
             // Case 1. Overwrite an existing item.
             if (1 === $bytesPerItem) {
                 $this->map[$offset] = $item;
