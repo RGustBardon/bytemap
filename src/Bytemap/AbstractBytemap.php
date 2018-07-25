@@ -208,10 +208,12 @@ abstract class AbstractBytemap implements BytemapInterface
         // Calculate the positive offset corresponding to the negative one.
         if ($firstItemOffset < 0) {
             $firstItemOffset += $this->itemCount;
-        }
 
-        // Keep the offsets within the bounds.
-        $firstItemOffset = \max(0, $firstItemOffset);
+            // Keep the offsets within the bounds.
+            if ($firstItemOffset < 0) {
+                $firstItemOffset = 0;
+            }
+        }
 
         // Add the items.
         $originalItemCount = $this->itemCount;
@@ -220,8 +222,8 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         // Resize the bytemap if the negative first item offset is greater than the new item count.
-        if ($originalFirstItemOffset < 0 && \abs($originalFirstItemOffset) > $this->itemCount) {
-            $lastItemOffset = \abs($originalFirstItemOffset) - ($this->itemCount > $originalItemCount ? 1 : 2);
+        if (-$originalFirstItemOffset > $this->itemCount) {
+            $lastItemOffset = -$originalFirstItemOffset - ($this->itemCount > $originalItemCount ? 1 : 2);
             if ($lastItemOffset >= $this->itemCount) {
                 $this[$lastItemOffset] = $this->defaultItem;
             }

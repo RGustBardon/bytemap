@@ -61,6 +61,54 @@ final class ArrayBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
+    public function insert(iterable $items, int $firstItemOffset = -1): void
+    {
+        if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
+            if ($firstItemOffset > $this->itemCount) {
+                $this[$firstItemOffset - 1] = $this->defaultItem;
+            }
+
+            $itemCount = \count($this->map);
+
+            try {
+                \array_push($this->map, ...$items);
+            } catch (\ArgumentCountError $e) {
+            }
+            $this->itemCount += \count($this->map) - $itemCount;
+        } else {
+            if (\count($this->map) !== $this->itemCount) {
+                $this->map += \array_fill(0, $this->itemCount, $this->defaultItem);
+            }
+            \ksort($this->map, \SORT_NUMERIC);
+
+            $originalFirstItemOffset = $firstItemOffset;
+            // Calculate the positive offset corresponding to the negative one.
+            if ($firstItemOffset < 0) {
+                $firstItemOffset += $this->itemCount;
+
+                // Keep the offsets within the bounds.
+                if ($firstItemOffset < 0) {
+                    $firstItemOffset = 0;
+                }
+            }
+
+            // Add the items.
+            $itemCount = \count($this->map);
+            \array_splice($this->map, (int) $firstItemOffset, 0, \is_array($items) ? $items : \iterator_to_array($items));
+            $insertedItemCount = \count($this->map) - $itemCount;
+            $this->itemCount += $insertedItemCount;
+
+            // Resize the bytemap if the negative first item offset is greater than the new item count.
+            if (-$originalFirstItemOffset > $this->itemCount) {
+                $overflow = -$originalFirstItemOffset - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
+                if ($overflow > 0) {
+                    \array_splice($this->map, $insertedItemCount, 0, \array_fill(0, (int) $overflow, $this->defaultItem));
+                    $this->itemCount += $overflow;
+                }
+            }
+        }
+    }
+
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
         $bytemap = new self($defaultItem);
