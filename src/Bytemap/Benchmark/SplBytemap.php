@@ -67,6 +67,80 @@ class SplBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
+    public function insert(iterable $items, int $firstItemOffset = -1): void
+    {
+        $originalFirstItemOffset = $firstItemOffset;
+
+        // Resize the bytemap if the positive first item offset is greater than the item count.
+        if ($firstItemOffset > $this->itemCount) {
+            $this[$firstItemOffset - 1] = $this->defaultItem;
+        }
+
+        if (\is_array($items) || $items instanceof \Countable) {
+            $insertedItemCount = \count($items);
+            $newSize = $this->itemCount + $insertedItemCount;
+            if ($firstItemOffset < -1 && -$firstItemOffset > $this->itemCount) {
+                $newSize += -$firstItemOffset - $newSize - ($insertedItemCount > 0 ? 0 : 1);
+            }
+            $this->map->setSize($newSize);
+        }
+
+        // Calculate the positive offset corresponding to the negative one.
+        if ($firstItemOffset < 0) {
+            $firstItemOffset += $this->itemCount;
+
+            // Keep the offsets within the bounds.
+            if ($firstItemOffset < 0) {
+                $firstItemOffset = 0;
+            }
+        }
+
+        // Add the items.
+        $originalItemCount = $this->itemCount;
+        if (isset($newSize)) {
+            $itemCount = $originalItemCount;
+            foreach ($items as $item) {
+                $this->map[$itemCount] = $item;
+                ++$itemCount;
+            }
+            $this->itemCount = $itemCount;
+        } else {
+            foreach ($items as $item) {
+                $this[] = $item;
+            }
+        }
+
+        // Resize the bytemap if the negative first item offset is greater than the new item count.
+        if (-$originalFirstItemOffset > $this->itemCount) {
+            $lastItemOffset = -$originalFirstItemOffset - ($this->itemCount > $originalItemCount ? 1 : 2);
+            if ($lastItemOffset >= $this->itemCount) {
+                $this[$lastItemOffset] = $this->defaultItem;
+            }
+        }
+
+        // The juggling algorithm.
+        $n = $this->itemCount - $firstItemOffset;
+        $shift = $n - $this->itemCount + $originalItemCount;
+        $gcd = self::calculateGreatestCommonDivisor((int) $n, $shift);
+
+        for ($i = 0; $i < $gcd; ++$i) {
+            $tmp = $this->map[$firstItemOffset + $i];
+            $j = $i;
+            while (true) {
+                $k = $j + $shift;
+                if ($k >= $n) {
+                    $k -= $n;
+                }
+                if ($k === $i) {
+                    break;
+                }
+                $this->map[$firstItemOffset + $j] = $this->map[$firstItemOffset + $k];
+                $j = $k;
+            }
+            $this->map[$firstItemOffset + $j] = $tmp;
+        }
+    }
+
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
         $bytemap = new self($defaultItem);

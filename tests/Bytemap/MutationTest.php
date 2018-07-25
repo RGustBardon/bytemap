@@ -32,26 +32,30 @@ final class MutationTest extends AbstractTestOfBytemap
                 ['z', 'x', 'y', 'w', 'u', 't'],
                 ['zx', 'xy', 'yy', 'wy', 'ut', 'tu'],
             ] as $items) {
-                foreach ([
-                    [[], [], -3, [0, 0]],
-                    [[], [], -2, [0]],
-                    [[], [], -1, []],
-                    [[], [], 0, []],
-                    [[], [], 1, [0]],
-                    [[1], [], -3, [0, 1]],
-                    [[1], [], -2, [1]],
-                    [[1], [], -1, [1]],
-                    [[1], [], 0, [1]],
-                    [[1], [], 1, [1]],
-                    [[], [1], -3, [1, 0, 0]],
-                    [[], [1], -2, [1, 0]],
-                    [[], [1], -1, [1]],
-                    [[], [1], 0, [1]],
-                    [[], [1], 1, [0, 1]],
-                    [[0, 1, 2, 3, 0, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
-                    [[0, 1, 2, 3, null, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
-                ] as [$sequence, $inserted, $firstItemOffset, $expected]) {
-                    yield [$impl, $items, $sequence, $inserted, $firstItemOffset, $expected];
+                foreach ([false, true] as $useGenerator) {
+                    foreach ([
+                        [[], [1], 1, [0, 1]],
+
+                        [[], [], -3, [0, 0]],
+                        [[], [], -2, [0]],
+                        [[], [], -1, []],
+                        [[], [], 0, []],
+                        [[], [], 1, [0]],
+                        [[1], [], -3, [0, 1]],
+                        [[1], [], -2, [1]],
+                        [[1], [], -1, [1]],
+                        [[1], [], 0, [1]],
+                        [[1], [], 1, [1]],
+                        [[], [1], -3, [1, 0, 0]],
+                        [[], [1], -2, [1, 0]],
+                        [[], [1], -1, [1]],
+                        [[], [1], 0, [1]],
+                        [[], [1], 1, [0, 1]],
+                        [[0, 1, 2, 3, 0, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
+                        [[0, 1, 2, 3, null, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
+                    ] as [$sequence, $inserted, $firstItemOffset, $expected]) {
+                        yield [$impl, $items, $useGenerator, $sequence, $inserted, $firstItemOffset, $expected];
+                    }
                 }
             }
         }
@@ -64,6 +68,7 @@ final class MutationTest extends AbstractTestOfBytemap
     public function testInsertion(
         string $impl,
         array $items,
+        bool $useGenerator,
         array $sequence,
         array $inserted,
         int $firstItemOffset,
@@ -84,7 +89,7 @@ final class MutationTest extends AbstractTestOfBytemap
                 yield $items[$key];
             }
         })();
-        $bytemap->insert($generator, $firstItemOffset);
+        $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstItemOffset);
         self::assertSequence($expectedSequence, $bytemap);
     }
 

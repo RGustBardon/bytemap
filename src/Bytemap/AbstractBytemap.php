@@ -339,7 +339,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     abstract protected function deriveProperties(): void;
 
-    private static function calculateGreatestCommonDivisor(int $a, int $b): int
+    protected static function calculateGreatestCommonDivisor(int $a, int $b): int
     {
         while (0 !== $b) {
             $tmp = $b;
