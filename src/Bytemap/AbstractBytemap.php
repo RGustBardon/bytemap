@@ -215,7 +215,7 @@ abstract class AbstractBytemap implements BytemapInterface
             }
         }
 
-        // Add the items.
+        // Append the items.
         $originalItemCount = $this->itemCount;
         foreach ($items as $item) {
             $this[] = $item;
@@ -289,6 +289,23 @@ abstract class AbstractBytemap implements BytemapInterface
             \fwrite($stream, \json_encode($this[$i]).',');
         }
         \fwrite($stream, ($this->itemCount > 0 ? \json_encode($this[$i]) : '').']');
+    }
+
+    protected function calculateNewSize(iterable $additionalItems, int $firstItemOffset = -1): ?int
+    {
+        // Assume that no gap exists between the tail of the bytemap and `$firstItemOffset`.
+
+        if (\is_array($additionalItems) || $additionalItems instanceof \Countable) {
+            $insertedItemCount = \count($additionalItems);
+            $newSize = $this->itemCount + $insertedItemCount;
+            if ($firstItemOffset < -1 && -$firstItemOffset > $this->itemCount) {
+                $newSize += -$firstItemOffset - $newSize - ($insertedItemCount > 0 ? 0 : 1);
+            }
+
+            return $newSize;
+        }
+
+        return null;
     }
 
     protected function findArrayItems(array $items, bool $whitelist, int $howMany): \Generator

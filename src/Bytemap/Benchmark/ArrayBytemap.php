@@ -64,10 +64,12 @@ final class ArrayBytemap extends AbstractBytemap
     public function insert(iterable $items, int $firstItemOffset = -1): void
     {
         if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
+            // Resize the bytemap if the positive first item offset is greater than the item count.
             if ($firstItemOffset > $this->itemCount) {
                 $this[$firstItemOffset - 1] = $this->defaultItem;
             }
 
+            // Append the items.
             $itemCount = \count($this->map);
 
             try {
@@ -76,6 +78,7 @@ final class ArrayBytemap extends AbstractBytemap
             }
             $this->itemCount += \count($this->map) - $itemCount;
         } else {
+            // Make the array continouous and sort it.
             if (\count($this->map) !== $this->itemCount) {
                 $this->map += \array_fill(0, $this->itemCount, $this->defaultItem);
             }
@@ -92,7 +95,7 @@ final class ArrayBytemap extends AbstractBytemap
                 }
             }
 
-            // Add the items.
+            // Insert the items.
             $itemCount = \count($this->map);
             \array_splice($this->map, (int) $firstItemOffset, 0, \is_array($items) ? $items : \iterator_to_array($items));
             $insertedItemCount = \count($this->map) - $itemCount;

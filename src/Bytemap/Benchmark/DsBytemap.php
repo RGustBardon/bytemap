@@ -83,6 +83,55 @@ class DsBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
+    public function insert(iterable $items, int $firstItemOffset = -1): void
+    {
+        // Resize the bytemap if the positive first item offset is greater than the item count.
+        if ($firstItemOffset > $this->itemCount) {
+            $this[$firstItemOffset - 1] = $this->defaultItem;
+        }
+
+        // Allocate the memory.
+        $newSize = $this->calculateNewSize($items, $firstItemOffset);
+        if (null !== $newSize) {
+            $this->map->allocate($newSize);
+        }
+
+        if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
+            // Append the items.
+            $this->map->push(...$items);
+        } else {
+            $originalFirstItemOffset = $firstItemOffset;
+            // Calculate the positive offset corresponding to the negative one.
+            if ($firstItemOffset < 0) {
+                $firstItemOffset += $this->itemCount;
+
+                // Keep the offsets within the bounds.
+                if ($firstItemOffset < 0) {
+                    $firstItemOffset = 0;
+                }
+            }
+
+            // Insert the items.
+            $itemCount = \count($this->map);
+            $this->map->insert($firstItemOffset, ...$items);
+            $insertedItemCount = \count($this->map) - $itemCount;
+            $this->itemCount += $insertedItemCount;
+
+            // Resize the bytemap if the negative first item offset is greater than the new item count.
+            if (-$originalFirstItemOffset > $this->itemCount) {
+                $overflow = -$originalFirstItemOffset - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
+                if ($overflow > 0) {
+                    $this->map->insert($insertedItemCount, ...(function () use ($overflow): \Generator {
+                        for ($i = 0; $i < $overflow; ++$i) {
+                            yield $this->defaultItem;
+                        }
+                    })());
+                }
+            }
+        }
+        $this->itemCount = \count($this->map);
+    }
+
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
         $bytemap = new self($defaultItem);

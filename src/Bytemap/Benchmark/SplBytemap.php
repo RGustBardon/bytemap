@@ -76,12 +76,9 @@ class SplBytemap extends AbstractBytemap
             $this[$firstItemOffset - 1] = $this->defaultItem;
         }
 
-        if (\is_array($items) || $items instanceof \Countable) {
-            $insertedItemCount = \count($items);
-            $newSize = $this->itemCount + $insertedItemCount;
-            if ($firstItemOffset < -1 && -$firstItemOffset > $this->itemCount) {
-                $newSize += -$firstItemOffset - $newSize - ($insertedItemCount > 0 ? 0 : 1);
-            }
+        // Allocate the memory.
+        $newSize = $this->calculateNewSize($items, $firstItemOffset);
+        if (null !== $newSize) {
             $this->map->setSize($newSize);
         }
 
@@ -95,7 +92,7 @@ class SplBytemap extends AbstractBytemap
             }
         }
 
-        // Add the items.
+        // Append the items.
         $originalItemCount = $this->itemCount;
         if (isset($newSize)) {
             $itemCount = $originalItemCount;
