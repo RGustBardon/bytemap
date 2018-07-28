@@ -78,11 +78,7 @@ final class ArrayBytemap extends AbstractBytemap
             }
             $this->itemCount += \count($this->map) - $itemCount;
         } else {
-            // Make the array continouous and sort it.
-            if (\count($this->map) !== $this->itemCount) {
-                $this->map += \array_fill(0, $this->itemCount, $this->defaultItem);
-            }
-            \ksort($this->map, \SORT_NUMERIC);
+            $this->fillAndSort();
 
             $originalFirstItemOffset = $firstItemOffset;
             // Calculate the positive offset corresponding to the negative one.
@@ -108,6 +104,38 @@ final class ArrayBytemap extends AbstractBytemap
                     \array_splice($this->map, $insertedItemCount, 0, \array_fill(0, (int) $overflow, $this->defaultItem));
                     $this->itemCount += $overflow;
                 }
+            }
+        }
+    }
+
+    public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
+    {
+        $itemCount = $this->itemCount;
+
+        // Check if there is anything to delete.
+        if ($howMany < 1 || 0 === $itemCount) {
+            return;
+        }
+
+        // Calculate the positive offset corresponding to the negative one.
+        if ($firstItemOffset < 0) {
+            $firstItemOffset += $itemCount;
+        }
+
+        $firstItemOffset = \max(0, $firstItemOffset);
+        $maximumRange = $itemCount - $firstItemOffset;
+        if ($howMany >= $maximumRange) {
+            $this->itemCount -= $maximumRange;
+            while (--$maximumRange >= 0) {
+                unset($this->map[--$itemCount]);
+            }
+        } else {
+            $this->fillAndSort();
+            \array_splice($this->map, (int) $firstItemOffset, $howMany);
+            $this->map = \array_diff($this->map, [$this->defaultItem]);
+            $this->itemCount -= $howMany;
+            if (!isset($this->map[$this->itemCount - 1])) {
+                $this->map[$this->itemCount - 1] = $this->defaultItem;
             }
         }
     }
@@ -141,5 +169,13 @@ final class ArrayBytemap extends AbstractBytemap
     protected function deriveProperties(): void
     {
         $this->itemCount = self::getMaxKey($this->map) + 1;
+    }
+
+    protected function fillAndSort(): void
+    {
+        if (\count($this->map) !== $this->itemCount) {
+            $this->map += \array_fill(0, $this->itemCount, $this->defaultItem);
+        }
+        \ksort($this->map, \SORT_NUMERIC);
     }
 }
