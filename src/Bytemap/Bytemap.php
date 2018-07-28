@@ -128,6 +128,41 @@ class Bytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
+    public function insert(iterable $items, int $firstItemOffset = -1): void
+    {
+        $items = \implode('', \is_array($items) ? $items : \iterator_to_array($items));
+        if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
+            // Insert the items.
+            $padLength = \strlen($items) + \max(0, $firstItemOffset - $this->itemCount) * $this->bytesPerItem;
+            $this->map .= \str_pad($items, (int) $padLength, $this->defaultItem, \STR_PAD_LEFT);
+        } else {
+            $originalFirstItemOffset = $firstItemOffset;
+            // Calculate the positive offset corresponding to the negative one.
+            if ($firstItemOffset < 0) {
+                $firstItemOffset += $this->itemCount;
+
+                // Keep the offsets within the bounds.
+                if ($firstItemOffset < 0) {
+                    $firstItemOffset = 0;
+                }
+            }
+
+            // Resize the bytemap if the negative first item offset is greater than the new item count.
+            $insertedItemCount = (int) (\strlen($items) / $this->bytesPerItem);
+            $newItemCount = $this->itemCount + $insertedItemCount;
+            if (-$originalFirstItemOffset > $newItemCount) {
+                $overflow = -$originalFirstItemOffset - $newItemCount - ($insertedItemCount > 0 ? 0 : 1);
+                $padLength = ($overflow + $insertedItemCount) * $this->bytesPerItem;
+                $items = \str_pad($items, $padLength, $this->defaultItem, \STR_PAD_RIGHT);
+            }
+
+            // Insert the items.
+            $this->map = \substr_replace($this->map, $items, $firstItemOffset * $this->bytesPerItem, 0);
+        }
+
+        $this->deriveProperties();
+    }
+
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
         $bytemap = new self($defaultItem);

@@ -34,8 +34,6 @@ final class MutationTest extends AbstractTestOfBytemap
             ] as $items) {
                 foreach ([false, true] as $useGenerator) {
                     foreach ([
-                        [[], [1], 1, [0, 1]],
-
                         [[], [], -3, [0, 0]],
                         [[], [], -2, [0]],
                         [[], [], -1, []],

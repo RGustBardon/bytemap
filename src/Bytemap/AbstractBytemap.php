@@ -196,62 +196,6 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    public function insert(iterable $items, int $firstItemOffset = -1): void
-    {
-        $originalFirstItemOffset = $firstItemOffset;
-
-        // Resize the bytemap if the positive first item offset is greater than the item count.
-        if ($firstItemOffset > $this->itemCount) {
-            $this[$firstItemOffset - 1] = $this->defaultItem;
-        }
-
-        // Calculate the positive offset corresponding to the negative one.
-        if ($firstItemOffset < 0) {
-            $firstItemOffset += $this->itemCount;
-
-            // Keep the offsets within the bounds.
-            if ($firstItemOffset < 0) {
-                $firstItemOffset = 0;
-            }
-        }
-
-        // Append the items.
-        $originalItemCount = $this->itemCount;
-        foreach ($items as $item) {
-            $this[] = $item;
-        }
-
-        // Resize the bytemap if the negative first item offset is greater than the new item count.
-        if (-$originalFirstItemOffset > $this->itemCount) {
-            $lastItemOffset = -$originalFirstItemOffset - ($this->itemCount > $originalItemCount ? 1 : 2);
-            if ($lastItemOffset >= $this->itemCount) {
-                $this[$lastItemOffset] = $this->defaultItem;
-            }
-        }
-
-        // The juggling algorithm.
-        $n = $this->itemCount - $firstItemOffset;
-        $shift = $n - $this->itemCount + $originalItemCount;
-        $gcd = self::calculateGreatestCommonDivisor($n, $shift);
-
-        for ($i = 0; $i < $gcd; ++$i) {
-            $tmp = $this[$firstItemOffset + $i];
-            $j = $i;
-            while (true) {
-                $k = $j + $shift;
-                if ($k >= $n) {
-                    $k -= $n;
-                }
-                if ($k === $i) {
-                    break;
-                }
-                $this[$firstItemOffset + $j] = $this[$firstItemOffset + $k];
-                $j = $k;
-            }
-            $this[$firstItemOffset + $j] = $tmp;
-        }
-    }
-
     public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
     {
         $itemCount = $this->itemCount;

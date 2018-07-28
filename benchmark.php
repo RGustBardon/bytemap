@@ -275,7 +275,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             case self::BENCHMARK_MUTATION_INSERTION_HEAD:
                 $bytemap = $this->instantiate("\x00");
                 for ($i = 0; $i < 200; ++$i) {
-                    $bytemap->insert(\array_fill(0, \mt_rand(1, 100), "\x01"), 0);
+                    $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01"), 0);
                 }
                 $this->takeSnapshot(\sprintf('After unshifting %d items (1 byte each) in random batches', \count($bytemap)), true);
                 unset($bytemap);
@@ -283,14 +283,14 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 \mt_srand(0);
                 $bytemap = $this->instantiate("\x00\x00\x00\x00");
                 for ($i = 0; $i < 200; ++$i) {
-                    $bytemap->insert(\array_fill(0, \mt_rand(1, 100), "\x01\x02\x03\x04"), 0);
+                    $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01\x02\x03\x04"), 0);
                 }
                 $this->takeSnapshot(\sprintf('After unshifting %d items (4 bytes each) in random batches', \count($bytemap)), true);
 
                 break;
             case self::BENCHMARK_MUTATION_INSERTION_TAIL:
                 $bytemap = $this->instantiate("\x00");
-                for ($i = 0; $i < 1000; ++$i) {
+                for ($i = 0; $i < 2000; ++$i) {
                     $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01"));
                 }
                 $this->takeSnapshot(\sprintf('After pushing %d items (1 byte each) in random batches', \count($bytemap)), true);
@@ -298,7 +298,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
 
                 \mt_srand(0);
                 $bytemap = $this->instantiate("\x00\x00\x00\x00");
-                for ($i = 0; $i < 1000; ++$i) {
+                for ($i = 0; $i < 2000; ++$i) {
                     $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01\x02\x03\x04"));
                 }
                 $this->takeSnapshot(\sprintf('After pushing %d items (4 bytes each) in random batches', \count($bytemap)), true);
