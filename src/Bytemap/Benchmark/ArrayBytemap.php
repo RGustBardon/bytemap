@@ -108,38 +108,6 @@ final class ArrayBytemap extends AbstractBytemap
         }
     }
 
-    public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
-    {
-        $itemCount = $this->itemCount;
-
-        // Check if there is anything to delete.
-        if ($howMany < 1 || 0 === $itemCount) {
-            return;
-        }
-
-        // Calculate the positive offset corresponding to the negative one.
-        if ($firstItemOffset < 0) {
-            $firstItemOffset += $itemCount;
-        }
-
-        $firstItemOffset = \max(0, $firstItemOffset);
-        $maximumRange = $itemCount - $firstItemOffset;
-        if ($howMany >= $maximumRange) {
-            $this->itemCount -= $maximumRange;
-            while (--$maximumRange >= 0) {
-                unset($this->map[--$itemCount]);
-            }
-        } else {
-            $this->fillAndSort();
-            \array_splice($this->map, (int) $firstItemOffset, $howMany);
-            $this->map = \array_diff($this->map, [$this->defaultItem]);
-            $this->itemCount -= $howMany;
-            if (!isset($this->map[$this->itemCount - 1])) {
-                $this->map[$this->itemCount - 1] = $this->defaultItem;
-            }
-        }
-    }
-
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
         $bytemap = new self($defaultItem);
@@ -164,6 +132,25 @@ final class ArrayBytemap extends AbstractBytemap
     protected function createEmptyMap(): void
     {
         $this->map = [];
+    }
+
+    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    {
+        $maximumRange = $itemCount - $firstItemOffset;
+        if ($howMany >= $maximumRange) {
+            $this->itemCount -= $maximumRange;
+            while (--$maximumRange >= 0) {
+                unset($this->map[--$itemCount]);
+            }
+        } else {
+            $this->fillAndSort();
+            \array_splice($this->map, $firstItemOffset, $howMany);
+            $this->map = \array_diff($this->map, [$this->defaultItem]);
+            $this->itemCount -= $howMany;
+            if (!isset($this->map[$this->itemCount - 1])) {
+                $this->map[$this->itemCount - 1] = $this->defaultItem;
+            }
+        }
     }
 
     protected function deriveProperties(): void

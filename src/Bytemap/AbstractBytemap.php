@@ -210,20 +210,8 @@ abstract class AbstractBytemap implements BytemapInterface
             $firstItemOffset += $itemCount;
         }
 
-        // Keep the offsets within the bounds.
-        $firstItemOffset = \max(0, $firstItemOffset);
-        $howMany = \min($howMany, $itemCount - $firstItemOffset);
-
-        // Shift all the subsequent items left by the numbers of items deleted.
-        for ($i = $firstItemOffset + $howMany; $i < $itemCount; ++$i) {
-            $this[$i - $howMany] = $this[$i];
-        }
-
-        // Delete the trailing items.
-        while ($howMany > 0) {
-            unset($this[--$itemCount]);
-            --$howMany;
-        }
+        // Delete the items.
+        $this->deleteWithPositiveOffset((int) \max(0, $firstItemOffset), $howMany, $itemCount);
     }
 
     public function streamJson($stream): void
@@ -235,6 +223,7 @@ abstract class AbstractBytemap implements BytemapInterface
         \fwrite($stream, ($this->itemCount > 0 ? \json_encode($this[$i]) : '').']');
     }
 
+    // `AbstractBytemap`
     protected function calculateNewSize(iterable $additionalItems, int $firstItemOffset = -1): ?int
     {
         // Assume that no gap exists between the tail of the bytemap and `$firstItemOffset`.
@@ -250,6 +239,23 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         return null;
+    }
+
+    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    {
+        // Keep the offsets within the bounds.
+        $howMany = \min($howMany, $itemCount - $firstItemOffset);
+
+        // Shift all the subsequent items left by the numbers of items deleted.
+        for ($i = $firstItemOffset + $howMany; $i < $itemCount; ++$i) {
+            $this[$i - $howMany] = $this[$i];
+        }
+
+        // Delete the trailing items.
+        while ($howMany > 0) {
+            unset($this[--$itemCount]);
+            --$howMany;
+        }
     }
 
     protected function findArrayItems(array $items, bool $whitelist, int $howMany): \Generator
@@ -277,10 +283,15 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    // `AbstractBytemap`
-    protected static function hasStreamingParser(): bool
+    protected static function calculateGreatestCommonDivisor(int $a, int $b): int
     {
-        return ($_ENV['BYTEMAP_STREAMING_PARSER'] ?? true) && \class_exists('\\JsonStreamingParser\\Parser');
+        while (0 !== $b) {
+            $tmp = $b;
+            $b = $a % $b;
+            $a = $tmp;
+        }
+
+        return $a;
     }
 
     protected static function getMaxKey(iterable $map): int
@@ -296,18 +307,12 @@ abstract class AbstractBytemap implements BytemapInterface
         return $maxKey;
     }
 
+    protected static function hasStreamingParser(): bool
+    {
+        return ($_ENV['BYTEMAP_STREAMING_PARSER'] ?? true) && \class_exists('\\JsonStreamingParser\\Parser');
+    }
+
     abstract protected function createEmptyMap(): void;
 
     abstract protected function deriveProperties(): void;
-
-    protected static function calculateGreatestCommonDivisor(int $a, int $b): int
-    {
-        while (0 !== $b) {
-            $tmp = $b;
-            $b = $a % $b;
-            $a = $tmp;
-        }
-
-        return $a;
-    }
 }
