@@ -181,6 +181,20 @@ class DsBytemap extends AbstractBytemap
         $this->map = new \Ds\Vector();
     }
 
+    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    {
+        $maximumRange = $itemCount - $firstItemOffset;
+        if ($howMany >= $maximumRange) {
+            $this->itemCount -= $maximumRange;
+            while (--$maximumRange >= 0) {
+                $this->map->pop();
+            }
+        } else {
+            $this->itemCount -= $howMany;
+            $this->map = $this->map->slice(0, $firstItemOffset)->merge($this->map->slice($firstItemOffset + $howMany));
+        }
+    }
+
     protected function deriveProperties(): void
     {
         $this->itemCount = \count($this->map);
