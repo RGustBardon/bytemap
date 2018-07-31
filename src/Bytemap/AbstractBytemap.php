@@ -241,23 +241,6 @@ abstract class AbstractBytemap implements BytemapInterface
         return null;
     }
 
-    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
-    {
-        // Keep the offsets within the bounds.
-        $howMany = \min($howMany, $itemCount - $firstItemOffset);
-
-        // Shift all the subsequent items left by the numbers of items deleted.
-        for ($i = $firstItemOffset + $howMany; $i < $itemCount; ++$i) {
-            $this[$i - $howMany] = $this[$i];
-        }
-
-        // Delete the trailing items.
-        while ($howMany > 0) {
-            unset($this[--$itemCount]);
-            --$howMany;
-        }
-    }
-
     protected function findArrayItems(array $items, bool $whitelist, int $howMany): \Generator
     {
         if ($howMany > 0) {
@@ -313,6 +296,8 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     abstract protected function createEmptyMap(): void;
+
+    abstract protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void;
 
     abstract protected function deriveProperties(): void;
 }

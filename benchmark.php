@@ -307,20 +307,20 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             case self::BENCHMARK_MUTATION_DELETION_HEAD:
                 $iterations = 100;
 
-                $bytemap = $this->createCyclicBytemap('0', '9', 26 ** 3);
+                $bytemap = $this->createCyclicBytemap('0', '9', 3 * 26 ** 3);
                 $itemCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap->delete(0, \mt_rand(1, 200));
+                    $bytemap->delete(0, \mt_rand(1, 1000));
                 }
                 $itemCount -= \count($bytemap);
                 $this->takeSnapshot(\sprintf('After deleting the first %d items (1 byte each) in random batches', $itemCount), true);
                 unset($bytemap);
 
                 \mt_srand(0);
-                $bytemap = $this->createCyclicBytemap('aaaa', 'azzz');
+                $bytemap = $this->createCyclicBytemap('aaaa', 'czzz');
                 $itemCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap->delete(0, \mt_rand(1, 200));
+                    $bytemap->delete(0, \mt_rand(1, 1000));
                 }
                 $itemCount -= \count($bytemap);
                 $this->takeSnapshot(\sprintf('After deleting the first %d items (4 bytes each) in random batches', $itemCount), true);
@@ -329,20 +329,20 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             case self::BENCHMARK_MUTATION_DELETION_TAIL:
                 $iterations = 100;
 
-                $bytemap = $this->createCyclicBytemap('0', '9', 26 ** 3);
+                $bytemap = $this->createCyclicBytemap('0', '9', 3 * 26 ** 3);
                 $itemCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap->delete(-\mt_rand(1, 200));
+                    $bytemap->delete(-\mt_rand(1, 1000));
                 }
                 $itemCount -= \count($bytemap);
                 $this->takeSnapshot(\sprintf('After deleting the last %d items (1 byte each) in random batches', $itemCount), true);
                 unset($bytemap);
 
                 \mt_srand(0);
-                $bytemap = $this->createCyclicBytemap('aaaa', 'azzz');
+                $bytemap = $this->createCyclicBytemap('aaaa', 'czzz');
                 $itemCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap->delete(-\mt_rand(1, 200));
+                    $bytemap->delete(-\mt_rand(1, 1000));
                 }
                 $itemCount -= \count($bytemap);
                 $this->takeSnapshot(\sprintf('After deleting the last %d items (4 bytes each) in random batches', $itemCount), true);

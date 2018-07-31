@@ -201,6 +201,18 @@ class Bytemap extends AbstractBytemap
         $this->map = '';
     }
 
+    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    {
+        $maximumRange = $itemCount - $firstItemOffset;
+        if ($howMany >= $maximumRange) {
+            $this->map = \substr($this->map, 0, $firstItemOffset * $this->bytesPerItem);
+        } else {
+            $this->map = \substr_replace($this->map, '', $firstItemOffset * $this->bytesPerItem, $howMany * $this->bytesPerItem);
+        }
+
+        $this->deriveProperties();
+    }
+
     protected function deriveProperties(): void
     {
         $this->bytesPerItem = \strlen($this->defaultItem);
