@@ -39,7 +39,7 @@ class DsBytemap extends AbstractBytemap
             $offset = $this->itemCount;
         }
 
-        $unassignedCount = $offset - $this->itemCount;
+        $unassignedCount = (int) $offset - $this->itemCount;
         if ($unassignedCount < 0) {
             // Case 1. Overwrite an existing item.
             $this->map[$offset] = $item;

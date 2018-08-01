@@ -93,7 +93,7 @@ final class ArrayBytemap extends AbstractBytemap
 
             // Insert the items.
             $itemCount = \count($this->map);
-            \array_splice($this->map, (int) $firstItemOffset, 0, \is_array($items) ? $items : \iterator_to_array($items));
+            \array_splice($this->map, $firstItemOffset, 0, \is_array($items) ? $items : \iterator_to_array($items));
             $insertedItemCount = \count($this->map) - $itemCount;
             $this->itemCount += $insertedItemCount;
 
@@ -101,7 +101,7 @@ final class ArrayBytemap extends AbstractBytemap
             if (-$originalFirstItemOffset > $this->itemCount) {
                 $overflow = -$originalFirstItemOffset - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
                 if ($overflow > 0) {
-                    \array_splice($this->map, $insertedItemCount, 0, \array_fill(0, (int) $overflow, $this->defaultItem));
+                    \array_splice($this->map, $insertedItemCount, 0, \array_fill(0, $overflow, $this->defaultItem));
                     $this->itemCount += $overflow;
                 }
             }

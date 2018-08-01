@@ -39,7 +39,7 @@ class SplBytemap extends AbstractBytemap
             $offset = $this->itemCount;
         }
 
-        $unassignedCount = $offset - $this->itemCount;
+        $unassignedCount = (int) $offset - $this->itemCount;
         if ($unassignedCount >= 0) {
             $this->map->setSize($this->itemCount + $unassignedCount + 1);
             $this->itemCount += $unassignedCount + 1;
@@ -118,7 +118,7 @@ class SplBytemap extends AbstractBytemap
         // The juggling algorithm.
         $n = $this->itemCount - $firstItemOffset;
         $shift = $n - $this->itemCount + $originalItemCount;
-        $gcd = self::calculateGreatestCommonDivisor((int) $n, $shift);
+        $gcd = self::calculateGreatestCommonDivisor($n, $shift);
 
         for ($i = 0; $i < $gcd; ++$i) {
             $tmp = $this->map[$firstItemOffset + $i];

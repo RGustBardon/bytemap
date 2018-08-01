@@ -33,68 +33,86 @@ final class SearchTest extends AbstractTestOfBytemap
                 ['zx', 'xy', 'yy', 'wy', 'ut', 'tu'],
             ] as $items) {
                 foreach ([
-                    [[], [], false, true, -1, []],
-                    [[], [], false, true, 0, []],
-                    [[], [], false, false, 1, []],
-                    [[], [], true, false, 1, []],
+                    [[], [], false, true, -1, null, []],
+                    [[], [], false, true, 0, null, []],
+                    [[], [], false, false, 1, null, []],
+                    [[], [], true, false, 1, null, []],
 
-                    [[1], [], false, true, \PHP_INT_MAX, []],
-                    [[1], [], false, false, 0, []],
-                    [[1], [], false, false, 1, [1]],
-                    [[1], [], false, false, \PHP_INT_MAX, [1]],
+                    [[1], [], false, true, \PHP_INT_MAX, null, []],
+                    [[1], [], false, false, 0, null, []],
+                    [[1], [], false, false, 1, null, [1]],
+                    [[1], [], false, false, \PHP_INT_MAX, null, [1]],
 
-                    [[1], [1], false, false, \PHP_INT_MAX, []],
-                    [[1], [1], false, true, -2, [1]],
-                    [[1], [1], false, true, -1, [1]],
-                    [[1], [1], false, true, 0, []],
-                    [[1], [1], false, true, 1, [1]],
-                    [[1], [1], false, true, 2, [1]],
+                    [[1], [1], false, false, \PHP_INT_MAX, null, []],
+                    [[1], [1], false, true, -2, null, [1]],
+                    [[1], [1], false, true, -1, null, [1]],
+                    [[1], [1], false, true, 0, null, []],
+                    [[1], [1], false, true, 1, null, [1]],
+                    [[1], [1], false, true, 2, null, [1]],
 
-                    [[1], [2], false, false, \PHP_INT_MAX, [1]],
-                    [[1], [2], false, true, -2, []],
-                    [[1], [2], false, true, -1, []],
-                    [[1], [2], false, true, 0, []],
-                    [[1], [2], false, true, 1, []],
-                    [[1], [2], false, true, 2, []],
+                    [[1], [2], false, false, \PHP_INT_MAX, null, [1]],
+                    [[1], [2], false, true, -2, null, []],
+                    [[1], [2], false, true, -1, null, []],
+                    [[1], [2], false, true, 0, null, []],
+                    [[1], [2], false, true, 1, null, []],
+                    [[1], [2], false, true, 2, null, []],
 
-                    [[1, 1], [1], false, true, -2, [1 => 1, 0 => 1]],
-                    [[1, 1], [1], false, true, -1, [1 => 1]],
-                    [[1, 1], [1], false, true, 0, []],
-                    [[1, 1], [1], false, true, 1, [1]],
-                    [[1, 1], [1], false, true, 2, [1, 1]],
+                    [[1, 1], [1], false, true, -2, null, [1 => 1, 0 => 1]],
+                    [[1, 1], [1], false, true, -1, null, [1 => 1]],
+                    [[1, 1], [1], false, true, 0, null, []],
+                    [[1, 1], [1], false, true, 1, null, [1]],
+                    [[1, 1], [1], false, true, 2, null, [1, 1]],
 
-                    [[1, 1], [1, 1], false, true, -2, [1 => 1, 0 => 1]],
-                    [[1, 1], [1, 1], false, true, -1, [1 => 1]],
-                    [[1, 1], [1, 1], false, true, 0, []],
-                    [[1, 1], [1, 1], false, true, 1, [1]],
-                    [[1, 1], [1, 1], false, true, 2, [1, 1]],
+                    [[1, 1], [1, 1], false, true, -2, null, [1 => 1, 0 => 1]],
+                    [[1, 1], [1, 1], false, true, -1, null, [1 => 1]],
+                    [[1, 1], [1, 1], false, true, 0, null, []],
+                    [[1, 1], [1, 1], false, true, 1, null, [1]],
+                    [[1, 1], [1, 1], false, true, 2, null, [1, 1]],
 
-                    [[1, 1], [2, 1, 3], false, true, -2, [1 => 1, 0 => 1]],
-                    [[1, 1], [2, 1, 3], false, true, -1, [1 => 1]],
-                    [[1, 1], [2, 1, 3], false, true, 0, []],
-                    [[1, 1], [2, 1, 3], false, true, 1, [1]],
-                    [[1, 1], [2, 1, 3], false, true, 2, [1, 1]],
+                    [[1, 1], [2, 1, 3], false, true, -2, null, [1 => 1, 0 => 1]],
+                    [[1, 1], [2, 1, 3], false, true, -1, null, [1 => 1]],
+                    [[1, 1], [2, 1, 3], false, true, 0, null, []],
+                    [[1, 1], [2, 1, 3], false, true, 1, null, [1]],
+                    [[1, 1], [2, 1, 3], false, true, 2, null, [1, 1]],
 
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, -2, [2 => 4, 0 => 4]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, -1, [2 => 4]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, 0, []],
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, 1, [0 => 4]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, 2, [0 => 4, 2 => 4]],
+                    [[4, 1, 4, 1], [2, 1, 3], false, false, -2, null, [2 => 4, 0 => 4]],
+                    [[4, 1, 4, 1], [2, 1, 3], false, false, -1, null, [2 => 4]],
+                    [[4, 1, 4, 1], [2, 1, 3], false, false, 0, null, []],
+                    [[4, 1, 4, 1], [2, 1, 3], false, false, 1, null, [0 => 4]],
+                    [[4, 1, 4, 1], [2, 1, 3], false, false, 2, null, [0 => 4, 2 => 4]],
 
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, -2, [3 => 1, 1 => 1]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, -1, [3 => 1]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, 0, []],
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, 1, [1 => 1]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, 2, [1 => 1, 3 => 1]],
+                    [[4, 1, 4, 1], [2, 1, 3], false, true, -2, null, [3 => 1, 1 => 1]],
+                    [[4, 1, 4, 1], [2, 1, 3], false, true, -1, null, [3 => 1]],
+                    [[4, 1, 4, 1], [2, 1, 3], false, true, 0, null, []],
+                    [[4, 1, 4, 1], [2, 1, 3], false, true, 1, null, [1 => 1]],
+                    [[4, 1, 4, 1], [2, 1, 3], false, true, 2, null, [1 => 1, 3 => 1]],
 
-                    [[4, 1, 4, 1], [2, 1, 3], true, true, 2, [1 => 1, 3 => 1]],
+                    [[4, 1, 4, 1], [2, 1, 3], true, true, 2, null, [1 => 1, 3 => 1]],
 
-                    [[4, null, 4, 1], [2, 0, 1], false, true, 2, [1 => 0, 3 => 1]],
+                    [[4, null, 4, 1], [2, 0, 1], false, true, 2, null, [1 => 0, 3 => 1]],
 
-                    [[4, null, 0, 1], null, false, false, 2, [0 => 4, 3 => 1]],
-                    [[4, null, 0, 1], null, false, true, 2, [1 => 0, 2 => 0]],
-                ] as [$subject, $query, $generator, $whitelist, $howMany, $expected]) {
-                    yield [$impl, $items, $subject, $query, $generator, $whitelist, $howMany, $expected];
+                    [[4, null, 0, 1], null, false, false, 2, null, [1 => 0, 2 => 0]],
+                    [[4, null, 0, 1], null, false, true, 2, null, [0 => 4, 3 => 1]],
+
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, null, [1, 2, 3, 4, 5, 1, 2]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, 0, [1 => 2, 3, 4, 5, 1, 2]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, 2, [3 => 4, 5, 1, 2]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, -2, [6 => 2]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, -7, [1 => 2, 3, 4, 5, 1, 2]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, 6, []],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, 42, []],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, -42, [1, 2, 3, 4, 5, 1, 2]],
+
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, null, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 0, []],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 2, [1 => 2, 0 => 1]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, -2, [4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, -7, []],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 6, [5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, -42, []],
+                ] as [$subject, $query, $generator, $whitelist, $howMany, $startAfter, $expected]) {
+                    yield [$impl, $items, $subject, $query, $generator, $whitelist, $howMany, $startAfter, $expected];
                 }
             }
         }
@@ -112,6 +130,7 @@ final class SearchTest extends AbstractTestOfBytemap
         bool $generator,
         bool $whitelist,
         int $howMany,
+        ?int $startAfter,
         array $expected
     ): void {
         $expectedSequence = [];
@@ -135,7 +154,7 @@ final class SearchTest extends AbstractTestOfBytemap
                 $query = \iterator_to_array($query);
             }
         }
-        self::assertSame($expectedSequence, \iterator_to_array($bytemap->find($query, $whitelist, $howMany)));
+        self::assertSame($expectedSequence, \iterator_to_array($bytemap->find($query, $whitelist, $howMany, $startAfter)));
     }
 
     public static function implementationDirectionProvider(): \Generator

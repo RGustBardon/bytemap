@@ -26,6 +26,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     protected $defaultItem;
 
+    /** @var int */
     protected $itemCount = 0;
     protected $map;
 
@@ -109,15 +110,24 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // `BytemapInterface`
-    public function find(?iterable $items = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator
-    {
+    public function find(
+        ?iterable $items = null,
+        bool $whitelist = true,
+        int $howMany = \PHP_INT_MAX,
+        ?int $startAfter = null
+        ): \Generator {
         if (0 === $howMany) {
+            return;
+        }
+
+        $howManyToSkip = $this->calculateHowManyToSkip($howMany > 0, $startAfter);
+        if (null === $howManyToSkip) {
             return;
         }
 
         if (null === $items) {
             $needles = [$this->defaultItem => true];
-            $whiteList = !$whitelist;
+            $whitelist = !$whitelist;
         } else {
             $needles = [];
             foreach ($items as $value) {
@@ -127,7 +137,7 @@ abstract class AbstractBytemap implements BytemapInterface
             }
         }
 
-        yield from $this->findArrayItems($needles, $whitelist, $howMany);
+        yield from $this->findArrayItems($needles, $whitelist, $howMany, $howManyToSkip);
     }
 
     public function grep(string $regex, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator
@@ -148,7 +158,7 @@ abstract class AbstractBytemap implements BytemapInterface
                 }
             }
             $whitelist = \count($whitelistNeedles) <= 128;
-            yield from $this->findArrayItems($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany);
+            yield from $this->findArrayItems($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany, 0);
         } else {
             $lookup = [];
             $lookupSize = 0;
@@ -211,7 +221,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         // Delete the items.
-        $this->deleteWithPositiveOffset((int) \max(0, $firstItemOffset), $howMany, $itemCount);
+        $this->deleteWithPositiveOffset(\max(0, $firstItemOffset), $howMany, $itemCount);
     }
 
     public function streamJson($stream): void
@@ -224,6 +234,33 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // `AbstractBytemap`
+    protected function calculateHowManyToSkip(bool $searchForwards, ?int $startAfter): ?int
+    {
+        if (null === $startAfter) {
+            return 0;
+        }
+
+        $itemCount = $this->itemCount;
+
+        if ($startAfter < 0) {
+            $startAfter += $itemCount;
+        }
+
+        if ($searchForwards) {
+            if ($startAfter >= $itemCount - 1) {
+                return null;
+            }
+
+            return \max(0, $startAfter + 1);
+        }
+
+        if ($startAfter <= 0) {
+            return null;
+        }
+
+        return $startAfter <= 0 ? null : \max(0, $itemCount - $startAfter);
+    }
+
     protected function calculateNewSize(iterable $additionalItems, int $firstItemOffset = -1): ?int
     {
         // Assume that no gap exists between the tail of the bytemap and `$firstItemOffset`.
@@ -241,24 +278,28 @@ abstract class AbstractBytemap implements BytemapInterface
         return null;
     }
 
-    protected function findArrayItems(array $items, bool $whitelist, int $howMany): \Generator
-    {
-        if ($howMany > 0) {
+    protected function findArrayItems(
+        array $items,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        if ($howManyToReturn > 0) {
             foreach ($this as $key => $item) {
-                if (!($whitelist xor isset($items[$item]))) {
+                if (--$howManyToSkip < 0 && !($whitelist xor isset($items[$item]))) {
                     yield $key => $item;
-                    if (0 === --$howMany) {
+                    if (0 === --$howManyToReturn) {
                         break;
                     }
                 }
             }
         } else {
             $clone = clone $this;
-            for ($i = $clone->itemCount - 1; $i >= 0; --$i) {
+            for ($i = $clone->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
                 $item = $clone[$i];
                 if (!($whitelist xor isset($items[$item]))) {
                     yield $i => $item;
-                    if (0 === ++$howMany) {
+                    if (0 === ++$howManyToReturn) {
                         break;
                     }
                 }
