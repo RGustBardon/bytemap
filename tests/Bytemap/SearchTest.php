@@ -190,91 +190,127 @@ final class SearchTest extends AbstractTestOfBytemap
         foreach (self::implementationProvider() as [$impl]) {
             $items = ['z', 'x', 'y', 'w', 'u', 't'];
             foreach ([
-                [[], '~~', false, 1, []],
-                [[], '~~', true, 1, []],
-                [[], '~x~', false, 1, []],
-                [[], '~x~', true, 1, []],
+                [[], '~~', false, 1, null, []],
+                [[], '~~', true, 1, null, []],
+                [[], '~x~', false, 1, null, []],
+                [[], '~x~', true, 1, null, []],
 
-                [[1], '~x~', false, 1, []],
-                [[1], '~x~', true, 1, [1]],
-                [[1], '~X~', true, 1, []],
-                [[1], '~X~i', true, 1, [1]],
-                [[1], '~z~', false, 1, [1]],
-                [[1], '~z~', true, 1, []],
+                [[1], '~x~', false, 1, null, []],
+                [[1], '~x~', true, 1, null, [1]],
+                [[1], '~X~', true, 1, null, []],
+                [[1], '~X~i', true, 1, null, [1]],
+                [[1], '~z~', false, 1, null, [1]],
+                [[1], '~z~', true, 1, null, []],
 
-                [[1, 2, 3, 1], '~x~', false, -2, [2 => 3, 1 => 2]],
-                [[1, 2, 3, 1], '~x~', false, -1, [2 => 3]],
-                [[1, 2, 3, 1], '~x~', false, 0, []],
-                [[1, 2, 3, 1], '~x~', false, 1, [1 => 2]],
-                [[1, 2, 3, 1], '~x~', false, 2, [1 => 2, 2 => 3]],
+                [[1, 2, 3, 1], '~x~', false, -2, null, [2 => 3, 1 => 2]],
+                [[1, 2, 3, 1], '~x~', false, -1, null, [2 => 3]],
+                [[1, 2, 3, 1], '~x~', false, 0, null, []],
+                [[1, 2, 3, 1], '~x~', false, 1, null, [1 => 2]],
+                [[1, 2, 3, 1], '~x~', false, 2, null, [1 => 2, 2 => 3]],
 
-                [[1, 2, 3, 1], '~x~', true, -2, [3 => 1, 0 => 1]],
-                [[1, 2, 3, 1], '~x~', true, -1, [3 => 1]],
-                [[1, 2, 3, 1], '~x~', true, 0, []],
-                [[1, 2, 3, 1], '~x~', true, 1, [0 => 1]],
-                [[1, 2, 3, 1], '~x~', true, 2, [0 => 1, 3 => 1]],
+                [[1, 2, 3, 1], '~x~', true, -2, null, [3 => 1, 0 => 1]],
+                [[1, 2, 3, 1], '~x~', true, -1, null, [3 => 1]],
+                [[1, 2, 3, 1], '~x~', true, 0, null, []],
+                [[1, 2, 3, 1], '~x~', true, 1, null, [0 => 1]],
+                [[1, 2, 3, 1], '~x~', true, 2, null, [0 => 1, 3 => 1]],
 
-                [[1, 2, 3, null, 1], '~[axz]~', false, \PHP_INT_MAX, [1 => 2, 2 => 3]],
-                [[1, 2, 3, null, 1], '~[axz]~', true, \PHP_INT_MAX, [0 => 1, 3 => 0, 4 => 1]],
-                [[1, 2, 3, null, 1], '~[^axz]~', true, \PHP_INT_MAX, [1 => 2, 2 => 3]],
+                [[1, 2, 3, null, 1], '~[axz]~', false, \PHP_INT_MAX, null, [1 => 2, 2 => 3]],
+                [[1, 2, 3, null, 1], '~[axz]~', true, \PHP_INT_MAX, null, [0 => 1, 3 => 0, 4 => 1]],
+                [[1, 2, 3, null, 1], '~[^axz]~', true, \PHP_INT_MAX, null, [1 => 2, 2 => 3]],
 
-                [[1, 2, 3, null, 1], '~xy~', true, \PHP_INT_MAX, []],
+                [[1, 2, 3, null, 1], '~xy~', true, \PHP_INT_MAX, null, []],
 
-                [[1, 2, 3, null, 1], '~^y|z$~', true, \PHP_INT_MAX, [1 => 2, 3 => 0]],
+                [[1, 2, 3, null, 1], '~^y|z$~', true, \PHP_INT_MAX, null, [1 => 2, 3 => 0]],
 
-                [[1, 2, 3, null, 1], '~(?<=z)x~', true, \PHP_INT_MAX, []],
-                [[1, 2, 3, null, 1], '~x(?=y)~', true, \PHP_INT_MAX, []],
+                [[1, 2, 3, null, 1], '~(?<=z)x~', true, \PHP_INT_MAX, null, []],
+                [[1, 2, 3, null, 1], '~x(?=y)~', true, \PHP_INT_MAX, null, []],
 
-                [[1, 2, 3, null, 1], '~~', true, \PHP_INT_MAX, [1, 2, 3, 0, 1]],
-            ] as [$subject, $regex, $whitelist, $howMany, $expected]) {
-                yield [$impl, $items, $subject, $regex, $whitelist, $howMany, $expected];
+                [[1, 2, 3, null, 1], '~~', true, \PHP_INT_MAX, null, [1, 2, 3, 0, 1]],
+
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, 7, null, [1, 2, 3, 4, 5, 1, 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, 7, 0, [1 => 2, 3, 4, 5, 1, 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, 7, 2, [3 => 4, 5, 1, 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, 7, -2, [6 => 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, 7, -7, [1 => 2, 3, 4, 5, 1, 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, 7, 6, []],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, 7, 42, []],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, 7, -42, [1, 2, 3, 4, 5, 1, 2]],
+
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, null, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, 0, []],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, 2, [1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, -2, [4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, -7, []],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, 6, [5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, -42, []],
+            ] as [$subject, $regex, $whitelist, $howMany, $startAfter, $expected]) {
+                yield [$impl, $items, $subject, $regex, $whitelist, $howMany, $startAfter, $expected];
             }
 
             $items = ['zx', 'xy', 'yy', 'wy', 'wx', 'tu'];
             foreach ([
-                [[], '~~', false, 1, []],
-                [[], '~~', true, 1, []],
-                [[], '~x~', false, 1, []],
-                [[], '~x~', true, 1, []],
+                [[], '~~', false, 1, null, []],
+                [[], '~~', true, 1, null, []],
+                [[], '~x~', false, 1, null, []],
+                [[], '~x~', true, 1, null, []],
 
-                [[1], '~xy~', false, 1, []],
-                [[1], '~xy~', true, 1, [1]],
-                [[1], '~Xy~', true, 1, []],
-                [[1], '~Xy~i', true, 1, [1]],
-                [[1], '~zx~', false, 1, [1]],
-                [[1], '~zx~', true, 1, []],
+                [[1], '~xy~', false, 1, null, []],
+                [[1], '~xy~', true, 1, null, [1]],
+                [[1], '~Xy~', true, 1, null, []],
+                [[1], '~Xy~i', true, 1, null, [1]],
+                [[1], '~zx~', false, 1, null, [1]],
+                [[1], '~zx~', true, 1, null, []],
 
-                [[1, 2, 3, 1], '~xy~', false, -2, [2 => 3, 1 => 2]],
-                [[1, 2, 3, 1], '~xy~', false, -1, [2 => 3]],
-                [[1, 2, 3, 1], '~xy~', false, 0, []],
-                [[1, 2, 3, 1], '~xy~', false, 1, [1 => 2]],
-                [[1, 2, 3, 1], '~xy~', false, 2, [1 => 2, 2 => 3]],
+                [[1, 2, 3, 1], '~xy~', false, -2, null, [2 => 3, 1 => 2]],
+                [[1, 2, 3, 1], '~xy~', false, -1, null, [2 => 3]],
+                [[1, 2, 3, 1], '~xy~', false, 0, null, []],
+                [[1, 2, 3, 1], '~xy~', false, 1, null, [1 => 2]],
+                [[1, 2, 3, 1], '~xy~', false, 2, null, [1 => 2, 2 => 3]],
 
-                [[1, 2, 3, 1], '~xy~', true, -2, [3 => 1, 0 => 1]],
-                [[1, 2, 3, 1], '~xy~', true, -1, [3 => 1]],
-                [[1, 2, 3, 1], '~xy~', true, 0, []],
-                [[1, 2, 3, 1], '~xy~', true, 1, [0 => 1]],
-                [[1, 2, 3, 1], '~xy~', true, 2, [0 => 1, 3 => 1]],
+                [[1, 2, 3, 1], '~xy~', true, -2, null, [3 => 1, 0 => 1]],
+                [[1, 2, 3, 1], '~xy~', true, -1, null, [3 => 1]],
+                [[1, 2, 3, 1], '~xy~', true, 0, null, []],
+                [[1, 2, 3, 1], '~xy~', true, 1, null, [0 => 1]],
+                [[1, 2, 3, 1], '~xy~', true, 2, null, [0 => 1, 3 => 1]],
 
-                [[1, 2, 3, null, 1], '~[axz]~', false, \PHP_INT_MAX, [1 => 2, 2 => 3]],
-                [[1, 2, 3, null, 1], '~[axz]~', true, \PHP_INT_MAX, [0 => 1, 3 => 0, 4 => 1]],
-                [[1, 2, 3, null, 1], '~[^axz]~', true, \PHP_INT_MAX, [0 => 1, 1 => 2, 2 => 3, 4 => 1]],
+                [[1, 2, 3, null, 1], '~[axz]~', false, \PHP_INT_MAX, null, [1 => 2, 2 => 3]],
+                [[1, 2, 3, null, 1], '~[axz]~', true, \PHP_INT_MAX, null, [0 => 1, 3 => 0, 4 => 1]],
+                [[1, 2, 3, null, 1], '~[^axz]~', true, \PHP_INT_MAX, null, [0 => 1, 1 => 2, 2 => 3, 4 => 1]],
 
-                [[1, 2, 3, null, 1], '~xyy~', true, \PHP_INT_MAX, []],
+                [[1, 2, 3, null, 1], '~xyy~', true, \PHP_INT_MAX, null, []],
 
-                [[1, 2, 3, null, 1], '~^yy|xy$~', true, \PHP_INT_MAX, [0 => 1, 1 => 2, 4 => 1]],
-                [[1, 2, 3, null, 1], '~y$~', true, \PHP_INT_MAX, [0 => 1, 1 => 2, 2 => 3, 4 => 1]],
+                [[1, 2, 3, null, 1], '~^yy|xy$~', true, \PHP_INT_MAX, null, [0 => 1, 1 => 2, 4 => 1]],
+                [[1, 2, 3, null, 1], '~y$~', true, \PHP_INT_MAX, null, [0 => 1, 1 => 2, 2 => 3, 4 => 1]],
 
-                [[1, 2, 3, null, 1], '~(?<=z)x~', true, \PHP_INT_MAX, [3 => 0]],
-                [[1, 2, 3, null, 1], '~(?!<x)y~', true, \PHP_INT_MAX, [0 => 1, 1 => 2, 2 => 3, 4 => 1]],
-                [[1, 2, 3, null, 1], '~x(?=y)~', true, \PHP_INT_MAX, [0 => 1, 4 => 1]],
-                [[1, 2, 3, 4, 1], '~w(?!y)~', true, \PHP_INT_MAX, [3 => 4]],
+                [[1, 2, 3, null, 1], '~(?<=z)x~', true, \PHP_INT_MAX, null, [3 => 0]],
+                [[1, 2, 3, null, 1], '~(?!<x)y~', true, \PHP_INT_MAX, null, [0 => 1, 1 => 2, 2 => 3, 4 => 1]],
+                [[1, 2, 3, null, 1], '~x(?=y)~', true, \PHP_INT_MAX, null, [0 => 1, 4 => 1]],
+                [[1, 2, 3, 4, 1], '~w(?!y)~', true, \PHP_INT_MAX, null, [3 => 4]],
 
-                [[1, 2, 3, null, 1], '~yy|zx~', true, \PHP_INT_MAX, [1 => 2, 3 => 0]],
+                [[1, 2, 3, null, 1], '~yy|zx~', true, \PHP_INT_MAX, null, [1 => 2, 3 => 0]],
 
-                [[1, 2, 3, null, 1], '~~', true, \PHP_INT_MAX, [1, 2, 3, 0, 1]],
-            ] as [$subject, $regex, $whitelist, $howMany, $expected]) {
-                yield [$impl, $items, $subject, $regex, $whitelist, $howMany, $expected];
+                [[1, 2, 3, null, 1], '~~', true, \PHP_INT_MAX, null, [1, 2, 3, 0, 1]],
+
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, 7, null, [1, 2, 3, 4, 5, 1, 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, 7, 0, [1 => 2, 3, 4, 5, 1, 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, 7, 2, [3 => 4, 5, 1, 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, 7, -2, [6 => 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, 7, -7, [1 => 2, 3, 4, 5, 1, 2]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, 7, 6, []],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, 7, 42, []],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, 7, -42, [1, 2, 3, 4, 5, 1, 2]],
+
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, null, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, 0, []],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, 2, [1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, -2, [4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, -7, []],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, 6, [5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
+                [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, -42, []],
+            ] as [$subject, $regex, $whitelist, $howMany, $startAfter, $expected]) {
+                yield [$impl, $items, $subject, $regex, $whitelist, $howMany, $startAfter, $expected];
             }
         }
     }
@@ -290,6 +326,7 @@ final class SearchTest extends AbstractTestOfBytemap
         string $regex,
         bool $whitelist,
         int $howMany,
+        ?int $startAfter,
         array $expected
     ): void {
         $expectedSequence = [];
@@ -302,7 +339,7 @@ final class SearchTest extends AbstractTestOfBytemap
                 $bytemap[$index] = $items[$key];
             }
         }
-        self::assertSame($expectedSequence, \iterator_to_array($bytemap->grep($regex, $whitelist, $howMany)));
+        self::assertSame($expectedSequence, \iterator_to_array($bytemap->grep($regex, $whitelist, $howMany, $startAfter)));
     }
 
     /**

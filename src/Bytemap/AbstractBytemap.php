@@ -140,9 +140,18 @@ abstract class AbstractBytemap implements BytemapInterface
         yield from $this->findArrayItems($needles, $whitelist, $howMany, $howManyToSkip);
     }
 
-    public function grep(string $regex, bool $whitelist = true, int $howMany = \PHP_INT_MAX): \Generator
-    {
+    public function grep(
+        string $regex,
+        bool $whitelist = true,
+        int $howMany = \PHP_INT_MAX,
+        ?int $startAfter = null
+        ): \Generator {
         if (0 === $howMany) {
+            return;
+        }
+
+        $howManyToSkip = $this->calculateHowManyToSkip($howMany > 0, $startAfter);
+        if (null === $howManyToSkip) {
             return;
         }
 
@@ -158,12 +167,15 @@ abstract class AbstractBytemap implements BytemapInterface
                 }
             }
             $whitelist = \count($whitelistNeedles) <= 128;
-            yield from $this->findArrayItems($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany, 0);
+            yield from $this->findArrayItems($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany, $howManyToSkip);
         } else {
             $lookup = [];
             $lookupSize = 0;
             if ($howMany > 0) {
                 foreach ($this as $key => $item) {
+                    if (--$howManyToSkip >= 0) {
+                        continue;
+                    }
                     $match = null;
                     if (!($whitelist xor $lookup[$item] ?? ($match = \preg_match($regex, $item)))) {
                         yield $key => $item;
@@ -183,7 +195,7 @@ abstract class AbstractBytemap implements BytemapInterface
                 }
             } else {
                 $clone = clone $this;
-                for ($i = $clone->itemCount - 1; $i >= 0; --$i) {
+                for ($i = $clone->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
                     $match = null;
                     $item = $clone[$i];
                     if (!($whitelist xor $lookup[$item] ?? ($match = \preg_match($regex, $item)))) {
