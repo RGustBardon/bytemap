@@ -296,23 +296,24 @@ abstract class AbstractBytemap implements BytemapInterface
         int $howManyToReturn,
         int $howManyToSkip
         ): \Generator {
+        $clone = clone $this;
         if ($howManyToReturn > 0) {
-            foreach ($this as $key => $item) {
-                if (--$howManyToSkip < 0 && !($whitelist xor isset($items[$item]))) {
-                    yield $key => $item;
+            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                $item = $clone[$i];
+                if (!($whitelist xor isset($items[$item]))) {
+                    yield $i => $item;
                     if (0 === --$howManyToReturn) {
-                        break;
+                        return;
                     }
                 }
             }
         } else {
-            $clone = clone $this;
             for ($i = $clone->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
                 $item = $clone[$i];
                 if (!($whitelist xor isset($items[$item]))) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
-                        break;
+                        return;
                     }
                 }
             }

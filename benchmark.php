@@ -489,7 +489,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         if (null === $itemCount) {
             for ($lastIteration = false, $item = $firstItem;;) {
                 $bytemap[] = $item;
-                $item = (string) ($item + 1);
+                ++$item;
+                $item = (string) $item;
                 if ($item === $lastItem) {
                     $lastIteration = true;
                 } elseif ($lastIteration) {
@@ -502,7 +503,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 if ($item === $lastItem) {
                     $item = $firstItem;
                 } else {
-                    $item = (string) ($item + 1);
+                    ++$item;
+                    $item = (string) $item;
                 }
             }
         }

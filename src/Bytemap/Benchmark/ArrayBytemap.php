@@ -164,24 +164,29 @@ final class ArrayBytemap extends AbstractBytemap
         int $howManyToReturn,
         int $howManyToSkip
         ): \Generator {
-        $this->fillAndSort();
-        $map = $howManyToReturn > 0 ? $this->map : \array_reverse($this->map, true);
-        $howManyToReturn = \abs($howManyToReturn);
-        if ($howManyToSkip > 0) {
-            $map = \array_slice($map, $howManyToSkip, null, true);
-        }
-        if ($items) {
-            $regex = '';
-            foreach (\array_keys($items) as $item) {
-                $regex .= \preg_quote((string) $item, '~').'$|';
+        $defaultItem = $this->defaultItem;
+        $map = $this->map;
+        if ($howManyToReturn > 0) {
+            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                $item = $map[$i] ?? $defaultItem;
+                if (!($whitelist xor isset($items[$item]))) {
+                    yield $i => $item;
+                    if (0 === --$howManyToReturn) {
+                        return;
+                    }
+                }
             }
-            $map = \preg_filter('~^('.($whitelist ? '' : '?!').\rtrim($regex, '|').')~', '${0}', $map);
-        } elseif ($whitelist) {
-            yield from [];
-
-            return;
+        } else {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                $item = $map[$i] ?? $defaultItem;
+                if (!($whitelist xor isset($items[$item]))) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+            }
         }
-        yield from $howManyToReturn >= \count($map) ? $map : \array_slice($map, 0, $howManyToReturn, true);
     }
 
     protected function fillAndSort(): void

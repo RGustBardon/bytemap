@@ -4,3 +4,4 @@ includes:
 parameters:
     ignoreErrors:
         - '~\$undefinedProperty~'
+        - '~Casting to string something~'
