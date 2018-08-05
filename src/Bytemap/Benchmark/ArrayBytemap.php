@@ -158,6 +158,32 @@ final class ArrayBytemap extends AbstractBytemap
         $this->itemCount = self::getMaxKey($this->map) + 1;
     }
 
+    protected function findArrayItems(
+        array $items,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        $this->fillAndSort();
+        $map = $howManyToReturn > 0 ? $this->map : \array_reverse($this->map, true);
+        $howManyToReturn = \abs($howManyToReturn);
+        if ($howManyToSkip > 0) {
+            $map = \array_slice($map, $howManyToSkip, null, true);
+        }
+        if ($items) {
+            $regex = '';
+            foreach (\array_keys($items) as $item) {
+                $regex .= \preg_quote((string) $item, '~').'$|';
+            }
+            $map = \preg_filter('~^('.($whitelist ? '' : '?!').\rtrim($regex, '|').')~', '${0}', $map);
+        } elseif ($whitelist) {
+            yield from [];
+
+            return;
+        }
+        yield from $howManyToReturn >= \count($map) ? $map : \array_slice($map, 0, $howManyToReturn, true);
+    }
+
     protected function fillAndSort(): void
     {
         if (\count($this->map) !== $this->itemCount) {
