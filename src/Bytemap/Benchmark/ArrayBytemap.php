@@ -167,19 +167,37 @@ final class ArrayBytemap extends AbstractBytemap
         $defaultItem = $this->defaultItem;
         $map = $this->map;
         if ($howManyToReturn > 0) {
-            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                $item = $map[$i] ?? $defaultItem;
-                if (!($whitelist xor isset($items[$item]))) {
+            if ($whitelist) {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (isset($items[$item = $map[$i] ?? $defaultItem])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (!isset($items[$item = $map[$i] ?? $defaultItem])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            }
+        } elseif ($whitelist) {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (isset($items[$item = $map[$i] ?? $defaultItem])) {
                     yield $i => $item;
-                    if (0 === --$howManyToReturn) {
+                    if (0 === ++$howManyToReturn) {
                         return;
                     }
                 }
             }
         } else {
             for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                $item = $map[$i] ?? $defaultItem;
-                if (!($whitelist xor isset($items[$item]))) {
+                if (!isset($items[$item = $map[$i] ?? $defaultItem])) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
                         return;

@@ -137,6 +137,10 @@ abstract class AbstractBytemap implements BytemapInterface
             }
         }
 
+        if ($whitelist && !$needles) {
+            return;
+        }
+
         yield from $this->findArrayItems($needles, $whitelist, $howMany, $howManyToSkip);
     }
 
@@ -298,19 +302,37 @@ abstract class AbstractBytemap implements BytemapInterface
         ): \Generator {
         $clone = clone $this;
         if ($howManyToReturn > 0) {
-            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                $item = $clone[$i];
-                if (!($whitelist xor isset($items[$item]))) {
+            if ($whitelist) {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (isset($items[$item = $clone[$i]])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (!isset($items[$item = $clone[$i]])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            }
+        } elseif ($whitelist) {
+            for ($i = $clone->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (isset($items[$item = $clone[$i]])) {
                     yield $i => $item;
-                    if (0 === --$howManyToReturn) {
+                    if (0 === ++$howManyToReturn) {
                         return;
                     }
                 }
             }
         } else {
             for ($i = $clone->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                $item = $clone[$i];
-                if (!($whitelist xor isset($items[$item]))) {
+                if (!isset($items[$item = $clone[$i]])) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
                         return;
