@@ -194,4 +194,35 @@ class SplBytemap extends AbstractBytemap
     {
         $this->itemCount = \count($this->map);
     }
+
+    protected function findArrayItems(
+        array $items,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        $defaultItem = $this->defaultItem;
+        $map = clone $this->map;
+        if ($howManyToReturn > 0) {
+            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                $item = $map[$i] ?? $defaultItem;
+                if (!($whitelist xor isset($items[$item]))) {
+                    yield $i => $item;
+                    if (0 === --$howManyToReturn) {
+                        return;
+                    }
+                }
+            }
+        } else {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                $item = $map[$i] ?? $defaultItem;
+                if (!($whitelist xor isset($items[$item]))) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
 }
