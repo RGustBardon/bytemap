@@ -199,4 +199,52 @@ class DsBytemap extends AbstractBytemap
     {
         $this->itemCount = \count($this->map);
     }
+
+    protected function findArrayItems(
+        array $items,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        $map = clone $this->map;
+        if ($howManyToReturn > 0) {
+            if ($whitelist) {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (isset($items[$item = $map[$i]])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (!isset($items[$item = $map[$i]])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            }
+        } elseif ($whitelist) {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (isset($items[$item = $map[$i]])) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+            }
+        } else {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (!isset($items[$item = $map[$i]])) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
 }
