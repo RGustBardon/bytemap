@@ -20,9 +20,8 @@ namespace Bytemap;
  */
 abstract class AbstractBytemap implements BytemapInterface
 {
+    protected const GREP_MAXIMUM_LOOKUP_SIZE = 1024;
     protected const UNSERIALIZED_CLASSES = false;
-
-    private const GREP_MAXIMUM_LOOKUP_SIZE = 1024;
 
     protected $defaultItem;
 
@@ -159,7 +158,9 @@ abstract class AbstractBytemap implements BytemapInterface
             return;
         }
 
-        if (!isset($this->defaultItem[1])) {
+        if (isset($this->defaultItem[1])) {
+            yield from $this->grepMultibyte($regex.'S', $whitelist, $howMany, $howManyToSkip);
+        } else {
             $whitelistNeedles = [];
             $blacklistNeedles = [];
             for ($i = 0; $i < 256; ++$i) {
@@ -172,53 +173,6 @@ abstract class AbstractBytemap implements BytemapInterface
             }
             $whitelist = \count($whitelistNeedles) <= 128;
             yield from $this->findArrayItems($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany, $howManyToSkip);
-        } else {
-            $lookup = [];
-            $lookupSize = 0;
-            if ($howMany > 0) {
-                foreach ($this as $key => $item) {
-                    if (--$howManyToSkip >= 0) {
-                        continue;
-                    }
-                    $match = null;
-                    if (!($whitelist xor $lookup[$item] ?? ($match = \preg_match($regex, $item)))) {
-                        yield $key => $item;
-                        if (0 === --$howMany) {
-                            break;
-                        }
-                    }
-                    if (null !== $match) {
-                        $lookup[$item] = $match;
-                        if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
-                            \reset($lookup);
-                            unset($lookup[\key($lookup)]);
-                        } else {
-                            ++$lookupSize;
-                        }
-                    }
-                }
-            } else {
-                $clone = clone $this;
-                for ($i = $clone->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                    $match = null;
-                    $item = $clone[$i];
-                    if (!($whitelist xor $lookup[$item] ?? ($match = \preg_match($regex, $item)))) {
-                        yield $i => $item;
-                        if (0 === ++$howMany) {
-                            break;
-                        }
-                    }
-                    if (null !== $match) {
-                        $lookup[$item] = $match;
-                        if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
-                            \reset($lookup);
-                            unset($lookup[\key($lookup)]);
-                        } else {
-                            ++$lookupSize;
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -336,6 +290,54 @@ abstract class AbstractBytemap implements BytemapInterface
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
                         return;
+                    }
+                }
+            }
+        }
+    }
+
+    protected function grepMultibyte(
+        string $regex,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        $lookup = [];
+        $lookupSize = 0;
+        $clone = clone $this;
+        if ($howManyToReturn > 0) {
+            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                $match = null;
+                if (!($whitelist xor $lookup[$item = $clone[$i]] ?? ($match = \preg_match($regex, $item)))) {
+                    yield $i => $item;
+                    if (0 === --$howManyToReturn) {
+                        return;
+                    }
+                }
+                if (null !== $match) {
+                    $lookup[$item] = $match;
+                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
+                        unset($lookup[\key($lookup)]);
+                    } else {
+                        ++$lookupSize;
+                    }
+                }
+            }
+        } else {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                $match = null;
+                if (!($whitelist xor $lookup[$item = $clone[$i]] ?? ($match = \preg_match($regex, $item)))) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+                if (null !== $match) {
+                    $lookup[$item] = $match;
+                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
+                        unset($lookup[\key($lookup)]);
+                    } else {
+                        ++$lookupSize;
                     }
                 }
             }
