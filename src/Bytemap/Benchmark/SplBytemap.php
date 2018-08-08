@@ -243,4 +243,53 @@ class SplBytemap extends AbstractBytemap
             }
         }
     }
+
+    protected function grepMultibyte(
+        string $regex,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        $lookup = [];
+        $lookupSize = 0;
+        $defaultItem = $this->defaultItem;
+        $map = clone $this->map;
+        if ($howManyToReturn > 0) {
+            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                $match = null;
+                if (!($whitelist xor $lookup[$item = $map[$i] ?? $defaultItem] ?? ($match = \preg_match($regex, $item)))) {
+                    yield $i => $item;
+                    if (0 === --$howManyToReturn) {
+                        return;
+                    }
+                }
+                if (null !== $match) {
+                    $lookup[$item] = $match;
+                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
+                        unset($lookup[\key($lookup)]);
+                    } else {
+                        ++$lookupSize;
+                    }
+                }
+            }
+        } else {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                $match = null;
+                if (!($whitelist xor $lookup[$item = $map[$i] ?? $defaultItem] ?? ($match = \preg_match($regex, $item)))) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+                if (null !== $match) {
+                    $lookup[$item] = $match;
+                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
+                        unset($lookup[\key($lookup)]);
+                    } else {
+                        ++$lookupSize;
+                    }
+                }
+            }
+        }
+    }
 }
