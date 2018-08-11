@@ -252,11 +252,12 @@ class SplBytemap extends AbstractBytemap
         ): \Generator {
         $lookup = [];
         $lookupSize = 0;
+        $match = null;
+
         $defaultItem = $this->defaultItem;
         $map = clone $this->map;
         if ($howManyToReturn > 0) {
             for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                $match = null;
                 if (!($whitelist xor $lookup[$item = $map[$i] ?? $defaultItem] ?? ($match = \preg_match($regex, $item)))) {
                     yield $i => $item;
                     if (0 === --$howManyToReturn) {
@@ -265,6 +266,7 @@ class SplBytemap extends AbstractBytemap
                 }
                 if (null !== $match) {
                     $lookup[$item] = $match;
+                    $match = null;
                     if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
                         unset($lookup[\key($lookup)]);
                     } else {
@@ -274,7 +276,6 @@ class SplBytemap extends AbstractBytemap
             }
         } else {
             for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                $match = null;
                 if (!($whitelist xor $lookup[$item = $map[$i] ?? $defaultItem] ?? ($match = \preg_match($regex, $item)))) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
@@ -283,6 +284,7 @@ class SplBytemap extends AbstractBytemap
                 }
                 if (null !== $match) {
                     $lookup[$item] = $match;
+                    $match = null;
                     if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
                         unset($lookup[\key($lookup)]);
                     } else {

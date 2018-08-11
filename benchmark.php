@@ -404,8 +404,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 break;
             case self::BENCHMARK_SEARCH_GREP_SOME:
                 foreach ([
-                    ['0', '9', ['~[24-6]~' => 40000]],
-                    ['10', '99', ['~^1~' => 11120, '~0$~' => 10000, '~1~' => 20008, '~[1-3][4-6]~' => 10002]],
+                    ['0', '9', ['~[24-6]~' => 80000]],
+                    ['10', '99', ['~^1~' => 22230, '~0$~' => 20000, '~1~' => 40007, '~[1-3][4-6]~' => 20004]],
                 ] as [$first, $last, $regexes]) {
                     foreach ($regexes as $regex => $expectedItemCount) {
                         foreach ([true, false] as $forward) {
@@ -424,7 +424,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                     foreach ($regexes as $regex) {
                         foreach ([true, false] as $forward) {
                             $itemCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
-                            \assert(100000 === $itemCount, $this->runtimeId);
+                            \assert(200000 === $itemCount, $this->runtimeId);
                         }
                     }
                 }
@@ -469,7 +469,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
 
     private function benchmarkSearchGrep(string $firstCyclicItem, string $lastCyclicItem, bool $forward, string $regex): int
     {
-        $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem, 100000);
+        $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem, 200000);
         $direction = $forward ? 'forward' : 'backward';
 
         $result = $bytemap->grep($regex, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);

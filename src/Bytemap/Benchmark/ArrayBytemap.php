@@ -225,11 +225,12 @@ final class ArrayBytemap extends AbstractBytemap
 
         $lookup = [];
         $lookupSize = 0;
+        $match = null;
+
         $defaultItem = $this->defaultItem;
         $map = $this->map;
         if ($howManyToReturn > 0) {
             for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                $match = null;
                 if (!($whitelist xor $lookup[$item = $map[$i] ?? $defaultItem] ?? ($match = \preg_match($regex, $item)))) {
                     yield $i => $item;
                     if (0 === --$howManyToReturn) {
@@ -238,6 +239,7 @@ final class ArrayBytemap extends AbstractBytemap
                 }
                 if (null !== $match) {
                     $lookup[$item] = $match;
+                    $match = null;
                     if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
                         unset($lookup[\key($lookup)]);
                     } else {
@@ -247,7 +249,6 @@ final class ArrayBytemap extends AbstractBytemap
             }
         } else {
             for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                $match = null;
                 if (!($whitelist xor $lookup[$item = $map[$i] ?? $defaultItem] ?? ($match = \preg_match($regex, $item)))) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
@@ -256,6 +257,7 @@ final class ArrayBytemap extends AbstractBytemap
                 }
                 if (null !== $match) {
                     $lookup[$item] = $match;
+                    $match = null;
                     if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
                         unset($lookup[\key($lookup)]);
                     } else {

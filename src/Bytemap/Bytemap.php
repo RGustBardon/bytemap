@@ -219,4 +219,57 @@ class Bytemap extends AbstractBytemap
         $this->bytesInTotal = \strlen($this->map);
         $this->itemCount = $this->bytesInTotal / $this->bytesPerItem;
     }
+
+    protected function grepMultibyte(
+        string $regex,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        $lookup = [];
+        $lookupSize = 0;
+        $match = null;
+
+        $bytesPerItem = $this->bytesPerItem;
+        $itemCount = $this->itemCount;
+        $map = $this->map;
+        if ($howManyToReturn > 0) {
+            for ($i = $howManyToSkip, $offset = $howManyToSkip * $bytesPerItem; $i < $itemCount; ++$i, $offset += $bytesPerItem) {
+                if (!($whitelist xor $lookup[$item = \substr($map, $offset, $bytesPerItem)] ?? ($match = \preg_match($regex, $item)))) {
+                    yield $i => $item;
+                    if (0 === --$howManyToReturn) {
+                        return;
+                    }
+                }
+                if (null !== $match) {
+                    $lookup[$item] = $match;
+                    $match = null;
+                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
+                        unset($lookup[\key($lookup)]);
+                    } else {
+                        ++$lookupSize;
+                    }
+                }
+            }
+        } else {
+            $i = $this->itemCount - 1 - $howManyToSkip;
+            for ($offset = $i * $bytesPerItem; $i >= 0; --$i, $offset -= $bytesPerItem) {
+                if (!($whitelist xor $lookup[$item = \substr($map, $offset, $bytesPerItem)] ?? ($match = \preg_match($regex, $item)))) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+                if (null !== $match) {
+                    $lookup[$item] = $match;
+                    $match = null;
+                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
+                        unset($lookup[\key($lookup)]);
+                    } else {
+                        ++$lookupSize;
+                    }
+                }
+            }
+        }
+    }
 }

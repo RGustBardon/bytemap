@@ -296,54 +296,6 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    protected function grepMultibyte(
-        string $regex,
-        bool $whitelist,
-        int $howManyToReturn,
-        int $howManyToSkip
-        ): \Generator {
-        $lookup = [];
-        $lookupSize = 0;
-        $clone = clone $this;
-        if ($howManyToReturn > 0) {
-            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                $match = null;
-                if (!($whitelist xor $lookup[$item = $clone[$i]] ?? ($match = \preg_match($regex, $item)))) {
-                    yield $i => $item;
-                    if (0 === --$howManyToReturn) {
-                        return;
-                    }
-                }
-                if (null !== $match) {
-                    $lookup[$item] = $match;
-                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
-                        unset($lookup[\key($lookup)]);
-                    } else {
-                        ++$lookupSize;
-                    }
-                }
-            }
-        } else {
-            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                $match = null;
-                if (!($whitelist xor $lookup[$item = $clone[$i]] ?? ($match = \preg_match($regex, $item)))) {
-                    yield $i => $item;
-                    if (0 === ++$howManyToReturn) {
-                        return;
-                    }
-                }
-                if (null !== $match) {
-                    $lookup[$item] = $match;
-                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
-                        unset($lookup[\key($lookup)]);
-                    } else {
-                        ++$lookupSize;
-                    }
-                }
-            }
-        }
-    }
-
     protected static function calculateGreatestCommonDivisor(int $a, int $b): int
     {
         while (0 !== $b) {
@@ -378,4 +330,11 @@ abstract class AbstractBytemap implements BytemapInterface
     abstract protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void;
 
     abstract protected function deriveProperties(): void;
+
+    abstract protected function grepMultibyte(
+        string $regex,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator;
 }
