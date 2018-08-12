@@ -220,6 +220,19 @@ class Bytemap extends AbstractBytemap
         $this->itemCount = $this->bytesInTotal / $this->bytesPerItem;
     }
 
+    protected function findArrayItems(
+        array $items,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        if (1 === $this->bytesPerItem) {
+            yield from $this->findBytes($items, $whitelist, $howManyToReturn, $howManyToSkip);
+        } else {
+            yield from $this->findSubstrings($items, $whitelist, $howManyToReturn, $howManyToSkip);
+        }
+    }
+
     protected function grepMultibyte(
         string $regex,
         bool $whitelist,
@@ -267,6 +280,103 @@ class Bytemap extends AbstractBytemap
                         unset($lookup[\key($lookup)]);
                     } else {
                         ++$lookupSize;
+                    }
+                }
+            }
+        }
+    }
+
+    // `Bytemap`
+    protected function findBytes(
+        array $items,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        $map = $this->map;
+        if ($howManyToReturn > 0) {
+            if ($whitelist) {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (isset($items[$item = $map[$i]])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (!isset($items[$item = $map[$i]])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            }
+        } elseif ($whitelist) {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (isset($items[$item = $map[$i]])) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+            }
+        } else {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (!isset($items[$item = $map[$i]])) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    protected function findSubstrings(
+        array $items,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator {
+        $clone = clone $this;
+        if ($howManyToReturn > 0) {
+            if ($whitelist) {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (isset($items[$item = $clone[$i]])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+                    if (!isset($items[$item = $clone[$i]])) {
+                        yield $i => $item;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
+                    }
+                }
+            }
+        } elseif ($whitelist) {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (isset($items[$item = $clone[$i]])) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
+                    }
+                }
+            }
+        } else {
+            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (!isset($items[$item = $clone[$i]])) {
+                    yield $i => $item;
+                    if (0 === ++$howManyToReturn) {
+                        return;
                     }
                 }
             }

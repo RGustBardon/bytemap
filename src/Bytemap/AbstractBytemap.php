@@ -248,54 +248,6 @@ abstract class AbstractBytemap implements BytemapInterface
         return null;
     }
 
-    protected function findArrayItems(
-        array $items,
-        bool $whitelist,
-        int $howManyToReturn,
-        int $howManyToSkip
-        ): \Generator {
-        $clone = clone $this;
-        if ($howManyToReturn > 0) {
-            if ($whitelist) {
-                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                    if (isset($items[$item = $clone[$i]])) {
-                        yield $i => $item;
-                        if (0 === --$howManyToReturn) {
-                            return;
-                        }
-                    }
-                }
-            } else {
-                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                    if (!isset($items[$item = $clone[$i]])) {
-                        yield $i => $item;
-                        if (0 === --$howManyToReturn) {
-                            return;
-                        }
-                    }
-                }
-            }
-        } elseif ($whitelist) {
-            for ($i = $clone->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (isset($items[$item = $clone[$i]])) {
-                    yield $i => $item;
-                    if (0 === ++$howManyToReturn) {
-                        return;
-                    }
-                }
-            }
-        } else {
-            for ($i = $clone->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!isset($items[$item = $clone[$i]])) {
-                    yield $i => $item;
-                    if (0 === ++$howManyToReturn) {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
     protected static function calculateGreatestCommonDivisor(int $a, int $b): int
     {
         while (0 !== $b) {
@@ -330,6 +282,13 @@ abstract class AbstractBytemap implements BytemapInterface
     abstract protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void;
 
     abstract protected function deriveProperties(): void;
+
+    abstract protected function findArrayItems(
+        array $items,
+        bool $whitelist,
+        int $howManyToReturn,
+        int $howManyToSkip
+        ): \Generator;
 
     abstract protected function grepMultibyte(
         string $regex,
