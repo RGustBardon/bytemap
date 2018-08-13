@@ -364,8 +364,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 break;
             case self::BENCHMARK_SEARCH_FIND_SOME:
                 foreach ([
-                    ['0', '9', [[['4'], 10000], [['4', '7'], 40000]]],
-                    ['10', '99', [[['40'], 1111], [['40', '70'], 34441]]],
+                    ['0', '9', [[['4'], 20000], [['4', '7'], 80000]]],
+                    ['10', '99', [[['40'], 2222], [['40', '70'], 68882]]],
                 ] as [$first, $last, $needlesAndItemCounts]) {
                     foreach ($needlesAndItemCounts as [$needle, $expectedItemCount]) {
                         foreach ([true, false] as $forward) {
@@ -383,7 +383,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 ] as [$firstItem, $lastItem, $firstNeedle, $lastNeedle]) {
                     foreach ([true, false] as $forward) {
                         $itemCount = $this->benchmarkSearchFind($firstItem, $lastItem, $forward, $firstNeedle, $lastNeedle);
-                        \assert(100000 === $itemCount, $this->runtimeId);
+                        \assert(200000 === $itemCount, $this->runtimeId);
                     }
                 }
 
@@ -447,7 +447,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         string $firstNeedle,
         ?string $lastNeedle = null
     ): int {
-        $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem, 100000);
+        $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem, 200000);
         if (null === $lastNeedle) {
             $items = [$firstNeedle];
             $needle = $firstNeedle;

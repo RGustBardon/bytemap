@@ -293,6 +293,8 @@ class Bytemap extends AbstractBytemap
         int $howManyToReturn,
         int $howManyToSkip
         ): \Generator {
+        // \strspn and \strcspn are not faster as of PHP 7.1.18.
+
         $map = $this->map;
         if ($howManyToReturn > 0) {
             if ($whitelist) {
@@ -341,11 +343,12 @@ class Bytemap extends AbstractBytemap
         int $howManyToReturn,
         int $howManyToSkip
         ): \Generator {
-        $clone = clone $this;
+        $bytesPerItem = $this->bytesPerItem;
+        $map = $this->map;
         if ($howManyToReturn > 0) {
             if ($whitelist) {
                 for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                    if (isset($items[$item = $clone[$i]])) {
+                    if (isset($items[$item = \substr($map, $i * $bytesPerItem, $bytesPerItem)])) {
                         yield $i => $item;
                         if (0 === --$howManyToReturn) {
                             return;
@@ -354,7 +357,7 @@ class Bytemap extends AbstractBytemap
                 }
             } else {
                 for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                    if (!isset($items[$item = $clone[$i]])) {
+                    if (!isset($items[$item = \substr($map, $i * $bytesPerItem, $bytesPerItem)])) {
                         yield $i => $item;
                         if (0 === --$howManyToReturn) {
                             return;
@@ -364,7 +367,7 @@ class Bytemap extends AbstractBytemap
             }
         } elseif ($whitelist) {
             for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (isset($items[$item = $clone[$i]])) {
+                if (isset($items[$item = \substr($map, $i * $bytesPerItem, $bytesPerItem)])) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
                         return;
@@ -373,7 +376,7 @@ class Bytemap extends AbstractBytemap
             }
         } else {
             for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!isset($items[$item = $clone[$i]])) {
+                if (!isset($items[$item = \substr($map, $i * $bytesPerItem, $bytesPerItem)])) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
                         return;
