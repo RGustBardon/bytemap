@@ -26,7 +26,7 @@ class Bytemap extends AbstractBytemap
     private $bytesInTotal = 0;
     private $bytesPerItem;
 
-    public function __construct($defaultItem)
+    public function __construct(string $defaultItem)
     {
         parent::__construct($defaultItem);
 

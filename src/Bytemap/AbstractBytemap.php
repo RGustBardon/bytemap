@@ -29,8 +29,14 @@ abstract class AbstractBytemap implements BytemapInterface
     protected $itemCount = 0;
     protected $map;
 
-    public function __construct($defaultItem)
+    public function __construct(string $defaultItem)
     {
+        // @codeCoverageIgnoreStart
+        if ('' === $defaultItem) {
+            throw new \LengthException('Bytemap: The default item cannot be an empty string.');
+        }
+        // @codeCoverageIgnoreEnd
+
         $this->defaultItem = $defaultItem;
 
         $this->createEmptyMap();

@@ -32,7 +32,7 @@ use JsonStreamingParser\Parser;
  */
 final class ArrayBytemap extends AbstractBytemap
 {
-    public function __construct($defaultItem)
+    public function __construct(string $defaultItem)
     {
         parent::__construct($defaultItem);
 
