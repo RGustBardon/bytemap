@@ -60,8 +60,7 @@ class SplBytemap extends AbstractBytemap
     // `Serializable`
     public function unserialize($serialized)
     {
-        [$this->defaultItem, $this->map] =
-            \unserialize($serialized, ['allowed_classes' => self::UNSERIALIZED_CLASSES]);
+        $this->unserializeAndValidate($serialized);
         $this->map->__wakeup();
         $this->deriveProperties();
     }

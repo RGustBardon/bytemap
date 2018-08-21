@@ -109,8 +109,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     public function unserialize($serialized)
     {
-        [$this->defaultItem, $this->map] =
-            \unserialize($serialized, ['allowed_classes' => static::UNSERIALIZED_CLASSES]);
+        $this->unserializeAndValidate($serialized);
         $this->deriveProperties();
     }
 
@@ -202,6 +201,19 @@ abstract class AbstractBytemap implements BytemapInterface
 
     public function streamJson($stream): void
     {
+        // @codeCoverageIgnoreStart
+        if (!\is_resource($stream)) {
+            $type = \gettype($stream);
+            if ('unknown type' === $type) {
+                $type = 'resource (closed)';
+            }
+
+            throw new \InvalidArgumentException(
+                \sprintf('Bytemap: streaming requires an open resource (%s has been passed instead).', $type)
+            );
+        }
+        // @codeCoverageIgnoreEnd
+
         \fwrite($stream, '[');
         for ($i = 0; $i < $this->itemCount - 1; ++$i) {
             \fwrite($stream, \json_encode($this[$i]).',');
@@ -252,6 +264,31 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         return null;
+    }
+
+    protected function unserializeAndValidate(string $serialized): void
+    {
+        $result = \unserialize($serialized, ['allowed_classes' => static::UNSERIALIZED_CLASSES]);
+
+        // @codeCoverageIgnoreStart
+        if (false === $result) {
+            throw new \UnexpectedValueException('Bytemap: failed to unserialize.');
+        }
+        if (!\is_array($result) || !\in_array(\array_keys($result), [[0, 1], [1, 0]], true)) {
+            throw new \UnexpectedValueException('Bytemap: unserialized data must be an array of two elements.');
+        }
+        // @codeCoverageIgnoreEnd
+
+        [$this->defaultItem, $this->map] = $result;
+
+        // @codeCoverageIgnoreStart
+        if (!\is_string($this->defaultItem)) {
+            throw new \UnexpectedValueException('Bytemap: The default item must be a string.');
+        }
+        if ('' === $this->defaultItem) {
+            throw new \LengthException('Bytemap: The default item cannot be an empty string.');
+        }
+        // @codeCoverageIgnoreEnd
     }
 
     protected static function calculateGreatestCommonDivisor(int $a, int $b): int
