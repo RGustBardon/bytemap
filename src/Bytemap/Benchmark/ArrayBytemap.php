@@ -110,6 +110,8 @@ final class ArrayBytemap extends AbstractBytemap
 
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
+        self::ensureResource($jsonStream);
+
         $bytemap = new self($defaultItem);
         if (self::hasStreamingParser()) {
             $listener = new BytemapListener(static function ($value, $key) use ($bytemap) {
@@ -122,6 +124,7 @@ final class ArrayBytemap extends AbstractBytemap
             (new Parser($jsonStream, $listener))->parse();
         } else {
             $bytemap->map = \json_decode(\stream_get_contents($jsonStream), true);
+            self::ensureJsonDecodedSuccessfully();
             $bytemap->deriveProperties();
         }
 

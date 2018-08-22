@@ -165,6 +165,8 @@ class Bytemap extends AbstractBytemap
 
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
+        self::ensureResource($jsonStream);
+
         $bytemap = new self($defaultItem);
         if (self::hasStreamingParser()) {
             $listener = new BytemapListener(static function ($value, $key) use ($bytemap) {
@@ -177,6 +179,8 @@ class Bytemap extends AbstractBytemap
             (new Parser($jsonStream, $listener))->parse();
         } else {
             $map = \json_decode(\stream_get_contents($jsonStream), true);
+            self::ensureJsonDecodedSuccessfully();
+
             $size = \count($map);
             if ($size > 0) {
                 $maxKey = self::getMaxKey($map);

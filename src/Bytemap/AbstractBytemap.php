@@ -201,18 +201,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     public function streamJson($stream): void
     {
-        // @codeCoverageIgnoreStart
-        if (!\is_resource($stream)) {
-            $type = \gettype($stream);
-            if ('unknown type' === $type) {
-                $type = 'resource (closed)';
-            }
-
-            throw new \InvalidArgumentException(
-                \sprintf('Bytemap: streaming requires an open resource (%s has been passed instead).', $type)
-            );
-        }
-        // @codeCoverageIgnoreEnd
+        self::ensureResource($stream);
 
         \fwrite($stream, '[');
         for ($i = 0; $i < $this->itemCount - 1; ++$i) {
@@ -300,6 +289,35 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         return $a;
+    }
+
+    /**
+     * @codeCoverageIgnore
+     */
+    protected static function ensureJsonDecodedSuccessfully(): void
+    {
+        if (\JSON_ERROR_NONE !== \json_last_error()) {
+            throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.\json_last_error_msg());
+        }
+    }
+
+    /**
+     * @codeCoverageIgnore
+     *
+     * @param mixed $value
+     */
+    protected static function ensureResource($value): void
+    {
+        if (!\is_resource($value)) {
+            $type = \gettype($value);
+            if ('unknown type' === $type) {
+                $type = 'resource (closed)';
+            }
+
+            throw new \InvalidArgumentException(
+                \sprintf('Bytemap: streaming requires an open resource (%s has been passed instead).', $type)
+                );
+        }
     }
 
     protected static function getMaxKey(iterable $map): int
