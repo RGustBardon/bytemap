@@ -88,6 +88,11 @@ class BytemapListener implements Listener
         // Ignored.
     }
 
+    /**
+     * @codeCoverageIgnore
+     *
+     * @param mixed $newState
+     */
     private function transition($newState): void
     {
         if (self::TRANSITIONS[$this->state] === $newState) {

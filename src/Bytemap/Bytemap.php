@@ -15,6 +15,7 @@ namespace Bytemap;
 
 use Bytemap\JsonListener\BytemapListener;
 use JsonStreamingParser\Parser;
+use JsonStreamingParser\ParsingError;
 
 /**
  * An implementation of the `BytemapInterface` using a string.
@@ -176,7 +177,13 @@ class Bytemap extends AbstractBytemap
                     $bytemap[$key] = $value;
                 }
             });
-            (new Parser($jsonStream, $listener))->parse();
+            $parser = (new Parser($jsonStream, $listener));
+
+            try {
+                $parser->parse();
+            } catch (ParsingError $e) {
+                throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.$e->getMessage());
+            }
         } else {
             $map = \json_decode(\stream_get_contents($jsonStream), true);
             self::ensureJsonDecodedSuccessfully();

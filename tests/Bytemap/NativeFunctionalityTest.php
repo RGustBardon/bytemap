@@ -28,6 +28,16 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     /**
      * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider
+     * @expectedException \LengthException
+     */
+    public function testConstructorEmptyString(string $impl): void
+    {
+        self::instantiate($impl, '');
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap
+     * @dataProvider implementationProvider
      * @expectedException \ErrorException
      */
     public function testMagicGet(string $impl): void
@@ -257,6 +267,76 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertSequence($sequence, $copy);
         self::assertDefaultItem($items[0], $copy, $items[1]);
         self::assertDefaultItem($items[0], $bytemap, $items[2]);
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::unserialize
+     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
+     * @dataProvider implementationProvider
+     * @depends testSerializable
+     * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessage failed
+     */
+    public function testUnserializeMalformed(string $impl): void
+    {
+        $bytemap = self::instantiate($impl, 'quux');
+        @\unserialize(\strtr(\serialize($bytemap), ['quux' => 'quuux']));
+    }
+
+    public static function bogusSerializationProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            $serialized = \serialize(self::instantiate($impl, 'quux'));
+            foreach ([
+                \strtr($serialized, [';i:1;' => ';i:2;']),
+                \preg_replace('~:[0-9]+:\\{.*~', ':4:{b:1;}', \substr($serialized, 0, -1)),
+            ] as $data) {
+                yield [$impl, $data];
+            }
+        }
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::unserialize
+     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
+     * @dataProvider bogusSerializationProvider
+     * @depends testSerializable
+     * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessage array of two
+     */
+    public function testUnserializeBogus(string $impl, string $serialized): void
+    {
+        \unserialize($serialized);
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::unserialize
+     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
+     * @dataProvider implementationProvider
+     * @depends testSerializable
+     * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessage default item must be a string
+     */
+    public function testUnserializeInvalidType(string $impl): void
+    {
+        \unserialize(\strtr(\serialize(self::instantiate($impl, 'quux')), [';s:4:"quux";' => ';i:12345678;']));
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::unserialize
+     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
+     * @dataProvider implementationProvider
+     * @depends testSerializable
+     * @expectedException \LengthException
+     * @expectedExceptionMessage default item cannot be an empty string
+     */
+    public function testUnserializeEmptyString(string $impl): void
+    {
+        $serialized = \strtr(\serialize(self::instantiate($impl, 'quux')), [';s:4:"quux";' => ';s:0:"";']);
+        $serialized = \preg_replace_callback('~(:)([0-9]+)(:\\{)~', function (array $matches): string {
+            return $matches[1].($matches[2] - 4).$matches[3];
+        }, $serialized, 1);
+        \unserialize($serialized);
     }
 
     private static function assertNativeJson($expected, $actual): void

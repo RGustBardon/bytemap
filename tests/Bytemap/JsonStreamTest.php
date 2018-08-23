@@ -29,8 +29,10 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     public static function invalidJsonProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            foreach ([[[]]] as $invalidJson) {
-                yield [$impl, $invalidJson];
+            foreach (['}'] as $invalidJson) {
+                foreach ([false, true] as $useStreamingParser) {
+                    yield [$impl, $useStreamingParser, $invalidJson];
+                }
             }
         }
     }
@@ -39,16 +41,15 @@ final class JsonStreamTest extends AbstractTestOfBytemap
      * @covers \Bytemap\JsonListener\BytemapListener
      * @dataProvider invalidJsonProvider
      * @expectedException \UnexpectedValueException
-     *
-     * @param mixed $unacceptableData
      */
-    public static function testParsingException(string $impl, $unacceptableData): void
+    public static function testParsingException(string $impl, bool $useStreamingParser, string $invalidJson): void
     {
-        $json = \json_encode($unacceptableData);
-        self::assertNotFalse($json);
-
-        $jsonStream = self::getStream($json);
-        unset($_ENV['BYTEMAP_STREAMING_PARSER']);
+        $jsonStream = self::getStream($invalidJson);
+        if ($useStreamingParser) {
+            unset($_ENV['BYTEMAP_STREAMING_PARSER']);
+        } else {
+            $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
+        }
         self::instantiate($impl, "\x00")::parseJsonStream($jsonStream, "\x00");
     }
 

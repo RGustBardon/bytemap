@@ -31,11 +31,9 @@ abstract class AbstractBytemap implements BytemapInterface
 
     public function __construct(string $defaultItem)
     {
-        // @codeCoverageIgnoreStart
         if ('' === $defaultItem) {
             throw new \LengthException('Bytemap: The default item cannot be an empty string.');
         }
-        // @codeCoverageIgnoreEnd
 
         $this->defaultItem = $defaultItem;
 
@@ -259,25 +257,21 @@ abstract class AbstractBytemap implements BytemapInterface
     {
         $result = \unserialize($serialized, ['allowed_classes' => static::UNSERIALIZED_CLASSES]);
 
-        // @codeCoverageIgnoreStart
         if (false === $result) {
             throw new \UnexpectedValueException('Bytemap: failed to unserialize.');
         }
         if (!\is_array($result) || !\in_array(\array_keys($result), [[0, 1], [1, 0]], true)) {
             throw new \UnexpectedValueException('Bytemap: unserialized data must be an array of two elements.');
         }
-        // @codeCoverageIgnoreEnd
 
         [$this->defaultItem, $this->map] = $result;
 
-        // @codeCoverageIgnoreStart
         if (!\is_string($this->defaultItem)) {
             throw new \UnexpectedValueException('Bytemap: The default item must be a string.');
         }
         if ('' === $this->defaultItem) {
             throw new \LengthException('Bytemap: The default item cannot be an empty string.');
         }
-        // @codeCoverageIgnoreEnd
     }
 
     protected static function calculateGreatestCommonDivisor(int $a, int $b): int
@@ -291,9 +285,6 @@ abstract class AbstractBytemap implements BytemapInterface
         return $a;
     }
 
-    /**
-     * @codeCoverageIgnore
-     */
     protected static function ensureJsonDecodedSuccessfully(): void
     {
         if (\JSON_ERROR_NONE !== \json_last_error()) {
