@@ -13,6 +13,10 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
+use JsonStreamingParser\Listener;
+use JsonStreamingParser\Parser;
+use JsonStreamingParser\ParsingError;
+
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
@@ -199,7 +203,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     public function streamJson($stream): void
     {
-        self::ensureResource($stream);
+        self::ensureStream($stream);
 
         \fwrite($stream, '[');
         for ($i = 0; $i < $this->itemCount - 1; ++$i) {
@@ -285,10 +289,14 @@ abstract class AbstractBytemap implements BytemapInterface
         return $a;
     }
 
-    protected static function ensureJsonDecodedSuccessfully(): void
+    protected static function ensureJsonDecodedSuccessfully(string $defaultItem, $map): void
     {
         if (\JSON_ERROR_NONE !== \json_last_error()) {
             throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.\json_last_error_msg());
+        }
+
+        if (!\is_array($map)) {
+            throw new \UnexpectedValueException('Bytemap: JSON data must represent an array.');
         }
     }
 
@@ -297,7 +305,7 @@ abstract class AbstractBytemap implements BytemapInterface
      *
      * @param mixed $value
      */
-    protected static function ensureResource($value): void
+    protected static function ensureStream($value): void
     {
         if (!\is_resource($value)) {
             $type = \gettype($value);
@@ -305,9 +313,16 @@ abstract class AbstractBytemap implements BytemapInterface
                 $type = 'resource (closed)';
             }
 
-            throw new \InvalidArgumentException(
-                \sprintf('Bytemap: streaming requires an open resource (%s has been passed instead).', $type)
-                );
+            $message = \sprintf('Bytemap: expected an open resource, got %s instead.', $type);
+
+            throw new \InvalidArgumentException($message);
+        }
+
+        $resourceType = \get_resource_type($value);
+        if ('stream' !== $resourceType) {
+            $message = \sprintf('Bytemap: expected a stream, got %s instead.', $resourceType);
+
+            throw new \InvalidArgumentException($message);
         }
     }
 
@@ -327,6 +342,15 @@ abstract class AbstractBytemap implements BytemapInterface
     protected static function hasStreamingParser(): bool
     {
         return ($_ENV['BYTEMAP_STREAMING_PARSER'] ?? true) && \class_exists('\\JsonStreamingParser\\Parser');
+    }
+
+    protected static function parseJsonStreamOnline($jsonStream, Listener $listener): void
+    {
+        try {
+            (new Parser($jsonStream, $listener))->parse();
+        } catch (ParsingError $e) {
+            throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.$e->getMessage());
+        }
     }
 
     abstract protected function createEmptyMap(): void;

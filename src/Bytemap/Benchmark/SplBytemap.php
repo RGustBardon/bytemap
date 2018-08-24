@@ -16,8 +16,6 @@ namespace Bytemap\Benchmark;
 use Bytemap\AbstractBytemap;
 use Bytemap\BytemapInterface;
 use Bytemap\JsonListener\BytemapListener;
-use JsonStreamingParser\Parser;
-use JsonStreamingParser\ParsingError;
 
 /**
  * An implementation of the `BytemapInterface` using `\SplFixedArray`.
@@ -140,7 +138,7 @@ class SplBytemap extends AbstractBytemap
 
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
-        self::ensureResource($jsonStream);
+        self::ensureStream($jsonStream);
 
         $bytemap = new self($defaultItem);
         if (self::hasStreamingParser()) {
@@ -156,16 +154,10 @@ class SplBytemap extends AbstractBytemap
                     $bytemap[$key] = $value;
                 }
             });
-            $parser = (new Parser($jsonStream, $listener));
-
-            try {
-                $parser->parse();
-            } catch (ParsingError $e) {
-                throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.$e->getMessage());
-            }
+            self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $map = \json_decode(\stream_get_contents($jsonStream), true);
-            self::ensureJsonDecodedSuccessfully();
+            self::ensureJsonDecodedSuccessfully($defaultItem, $map);
             if ($map) {
                 $bytemap->map = \SplFixedArray::fromArray($map);
                 $bytemap->deriveProperties();

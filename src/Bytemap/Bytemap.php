@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace Bytemap;
 
 use Bytemap\JsonListener\BytemapListener;
-use JsonStreamingParser\Parser;
-use JsonStreamingParser\ParsingError;
 
 /**
  * An implementation of the `BytemapInterface` using a string.
@@ -121,7 +119,7 @@ class Bytemap extends AbstractBytemap
 
         // @codeCoverageIgnoreStart
         if (false === $data) {
-            throw new \UnexpectedValueException('Bytemap: \\str_split returned false when serializing to JSON');
+            throw new \UnexpectedValueException('Bytemap: \\str_split returned false when serializing to JSON.');
         }
         // @codeCoverageIgnoreEnd
 
@@ -166,7 +164,7 @@ class Bytemap extends AbstractBytemap
 
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
-        self::ensureResource($jsonStream);
+        self::ensureStream($jsonStream);
 
         $bytemap = new self($defaultItem);
         if (self::hasStreamingParser()) {
@@ -177,16 +175,10 @@ class Bytemap extends AbstractBytemap
                     $bytemap[$key] = $value;
                 }
             });
-            $parser = (new Parser($jsonStream, $listener));
-
-            try {
-                $parser->parse();
-            } catch (ParsingError $e) {
-                throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.$e->getMessage());
-            }
+            self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $map = \json_decode(\stream_get_contents($jsonStream), true);
-            self::ensureJsonDecodedSuccessfully();
+            self::ensureJsonDecodedSuccessfully($defaultItem, $map);
 
             $size = \count($map);
             if ($size > 0) {

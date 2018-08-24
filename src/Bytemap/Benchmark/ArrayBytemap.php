@@ -16,8 +16,6 @@ namespace Bytemap\Benchmark;
 use Bytemap\AbstractBytemap;
 use Bytemap\BytemapInterface;
 use Bytemap\JsonListener\BytemapListener;
-use JsonStreamingParser\Parser;
-use JsonStreamingParser\ParsingError;
 
 /**
  * A naive implementation of the `BytemapInterface` using a built-in array.
@@ -111,7 +109,7 @@ final class ArrayBytemap extends AbstractBytemap
 
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
     {
-        self::ensureResource($jsonStream);
+        self::ensureStream($jsonStream);
 
         $bytemap = new self($defaultItem);
         if (self::hasStreamingParser()) {
@@ -122,16 +120,10 @@ final class ArrayBytemap extends AbstractBytemap
                     $bytemap[$key] = $value;
                 }
             });
-            $parser = (new Parser($jsonStream, $listener));
-
-            try {
-                $parser->parse();
-            } catch (ParsingError $e) {
-                throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.$e->getMessage());
-            }
+            self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $bytemap->map = \json_decode(\stream_get_contents($jsonStream), true);
-            self::ensureJsonDecodedSuccessfully();
+            self::ensureJsonDecodedSuccessfully($defaultItem, $bytemap->map);
             $bytemap->deriveProperties();
         }
 

@@ -29,7 +29,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     public static function invalidJsonProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            foreach (['}'] as $invalidJson) {
+            foreach (['}', '"a"'] as $invalidJson) {
                 foreach ([false, true] as $useStreamingParser) {
                     yield [$impl, $useStreamingParser, $invalidJson];
                 }
