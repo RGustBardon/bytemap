@@ -301,8 +301,6 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     /**
-     * @codeCoverageIgnore
-     *
      * @param mixed $value
      */
     protected static function ensureStream($value): void

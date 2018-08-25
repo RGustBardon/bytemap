@@ -26,6 +26,34 @@ namespace Bytemap;
  */
 final class JsonStreamTest extends AbstractTestOfBytemap
 {
+    /**
+     * @covers \Bytemap\AbstractBytemap::ensureStream
+     * @dataProvider implementationProvider
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage expected an open resource
+     */
+    public function testParsingClosedResource(string $impl): void
+    {
+        self::instantiate($impl, "\x00")::parseJsonStream(self::getClosedStream(), "\x00");
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::ensureStream
+     * @dataProvider implementationProvider
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage expected a stream
+     */
+    public function testParsingNonStream(string $impl): void
+    {
+        $process = self::getProcess();
+
+        try {
+            self::instantiate($impl, "\x00")::parseJsonStream($process, "\x00");
+        } finally {
+            \proc_close($process);
+        }
+    }
+
     public static function invalidJsonProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $items]) {
@@ -42,7 +70,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
      * @dataProvider invalidJsonProvider
      * @expectedException \UnexpectedValueException
      */
-    public static function testParsingException(string $impl, bool $useStreamingParser, string $invalidJson): void
+    public function testParsingException(string $impl, bool $useStreamingParser, string $invalidJson): void
     {
         $jsonStream = self::getStream($invalidJson);
         if ($useStreamingParser) {
@@ -91,6 +119,34 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap::ensureStream
+     * @dataProvider implementationProvider
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage expected an open resource
+     */
+    public function testStreamingToClosedResource(string $impl): void
+    {
+        self::instantiate($impl, "\x00")->streamJson(self::getClosedStream());
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::ensureStream
+     * @dataProvider implementationProvider
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage expected a stream
+     */
+    public function testStreamingToNonStream(string $impl): void
+    {
+        $process = self::getProcess();
+
+        try {
+            self::instantiate($impl, "\x00")->streamJson($process);
+        } finally {
+            \proc_close($process);
+        }
+    }
+
+    /**
      * @covers \Bytemap\AbstractBytemap::streamJson
      * @dataProvider arrayAccessProvider
      */
@@ -131,6 +187,30 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         self::assertNotSame($instance, $bytemap);
         self::assertSequence($expectedSequence, $bytemap);
         self::assertDefaultItem($defaultItem, $bytemap, \str_repeat("\xff", \strlen($defaultItem)));
+    }
+
+    private static function getClosedStream()
+    {
+        $resource = self::getStream('[]');
+        \fclose($resource);
+
+        return $resource;
+    }
+
+    private static function getProcess()
+    {
+        if (!\function_exists('proc_open')) {
+            self::markTestSkipped('This test requires the proc_open function.');
+        }
+
+        $otherOptions = ['suppress_errors' => true, 'bypass_shell' => true];
+        $process = \proc_open('', [], $pipes, null, null, $otherOptions);
+
+        if (!\is_resource($process)) {
+            self::markTestSkipped('Could not create a process resource.');
+        }
+
+        return $process;
     }
 
     private static function getStream(string $contents)
