@@ -307,8 +307,10 @@ abstract class AbstractBytemap implements BytemapInterface
     {
         if (!\is_resource($value)) {
             $type = \gettype($value);
-            if ('unknown type' === $type) {
+            if ('unknown type' === $type) {  // PHP older than 7.2.
+                // @codeCoverageIgnoreStart
                 $type = 'resource (closed)';
+                // @codeCoverageIgnoreEnd
             }
 
             $message = \sprintf('Bytemap: expected an open resource, got %s instead.', $type);
