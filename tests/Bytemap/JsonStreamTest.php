@@ -203,7 +203,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
             self::markTestSkipped('This test requires the proc_open function.');
         }
 
-        $otherOptions = ['suppress_errors' => true, 'bypass_shell' => true];
+        $otherOptions = ['suppress_errors' => true, 'bypass_shell' => false];
         $process = \proc_open('', [], $pipes, null, null, $otherOptions);
 
         if (!\is_resource($process)) {
