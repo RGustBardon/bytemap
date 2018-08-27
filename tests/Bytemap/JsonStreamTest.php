@@ -62,6 +62,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
                     yield [$impl, $useStreamingParser, $invalidJson];
                 }
             }
+            yield [$impl, true, '[[]]'];
         }
     }
 

@@ -89,8 +89,6 @@ class BytemapListener implements Listener
     }
 
     /**
-     * @codeCoverageIgnore
-     *
      * @param mixed $newState
      */
     private function transition($newState): void
