@@ -143,7 +143,7 @@ class SplBytemap extends AbstractBytemap
         $bytemap = new self($defaultItem);
         if (self::hasStreamingParser()) {
             $maxKey = -1;
-            $listener = new BytemapListener(function ($value, $key) use ($bytemap, &$maxKey) {
+            $listener = new BytemapListener(function (string $value, ?int $key) use ($bytemap, &$maxKey) {
                 if (null === $key) {
                     $bytemap[] = $value;
                 } else {

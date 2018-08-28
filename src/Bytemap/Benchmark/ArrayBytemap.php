@@ -113,7 +113,7 @@ final class ArrayBytemap extends AbstractBytemap
 
         $bytemap = new self($defaultItem);
         if (self::hasStreamingParser()) {
-            $listener = new BytemapListener(static function ($value, $key) use ($bytemap) {
+            $listener = new BytemapListener(static function (string $value, ?int $key) use ($bytemap) {
                 if (null === $key) {
                     $bytemap[] = $value;
                 } else {
