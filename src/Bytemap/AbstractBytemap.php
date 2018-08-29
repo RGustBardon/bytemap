@@ -68,7 +68,7 @@ abstract class AbstractBytemap implements BytemapInterface
     // `ArrayAccess`
     public function offsetExists($offset): bool
     {
-        return $offset < $this->itemCount;
+        return \is_int($offset) && $offset >= 0 && $offset < $this->itemCount;
     }
 
     public function offsetGet($offset): string

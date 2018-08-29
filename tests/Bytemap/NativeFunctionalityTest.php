@@ -75,29 +75,25 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         unset((self::instantiate($impl, 'a'))->undefinedProperty);
     }
 
-    public static function nullOffsetProvider(): \Generator
+    /**
+     * @covers \Bytemap\AbstractBytemap::offsetExists
+     * @dataProvider nullOffsetProvider
+     * @dataProvider invalidOffsetTypeProvider
+     *
+     * @param mixed $offset
+     */
+    public function testExistsInvalidType(string $impl, array $items, $offset): void
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            yield [$impl, $items, null];
-        }
+        self::assertFalse(isset(self::instantiate($impl, $items[0])[$offset]));
     }
 
-    public static function invalidOffsetTypeProvider(): \Generator
+    /**
+     * @covers \Bytemap\AbstractBytemap::offsetExists
+     * @dataProvider outOfRangeOffsetProvider
+     */
+    public function testExistsOutOfRange(string $impl, array $items, int $itemCount, int $offset): void
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            foreach ([
-                false, true,
-                0., 1.,
-                '', '07', '1e6', '4a', 'a4',
-                [], [1],
-                new \stdClass(),
-                \fopen('php://memory', 'r'),
-                function (): int { return 0; },
-                function (): \Generator { yield 0; },
-            ] as $offset) {
-                yield [$impl, $items, $offset];
-            }
-        }
+        self::assertFalse(isset(self::instantiateWithSize($impl, $items, $itemCount)[$offset]));
     }
 
     /**
@@ -114,18 +110,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::instantiate($impl, $items[0])[$offset];
     }
 
-    public static function outOfRangeOffsetProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            foreach ([-1, 0] as $offset) {
-                yield [$impl, $items, 0, $offset];
-            }
-            foreach ([-1, 1] as $offset) {
-                yield [$impl, $items, 1, $offset];
-            }
-        }
-    }
-
     /**
      * @covers \Bytemap\AbstractBytemap::offsetGet
      * @covers \Bytemap\Bytemap::offsetGet
@@ -134,11 +118,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      */
     public function testGetOutOfRange(string $impl, array $items, int $itemCount, int $offset): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
-        for ($i = 0, $size = \count($items); $i < $itemCount; ++$i) {
-            $bytemap[$i] = $items[$i % $size];
-        }
-        $bytemap[$offset];
+        self::instantiateWithSize($impl, $items, $itemCount)[$offset];
     }
 
     /**
@@ -156,6 +136,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Bytemap::offsetSet
      * @covers \Bytemap\Bytemap::offsetUnset
      * @dataProvider arrayAccessProvider
+     * @depends testExistsInvalidType
+     * @depends testExistsOutOfRange
+     * @depends testGetInvalidType
+     * @depends testGetOutOfRange
      */
     public function testArrayAccess(string $impl, array $items): void
     {

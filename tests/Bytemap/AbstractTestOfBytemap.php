@@ -44,9 +44,56 @@ abstract class AbstractTestOfBytemap extends TestCase
         }
     }
 
+    public static function nullOffsetProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            yield [$impl, $items, null];
+        }
+    }
+
+    public static function invalidOffsetTypeProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            foreach ([
+                false, true,
+                0., 1.,
+                '', '07', '1e6', '4a', 'a4',
+                [], [1],
+                new \stdClass(),
+                \fopen('php://memory', 'r'),
+                function (): int { return 0; },
+                function (): \Generator { yield 0; },
+            ] as $offset) {
+                yield [$impl, $items, $offset];
+            }
+        }
+    }
+
+    public static function outOfRangeOffsetProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            foreach ([-1, 0] as $offset) {
+                yield [$impl, $items, 0, $offset];
+            }
+            foreach ([-1, 1] as $offset) {
+                yield [$impl, $items, 1, $offset];
+            }
+        }
+    }
+
     protected static function instantiate(string $impl, ...$args): BytemapInterface
     {
         return new $impl(...$args);
+    }
+
+    protected static function instantiateWithSize(string $impl, array $items, int $size): BytemapInterface
+    {
+        $bytemap = self::instantiate($impl, $items[0]);
+        for ($i = 0, $sizeOfSeed = \count($items); $i < $size; ++$i) {
+            $bytemap[$i] = $items[$i % $sizeOfSeed];
+        }
+
+        return $bytemap;
     }
 
     protected static function pushItems(BytemapInterface $bytemap, ...$items): void
