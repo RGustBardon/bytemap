@@ -71,9 +71,21 @@ abstract class AbstractBytemap implements BytemapInterface
         return $offset < $this->itemCount;
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset): string
     {
-        return $this->map[$offset] ?? $this->defaultItem;
+        if (\is_int($offset)) {
+            if ($offset >= 0 && $offset < $this->itemCount) {
+                return $this->map[$offset] ?? $this->defaultItem;
+            }
+
+            if ($this->itemCount > 0) {
+                throw new \OutOfRangeException('Bytemap: Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
+            }
+
+            throw new \OutOfRangeException('Bytemap: The container is empty, so index '.$offset.' does not exist');
+        }
+
+        throw new \TypeError('Index must be of type integer, '.\gettype($offset).' given');
     }
 
     // `Countable`

@@ -24,28 +24,36 @@ class Bytemap extends AbstractBytemap
 {
     private $bytesInTotal = 0;
     private $bytesPerItem;
+    private $singleByte;
 
     public function __construct(string $defaultItem)
     {
         parent::__construct($defaultItem);
 
         $this->bytesPerItem = \strlen($defaultItem);
+        $this->singleByte = 1 === $this->bytesPerItem;
     }
 
     // `ArrayAccess`
     public function offsetGet($offset): string
     {
-        if (1 === $this->bytesPerItem) {
-            $result = $this->map[$offset] ?? null;
-        } else {
-            $result = \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
+        if (\is_int($offset)) {
+            if ($offset >= 0 && $offset < $this->itemCount) {
+                if ($this->singleByte) {
+                    return $this->map[$offset];
+                }
+
+                return \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
+            }
+
+            if ($this->itemCount > 0) {
+                throw new \OutOfRangeException('Bytemap: Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
+            }
+
+            throw new \OutOfRangeException('Bytemap: The container is empty, so index '.$offset.' does not exist');
         }
 
-        if (null === $result) {
-            throw new \OutOfRangeException('Bytemap: Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
-        }
-
-        return $result;
+        throw new \TypeError('Index must be of type integer, '.\gettype($offset).' given');
     }
 
     public function offsetSet($offset, $item): void
@@ -225,6 +233,7 @@ class Bytemap extends AbstractBytemap
     protected function deriveProperties(): void
     {
         $this->bytesPerItem = \strlen($this->defaultItem);
+        $this->singleByte = 1 === $this->bytesPerItem;
         $this->bytesInTotal = \strlen($this->map);
         $this->itemCount = $this->bytesInTotal / $this->bytesPerItem;
     }
