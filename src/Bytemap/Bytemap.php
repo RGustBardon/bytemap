@@ -36,10 +36,16 @@ class Bytemap extends AbstractBytemap
     public function offsetGet($offset): string
     {
         if (1 === $this->bytesPerItem) {
-            return $this->map[$offset];
+            $result = $this->map[$offset] ?? null;
+        } else {
+            $result = \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
         }
 
-        return \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
+        if (null === $result) {
+            throw new \OutOfRangeException('Bytemap: Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
+        }
+
+        return $result;
     }
 
     public function offsetSet($offset, $item): void

@@ -75,6 +75,26 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         unset((self::instantiate($impl, 'a'))->undefinedProperty);
     }
 
+    public static function invalidOffsetProvider(): \Generator
+    {
+        foreach ([-1, 10000000] as $offset) {
+            yield [Bytemap::class, $offset];
+        }
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::offsetGet
+     * @covers \Bytemap\Bytemap::offsetGet
+     * @dataProvider invalidOffsetProvider
+     * @expectedException \OutOfRangeException
+     *
+     * @param mixed $offset
+     */
+    public function testGetOutOfRange(string $impl, $offset): void
+    {
+        self::instantiate($impl, 'a')[$offset];
+    }
+
     /**
      * @covers \Bytemap\AbstractBytemap::offsetExists
      * @covers \Bytemap\AbstractBytemap::offsetGet
