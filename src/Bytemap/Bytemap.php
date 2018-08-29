@@ -67,7 +67,7 @@ class Bytemap extends AbstractBytemap
         $bytesPerItem = $this->bytesPerItem;
         if ($unassignedCount < 0) {
             // Case 1. Overwrite an existing item.
-            if (1 === $bytesPerItem) {
+            if ($this->singleByte) {
                 $this->map[$offset] = $item;
             } else {
                 $itemIndex = 0;
@@ -108,14 +108,14 @@ class Bytemap extends AbstractBytemap
     // `IteratorAggregate`
     public function getIterator(): \Traversable
     {
-        $bytesPerItem = (int) $this->bytesPerItem;
         $itemCount = $this->itemCount;
         $map = $this->map;
-        if (1 === $bytesPerItem) {
+        if ($this->singleByte) {
             for ($i = 0; $i < $itemCount; ++$i) {
                 yield $i => $map[$i];
             }
         } else {
+            $bytesPerItem = (int) $this->bytesPerItem;
             for ($i = 0, $offset = 0; $i < $itemCount; ++$i, $offset += $bytesPerItem) {
                 yield $i => \substr($map, $offset, $bytesPerItem);
             }
@@ -244,7 +244,7 @@ class Bytemap extends AbstractBytemap
         int $howManyToReturn,
         int $howManyToSkip
         ): \Generator {
-        if (1 === $this->bytesPerItem) {
+        if ($this->singleByte) {
             yield from $this->findBytes($items, $whitelist, $howManyToReturn, $howManyToSkip);
         } else {
             yield from $this->findSubstrings($items, $whitelist, $howManyToReturn, $howManyToSkip);
