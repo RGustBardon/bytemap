@@ -122,10 +122,37 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap::offsetUnset
+     * @dataProvider nullOffsetProvider
+     * @dataProvider invalidOffsetTypeProvider
+     * @doesNotPerformAssertions
+     *
+     * @param mixed $offset
+     */
+    public function testUnsetInvalidType(string $impl, array $items, $offset): void
+    {
+        $bytemap = self::instantiate($impl, $items[0]);
+        unset($bytemap[$offset]);
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
+     * @covers \Bytemap\Bytemap::offsetUnset
+     * @dataProvider outOfRangeOffsetProvider
+     * @doesNotPerformAssertions
+     */
+    public function testUnsetOutOfRange(string $impl, array $items, int $itemCount, int $offset): void
+    {
+        $bytemap = self::instantiateWithSize($impl, $items, $itemCount);
+        unset($bytemap[$offset]);
+    }
+
+    /**
      * @covers \Bytemap\AbstractBytemap::offsetExists
      * @covers \Bytemap\AbstractBytemap::offsetGet
-     * @covers \Bytemap\AbstractBytemap::offsetSet
-     * @covers \Bytemap\AbstractBytemap::offsetUnset
      * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
      * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
      * @covers \Bytemap\Benchmark\DsBytemap::offsetSet

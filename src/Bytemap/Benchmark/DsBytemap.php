@@ -59,7 +59,7 @@ class DsBytemap extends AbstractBytemap
 
     public function offsetUnset($offset): void
     {
-        if ($this->itemCount > $offset) {
+        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
             if ($this->itemCount - 1 === $offset) {
                 unset($this->map[$offset]);
                 --$this->itemCount;
@@ -183,7 +183,7 @@ class DsBytemap extends AbstractBytemap
         $this->map = new \Ds\Vector();
     }
 
-    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void
     {
         $maximumRange = $itemCount - $firstItemOffset;
         if ($howMany >= $maximumRange) {

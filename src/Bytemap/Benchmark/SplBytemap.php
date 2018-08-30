@@ -48,7 +48,7 @@ class SplBytemap extends AbstractBytemap
 
     public function offsetUnset($offset): void
     {
-        if ($this->itemCount > $offset) {
+        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
             unset($this->map[$offset]);
             if ($this->itemCount - 1 === $offset) {
                 --$this->itemCount;
@@ -173,7 +173,7 @@ class SplBytemap extends AbstractBytemap
         $this->map = new \SplFixedArray(0);
     }
 
-    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void
     {
         // Keep the offsets within the bounds.
         $howMany = \min($howMany, $itemCount - $firstItemOffset);

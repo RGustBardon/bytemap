@@ -53,9 +53,11 @@ final class ArrayBytemap extends AbstractBytemap
 
     public function offsetUnset($offset): void
     {
-        unset($this->map[$offset]);
-        if ($this->itemCount - 1 === $offset) {
-            --$this->itemCount;
+        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
+            unset($this->map[$offset]);
+            if ($this->itemCount - 1 === $offset) {
+                --$this->itemCount;
+            }
         }
     }
 
@@ -136,7 +138,7 @@ final class ArrayBytemap extends AbstractBytemap
         $this->map = [];
     }
 
-    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void
     {
         $maximumRange = $itemCount - $firstItemOffset;
         if ($howMany >= $maximumRange) {

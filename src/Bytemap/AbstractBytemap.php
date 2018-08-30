@@ -210,7 +210,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         // Delete the items.
-        $this->deleteWithPositiveOffset(\max(0, $firstItemOffset), $howMany, $itemCount);
+        $this->deleteWithNonNegativeOffset(\max(0, $firstItemOffset), $howMany, $itemCount);
     }
 
     public function streamJson($stream): void
@@ -367,7 +367,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     abstract protected function createEmptyMap(): void;
 
-    abstract protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void;
+    abstract protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void;
 
     abstract protected function deriveProperties(): void;
 

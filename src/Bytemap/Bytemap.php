@@ -91,7 +91,7 @@ class Bytemap extends AbstractBytemap
 
     public function offsetUnset($offset): void
     {
-        if ($offset < $this->itemCount) {
+        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
             if ($offset === $this->itemCount - 1) {
                 $this->bytesInTotal -= $this->bytesPerItem;
                 $this->map = \substr($this->map, 0, $this->bytesInTotal);
@@ -218,7 +218,7 @@ class Bytemap extends AbstractBytemap
         $this->map = '';
     }
 
-    protected function deleteWithPositiveOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void
     {
         $maximumRange = $itemCount - $firstItemOffset;
         if ($howMany >= $maximumRange) {

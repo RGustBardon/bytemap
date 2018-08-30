@@ -57,9 +57,14 @@ abstract class AbstractTestOfBytemap extends TestCase
             foreach ([
                 false, true,
                 0., 1.,
-                '', '07', '1e6', '4a', 'a4',
-                [], [1],
-                new \stdClass(),
+                '', '+0', '00', '01', '0e0', '0a', 'a0', '01', '1e0', '1a', 'a1',
+                [], [0], [1],
+                new \stdClass(), new class() {
+                    public function __toString(): string
+                    {
+                        return '0';
+                    }
+                },
                 \fopen('php://memory', 'r'),
                 function (): int { return 0; },
                 function (): \Generator { yield 0; },
