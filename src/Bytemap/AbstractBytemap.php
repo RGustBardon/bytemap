@@ -28,6 +28,7 @@ abstract class AbstractBytemap implements BytemapInterface
     protected const UNSERIALIZED_CLASSES = false;
 
     protected $defaultItem;
+    protected $bytesPerItem;
 
     /** @var int */
     protected $itemCount = 0;
@@ -40,8 +41,9 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         $this->defaultItem = $defaultItem;
-
         $this->createEmptyMap();
+
+        static::deriveProperties();
     }
 
     // Property overloading.
@@ -73,19 +75,11 @@ abstract class AbstractBytemap implements BytemapInterface
 
     public function offsetGet($offset): string
     {
-        if (\is_int($offset)) {
-            if ($offset >= 0 && $offset < $this->itemCount) {
-                return $this->map[$offset] ?? $this->defaultItem;
-            }
-
-            if ($this->itemCount > 0) {
-                throw new \OutOfRangeException('Bytemap: Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
-            }
-
-            throw new \OutOfRangeException('Bytemap: The container is empty, so index '.$offset.' does not exist');
+        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
+            return $this->map[$offset] ?? $this->defaultItem;
         }
 
-        throw new \TypeError('Index must be of type integer, '.\gettype($offset).' given');
+        self::throwOnOffsetGet($offset);
     }
 
     // `Countable`
@@ -269,6 +263,41 @@ abstract class AbstractBytemap implements BytemapInterface
         return null;
     }
 
+    protected function deriveProperties(): void
+    {
+        $this->bytesPerItem = \strlen($this->defaultItem);
+    }
+
+    protected function throwOnOffsetGet($offset): void
+    {
+        if (!\is_int($offset)) {
+            throw new \TypeError('Bytemap: Index must be of type integer, '.\gettype($offset).' given');
+        }
+
+        if (0 === $this->itemCount) {
+            throw new \OutOfRangeException('Bytemap: The container is empty, so index '.$offset.' does not exist');
+        }
+
+        throw new \OutOfRangeException('Bytemap: Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
+    }
+
+    protected function throwOnOffsetSet($offset, $item): void
+    {
+        if (!\is_int($offset)) {
+            throw new \TypeError('Bytemap: Index must be of type integer, '.\gettype($offset).' given');
+        }
+
+        if ($offset < 0) {
+            throw new \OutOfRangeException('Bytemap: Negative index: '.$offset);
+        }
+
+        if (!\is_string($item)) {
+            throw new \TypeError('Bytemap: Value must be of type integer, '.\gettype($item).' given');
+        }
+
+        throw new \LengthException('Bytemap: Value must be exactly '.$this->bytesPerItem.' bytes, '.\strlen($item).' given');
+    }
+
     protected function unserializeAndValidate(string $serialized): void
     {
         $result = \unserialize($serialized, ['allowed_classes' => static::UNSERIALIZED_CLASSES]);
@@ -368,8 +397,6 @@ abstract class AbstractBytemap implements BytemapInterface
     abstract protected function createEmptyMap(): void;
 
     abstract protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void;
-
-    abstract protected function deriveProperties(): void;
 
     abstract protected function findArrayItems(
         array $items,

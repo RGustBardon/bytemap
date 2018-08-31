@@ -74,14 +74,59 @@ abstract class AbstractTestOfBytemap extends TestCase
         }
     }
 
+    public static function negativeOffsetProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            yield [$impl, $items, 0, -1];
+        }
+    }
+
     public static function outOfRangeOffsetProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            foreach ([-1, 0] as $offset) {
-                yield [$impl, $items, 0, $offset];
+            yield [$impl, $items, 0, 0];
+            yield [$impl, $items, 1, 1];
+        }
+    }
+
+    public static function invalidItemTypeProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            foreach ([
+                false, true,
+                0, 1, 10, 42,
+                0., 1., 10., 42.,
+                [], [0], [1],
+                new \stdClass(), new class() {
+                    public function __toString(): string
+                    {
+                        return '0';
+                    }
+                },
+                \fopen('php://memory', 'r'),
+                function (): int { return 0; },
+                function (): \Generator { yield 0; },
+            ] as $item) {
+                yield [$impl, $items, $item];
             }
-            foreach ([-1, 1] as $offset) {
-                yield [$impl, $items, 1, $offset];
+        }
+    }
+
+    public static function invalidLengthProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([
+                ['a', ''],
+                ['a', 'ab'],
+                ['a', 'a '],
+                ['a', ' a'],
+                ['ab', ''],
+                ['ab', 'a'],
+                ['ab', 'abc'],
+                ['ab', 'ab '],
+                ['ab', ' ab'],
+            ] as [$defaultItem, $invalidItem]) {
+                yield [$impl, $defaultItem, $invalidItem];
             }
         }
     }

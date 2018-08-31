@@ -38,22 +38,26 @@ class DsBytemap extends AbstractBytemap
             $offset = $this->itemCount;
         }
 
-        $unassignedCount = (int) $offset - $this->itemCount;
-        if ($unassignedCount < 0) {
-            // Case 1. Overwrite an existing item.
-            $this->map[$offset] = $item;
-        } elseif (0 === $unassignedCount) {
-            // Case 2. Append an item right after the last one.
-            $this->map[] = $item;
-            ++$this->itemCount;
-        } else {
-            // Case 3. Append to a gap after the last item. Fill the gap with default items.
-            $this->map->allocate($this->itemCount + $unassignedCount + 1);
-            for ($i = 0; $i < $unassignedCount; ++$i) {
-                $this->map[] = $this->defaultItem;
+        if (\is_int($offset) && $offset >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
+            $unassignedCount = $offset - $this->itemCount;
+            if ($unassignedCount < 0) {
+                // Case 1. Overwrite an existing item.
+                $this->map[$offset] = $item;
+            } elseif (0 === $unassignedCount) {
+                // Case 2. Append an item right after the last one.
+                $this->map[] = $item;
+                ++$this->itemCount;
+            } else {
+                // Case 3. Append to a gap after the last item. Fill the gap with default items.
+                $this->map->allocate($this->itemCount + $unassignedCount + 1);
+                for ($i = 0; $i < $unassignedCount; ++$i) {
+                    $this->map[] = $this->defaultItem;
+                }
+                $this->map[] = $item;
+                $this->itemCount += $unassignedCount + 1;
             }
-            $this->map[] = $item;
-            $this->itemCount += $unassignedCount + 1;
+        } else {
+            self::throwOnOffsetSet($offset, $item);
         }
     }
 
@@ -199,6 +203,8 @@ class DsBytemap extends AbstractBytemap
 
     protected function deriveProperties(): void
     {
+        parent::deriveProperties();
+
         $this->itemCount = \count($this->map);
     }
 

@@ -31,23 +31,20 @@ use Bytemap\JsonListener\BytemapListener;
  */
 final class ArrayBytemap extends AbstractBytemap
 {
-    public function __construct(string $defaultItem)
-    {
-        parent::__construct($defaultItem);
-
-        $this->map = [];
-    }
-
     // `ArrayAccess`
-    public function offsetSet($offset, $value): void
+    public function offsetSet($offset, $item): void
     {
         if (null === $offset) {  // `$bytemap[] = $item`
             $offset = $this->itemCount;
         }
 
-        $this->map[$offset] = $value;
-        if ($this->itemCount < $offset + 1) {
-            $this->itemCount = $offset + 1;
+        if (\is_int($offset) && $offset >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
+            $this->map[$offset] = $item;
+            if ($this->itemCount < $offset + 1) {
+                $this->itemCount = $offset + 1;
+            }
+        } else {
+            self::throwOnOffsetSet($offset, $item);
         }
     }
 
@@ -159,6 +156,8 @@ final class ArrayBytemap extends AbstractBytemap
 
     protected function deriveProperties(): void
     {
+        parent::deriveProperties();
+
         $this->itemCount = self::getMaxKey($this->map) + 1;
     }
 

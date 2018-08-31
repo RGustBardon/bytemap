@@ -38,12 +38,16 @@ class SplBytemap extends AbstractBytemap
             $offset = $this->itemCount;
         }
 
-        $unassignedCount = (int) $offset - $this->itemCount;
-        if ($unassignedCount >= 0) {
-            $this->map->setSize($this->itemCount + $unassignedCount + 1);
-            $this->itemCount += $unassignedCount + 1;
+        if (\is_int($offset) && $offset >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
+            $unassignedCount = $offset - $this->itemCount;
+            if ($unassignedCount >= 0) {
+                $this->map->setSize($this->itemCount + $unassignedCount + 1);
+                $this->itemCount += $unassignedCount + 1;
+            }
+            $this->map[$offset] = $item;
+        } else {
+            self::throwOnOffsetSet($offset, $item);
         }
-        $this->map[$offset] = $item;
     }
 
     public function offsetUnset($offset): void
@@ -193,6 +197,8 @@ class SplBytemap extends AbstractBytemap
 
     protected function deriveProperties(): void
     {
+        parent::deriveProperties();
+
         $this->itemCount = \count($this->map);
     }
 

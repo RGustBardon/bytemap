@@ -22,38 +22,21 @@ use Bytemap\JsonListener\BytemapListener;
  */
 class Bytemap extends AbstractBytemap
 {
-    private $bytesInTotal = 0;
-    private $bytesPerItem;
+    private $bytesInTotal;
     private $singleByte;
-
-    public function __construct(string $defaultItem)
-    {
-        parent::__construct($defaultItem);
-
-        $this->bytesPerItem = \strlen($defaultItem);
-        $this->singleByte = 1 === $this->bytesPerItem;
-    }
 
     // `ArrayAccess`
     public function offsetGet($offset): string
     {
-        if (\is_int($offset)) {
-            if ($offset >= 0 && $offset < $this->itemCount) {
-                if ($this->singleByte) {
-                    return $this->map[$offset];
-                }
-
-                return \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
+        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
+            if ($this->singleByte) {
+                return $this->map[$offset];
             }
 
-            if ($this->itemCount > 0) {
-                throw new \OutOfRangeException('Bytemap: Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
-            }
-
-            throw new \OutOfRangeException('Bytemap: The container is empty, so index '.$offset.' does not exist');
+            return \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
         }
 
-        throw new \TypeError('Index must be of type integer, '.\gettype($offset).' given');
+        self::throwOnOffsetGet($offset);
     }
 
     public function offsetSet($offset, $item): void
@@ -62,30 +45,33 @@ class Bytemap extends AbstractBytemap
             $offset = $this->itemCount;
         }
 
-        /** @var int $unassignedCount */
-        $unassignedCount = $offset - $this->itemCount;
-        $bytesPerItem = $this->bytesPerItem;
-        if ($unassignedCount < 0) {
-            // Case 1. Overwrite an existing item.
-            if ($this->singleByte) {
-                $this->map[$offset] = $item;
+        if (\is_int($offset) && $offset >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
+            $unassignedCount = $offset - $this->itemCount;
+            $bytesPerItem = $this->bytesPerItem;
+            if ($unassignedCount < 0) {
+                // Case 1. Overwrite an existing item.
+                if ($this->singleByte) {
+                    $this->map[$offset] = $item;
+                } else {
+                    $itemIndex = 0;
+                    $offset *= $bytesPerItem;
+                    do {
+                        $this->map[$offset++] = $item[$itemIndex++];
+                    } while ($itemIndex < $bytesPerItem);
+                }
+            } elseif (0 === $unassignedCount) {
+                // Case 2. Append an item right after the last one.
+                $this->map .= $item;
+                ++$this->itemCount;
+                $this->bytesInTotal += $bytesPerItem;
             } else {
-                $itemIndex = 0;
-                $offset *= $bytesPerItem;
-                do {
-                    $this->map[$offset++] = $item[$itemIndex++];
-                } while ($itemIndex < $bytesPerItem);
+                // Case 3. Append to a gap after the last item. Fill the gap with default items.
+                $this->map .= \str_repeat($this->defaultItem, $unassignedCount).$item;
+                $this->itemCount += $unassignedCount + 1;
+                $this->bytesInTotal = $this->itemCount * $bytesPerItem;
             }
-        } elseif (0 === $unassignedCount) {
-            // Case 2. Append an item right after the last one.
-            $this->map .= $item;
-            ++$this->itemCount;
-            $this->bytesInTotal += $bytesPerItem;
         } else {
-            // Case 3. Append to a gap after the last item. Fill the gap with default items.
-            $this->map .= \str_repeat($this->defaultItem, $unassignedCount).$item;
-            $this->itemCount += $unassignedCount + 1;
-            $this->bytesInTotal = $this->itemCount * $bytesPerItem;
+            self::throwOnOffsetSet($offset, $item);
         }
     }
 
@@ -232,7 +218,8 @@ class Bytemap extends AbstractBytemap
 
     protected function deriveProperties(): void
     {
-        $this->bytesPerItem = \strlen($this->defaultItem);
+        parent::deriveProperties();
+
         $this->singleByte = 1 === $this->bytesPerItem;
         $this->bytesInTotal = \strlen($this->map);
         $this->itemCount = $this->bytesInTotal / $this->bytesPerItem;
