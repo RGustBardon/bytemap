@@ -185,6 +185,15 @@ final class SearchTest extends AbstractTestOfBytemap
         self::assertSame(4, $matchCount);
     }
 
+    /**
+     * @dataProvider implementationProvider
+     * @expectedException \UnexpectedValueException
+     */
+    public function testGreppingInvalidRegex(string $impl): void
+    {
+        self::instantiate($impl, "\x00")->grep('')->rewind();
+    }
+
     public static function greppingProvider(): \Generator
     {
         foreach (self::implementationProvider() as [$impl]) {
@@ -318,6 +327,7 @@ final class SearchTest extends AbstractTestOfBytemap
     /**
      * @covers \Bytemap\AbstractBytemap::grep
      * @dataProvider greppingProvider
+     * @depends testGreppingInvalidRegex
      */
     public function testGrepping(
         string $impl,

@@ -29,7 +29,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     /**
      * @covers \Bytemap\AbstractBytemap::ensureStream
      * @dataProvider implementationProvider
-     * @expectedException \InvalidArgumentException
+     * @expectedException \TypeError
      * @expectedExceptionMessage expected an open resource
      */
     public function testParsingClosedResource(string $impl): void
@@ -122,7 +122,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     /**
      * @covers \Bytemap\AbstractBytemap::ensureStream
      * @dataProvider implementationProvider
-     * @expectedException \InvalidArgumentException
+     * @expectedException \TypeError
      * @expectedExceptionMessage expected an open resource
      */
     public function testStreamingToClosedResource(string $impl): void

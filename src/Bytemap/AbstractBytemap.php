@@ -162,6 +162,20 @@ abstract class AbstractBytemap implements BytemapInterface
         int $howMany = \PHP_INT_MAX,
         ?int $startAfter = null
         ): \Generator {
+        $regex .= 'S';
+
+        $errorMessage = 'details unavailable';
+        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
+            $errorMessage = $errstr;
+        });
+        if (false === \preg_match($regex, $this->defaultItem)) {
+            $errorName = \array_flip(\get_defined_constants(true)['pcre'])[\preg_last_error()];
+        }
+        \restore_error_handler();
+        if (isset($errorName)) {
+            throw new \UnexpectedValueException('Bytemap: '.$errorName.' ('.$errorMessage.')');
+        }
+
         if (0 === $howMany) {
             return;
         }
@@ -171,8 +185,8 @@ abstract class AbstractBytemap implements BytemapInterface
             return;
         }
 
-        if (isset($this->defaultItem[1])) {
-            yield from $this->grepMultibyte($regex.'S', $whitelist, $howMany, $howManyToSkip);
+        if ($this->bytesPerItem > 1) {
+            yield from $this->grepMultibyte($regex, $whitelist, $howMany, $howManyToSkip);
         } else {
             $whitelistNeedles = [];
             $blacklistNeedles = [];
@@ -356,7 +370,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
             $message = \sprintf('Bytemap: expected an open resource, got %s instead.', $type);
 
-            throw new \InvalidArgumentException($message);
+            throw new \TypeError($message);
         }
 
         $resourceType = \get_resource_type($value);
