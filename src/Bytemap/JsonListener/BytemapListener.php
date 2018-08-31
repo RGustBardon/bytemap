@@ -96,7 +96,7 @@ class BytemapListener implements Listener
         if (self::TRANSITIONS[$this->state] === $newState) {
             $this->state = $newState;
         } else {
-            $message = \sprintf('Bytemap: invalid JSON transition (%s to %s).', $this->state, $newState);
+            $message = \sprintf('Invalid JSON transition (%s to %s).', $this->state, $newState);
 
             throw new \UnexpectedValueException($message);
         }

@@ -24,6 +24,7 @@ use JsonStreamingParser\ParsingError;
  */
 abstract class AbstractBytemap implements BytemapInterface
 {
+    protected const EXCEPTION_PREFIX = 'Bytemap: ';
     protected const GREP_MAXIMUM_LOOKUP_SIZE = 1024;
     protected const UNSERIALIZED_CLASSES = false;
 
@@ -37,7 +38,7 @@ abstract class AbstractBytemap implements BytemapInterface
     public function __construct(string $defaultItem)
     {
         if ('' === $defaultItem) {
-            throw new \LengthException('Bytemap: The default item cannot be an empty string.');
+            throw new \LengthException(self::EXCEPTION_PREFIX.'The default item cannot be an empty string');
         }
 
         $this->defaultItem = $defaultItem;
@@ -173,7 +174,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
         \restore_error_handler();
         if (isset($errorName)) {
-            throw new \UnexpectedValueException('Bytemap: '.$errorName.' ('.$errorMessage.')');
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$errorName.' ('.$errorMessage.')');
         }
 
         if (0 === $howMany) {
@@ -285,51 +286,56 @@ abstract class AbstractBytemap implements BytemapInterface
     protected function throwOnOffsetGet($offset): void
     {
         if (!\is_int($offset)) {
-            throw new \TypeError('Bytemap: Index must be of type integer, '.\gettype($offset).' given');
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type integer, '.\gettype($offset).' given');
         }
 
         if (0 === $this->itemCount) {
-            throw new \OutOfRangeException('Bytemap: The container is empty, so index '.$offset.' does not exist');
+            throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'The container is empty, so index '.$offset.' does not exist');
         }
 
-        throw new \OutOfRangeException('Bytemap: Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
+        throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
     }
 
     protected function throwOnOffsetSet($offset, $item): void
     {
         if (!\is_int($offset)) {
-            throw new \TypeError('Bytemap: Index must be of type integer, '.\gettype($offset).' given');
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type integer, '.\gettype($offset).' given');
         }
 
         if ($offset < 0) {
-            throw new \OutOfRangeException('Bytemap: Negative index: '.$offset);
+            throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Negative index: '.$offset);
         }
 
         if (!\is_string($item)) {
-            throw new \TypeError('Bytemap: Value must be of type integer, '.\gettype($item).' given');
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type integer, '.\gettype($item).' given');
         }
 
-        throw new \LengthException('Bytemap: Value must be exactly '.$this->bytesPerItem.' bytes, '.\strlen($item).' given');
+        throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$this->bytesPerItem.' bytes, '.\strlen($item).' given');
     }
 
     protected function unserializeAndValidate(string $serialized): void
     {
+        $errorMessage = 'details unavailable';
+        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
+            $errorMessage = $errstr;
+        });
         $result = \unserialize($serialized, ['allowed_classes' => static::UNSERIALIZED_CLASSES]);
+        \restore_error_handler();
 
         if (false === $result) {
-            throw new \UnexpectedValueException('Bytemap: failed to unserialize.');
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize ('.$errorMessage.')');
         }
         if (!\is_array($result) || !\in_array(\array_keys($result), [[0, 1], [1, 0]], true)) {
-            throw new \UnexpectedValueException('Bytemap: unserialized data must be an array of two elements.');
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Unserialized data must be an array of two elements');
         }
 
         [$this->defaultItem, $this->map] = $result;
 
         if (!\is_string($this->defaultItem)) {
-            throw new \UnexpectedValueException('Bytemap: The default item must be a string.');
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'The default item must be a string');
         }
         if ('' === $this->defaultItem) {
-            throw new \LengthException('Bytemap: The default item cannot be an empty string.');
+            throw new \LengthException(self::EXCEPTION_PREFIX.'The default item cannot be an empty string');
         }
     }
 
@@ -347,11 +353,11 @@ abstract class AbstractBytemap implements BytemapInterface
     protected static function ensureJsonDecodedSuccessfully(string $defaultItem, $map): void
     {
         if (\JSON_ERROR_NONE !== \json_last_error()) {
-            throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.\json_last_error_msg());
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'\\json_decode failed: '.\json_last_error_msg());
         }
 
         if (!\is_array($map)) {
-            throw new \UnexpectedValueException('Bytemap: JSON data must represent an array.');
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'JSON data must represent an array');
         }
     }
 
@@ -368,14 +374,14 @@ abstract class AbstractBytemap implements BytemapInterface
                 // @codeCoverageIgnoreEnd
             }
 
-            $message = \sprintf('Bytemap: expected an open resource, got %s instead.', $type);
+            $message = \sprintf(self::EXCEPTION_PREFIX.'Expected an open resource, got %s instead', $type);
 
             throw new \TypeError($message);
         }
 
         $resourceType = \get_resource_type($value);
         if ('stream' !== $resourceType) {
-            $message = \sprintf('Bytemap: expected a stream, got %s instead.', $resourceType);
+            $message = \sprintf(self::EXCEPTION_PREFIX.'Expected a stream, got %s instead', $resourceType);
 
             throw new \InvalidArgumentException($message);
         }
@@ -403,8 +409,8 @@ abstract class AbstractBytemap implements BytemapInterface
     {
         try {
             (new Parser($jsonStream, $listener))->parse();
-        } catch (ParsingError $e) {
-            throw new \UnexpectedValueException('Bytemap: \\json_decode failed: '.$e->getMessage());
+        } catch (ParsingError | \UnexpectedValueException $e) {
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'\\json_decode failed: '.$e->getMessage());
         }
     }
 

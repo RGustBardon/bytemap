@@ -119,7 +119,7 @@ class Bytemap extends AbstractBytemap
 
         // @codeCoverageIgnoreStart
         if (false === $data) {
-            throw new \UnexpectedValueException('Bytemap: \\str_split returned false when serializing to JSON.');
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'\\str_split returned false when serializing to JSON');
         }
         // @codeCoverageIgnoreEnd
 

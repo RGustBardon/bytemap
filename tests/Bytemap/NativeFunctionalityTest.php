@@ -421,7 +421,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider implementationProvider
      * @depends testSerializable
      * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage failed
+     * @expectedExceptionMessage unserialize
      */
     public function testUnserializeMalformed(string $impl): void
     {
