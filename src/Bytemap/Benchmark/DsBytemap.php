@@ -125,9 +125,9 @@ class DsBytemap extends AbstractBytemap
                 $overflow = -$originalFirstItemOffset - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
                 if ($overflow > 0) {
                     $this->map->insert($insertedItemCount, ...(function () use ($overflow): \Generator {
-                        for ($i = 0; $i < $overflow; ++$i) {
+                        do {
                             yield $this->defaultItem;
-                        }
+                        } while (--$overflow > 0);
                     })());
                 }
             }
