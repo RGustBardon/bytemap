@@ -72,6 +72,7 @@ class SplBytemap extends AbstractBytemap
     public function insert(iterable $items, int $firstItemOffset = -1): void
     {
         $originalFirstItemOffset = $firstItemOffset;
+        $itemCountBeforeResizing = $this->itemCount;
 
         // Resize the bytemap if the positive first item offset is greater than the item count.
         if ($firstItemOffset > $this->itemCount) {
@@ -97,15 +98,32 @@ class SplBytemap extends AbstractBytemap
         // Append the items.
         $originalItemCount = $this->itemCount;
         if (isset($newSize)) {
+            $bytesPerItem = $this->bytesPerItem;
             $itemCount = $originalItemCount;
             foreach ($items as $item) {
-                $this->map[$itemCount] = $item;
-                ++$itemCount;
+                if (\is_string($item) && \strlen($item) === $bytesPerItem) {
+                    $this->map[$itemCount] = $item;
+                    ++$itemCount;
+                } else {
+                    $this->itemCount = $itemCount;
+                    $this->delete($itemCountBeforeResizing);
+                    if (\is_string($item)) {
+                        throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+                    }
+
+                    throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
+                }
             }
             $this->itemCount = $itemCount;
         } else {
-            foreach ($items as $item) {
-                $this[] = $item;
+            try {
+                foreach ($items as $item) {
+                    $this[] = $item;
+                }
+            } catch (\TypeError | \LengthException $e) {
+                $this->delete($itemCountBeforeResizing);
+
+                throw $e;
             }
         }
 
@@ -189,9 +207,10 @@ class SplBytemap extends AbstractBytemap
 
         // Delete the trailing items.
         $this->itemCount -= $howMany;
-        while ($howMany > 0) {
-            unset($this->map[--$itemCount]);
-            --$howMany;
+        if (0 === $this->itemCount) {
+            $this->createEmptyMap();
+        } else {
+            $this->map->setSize($this->itemCount);
         }
     }
 

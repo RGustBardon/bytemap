@@ -88,6 +88,8 @@ class DsBytemap extends AbstractBytemap
     // `BytemapInterface`
     public function insert(iterable $items, int $firstItemOffset = -1): void
     {
+        $originalItemCount = $this->itemCount;
+
         // Resize the bytemap if the positive first item offset is greater than the item count.
         if ($firstItemOffset > $this->itemCount) {
             $this[$firstItemOffset - 1] = $this->defaultItem;
@@ -100,8 +102,13 @@ class DsBytemap extends AbstractBytemap
         }
 
         if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
+            $firstItemOffsetToCheck = $this->itemCount;
+
             // Append the items.
             $this->map->push(...$items);
+
+            $this->itemCount = \count($this->map);
+            $this->validateItems($firstItemOffsetToCheck, $this->itemCount - $firstItemOffsetToCheck, $originalItemCount, $this->itemCount - $originalItemCount);
         } else {
             $originalFirstItemOffset = $firstItemOffset;
             // Calculate the positive offset corresponding to the negative one.
@@ -119,6 +126,7 @@ class DsBytemap extends AbstractBytemap
             $this->map->insert($firstItemOffset, ...$items);
             $insertedItemCount = \count($this->map) - $itemCount;
             $this->itemCount += $insertedItemCount;
+            $this->validateItems($firstItemOffset, $insertedItemCount, $firstItemOffset, $insertedItemCount);
 
             // Resize the bytemap if the negative first item offset is greater than the new item count.
             if (-$originalFirstItemOffset > $this->itemCount) {
@@ -131,8 +139,8 @@ class DsBytemap extends AbstractBytemap
                     })());
                 }
             }
+            $this->itemCount = \count($this->map);
         }
-        $this->itemCount = \count($this->map);
     }
 
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface

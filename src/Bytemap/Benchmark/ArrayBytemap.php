@@ -62,6 +62,8 @@ final class ArrayBytemap extends AbstractBytemap
     public function insert(iterable $items, int $firstItemOffset = -1): void
     {
         if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
+            $originalItemCount = $this->itemCount;
+
             // Resize the bytemap if the positive first item offset is greater than the item count.
             if ($firstItemOffset > $this->itemCount) {
                 $this[$firstItemOffset - 1] = $this->defaultItem;
@@ -75,6 +77,7 @@ final class ArrayBytemap extends AbstractBytemap
             } catch (\ArgumentCountError $e) {
             }
             $this->itemCount += \count($this->map) - $itemCount;
+            $this->validateItems($itemCount, $this->itemCount - $itemCount, $originalItemCount, $this->itemCount - $originalItemCount);
         } else {
             $this->fillAndSort();
 
@@ -94,6 +97,7 @@ final class ArrayBytemap extends AbstractBytemap
             \array_splice($this->map, $firstItemOffset, 0, \is_array($items) ? $items : \iterator_to_array($items));
             $insertedItemCount = \count($this->map) - $itemCount;
             $this->itemCount += $insertedItemCount;
+            $this->validateItems($firstItemOffset, $insertedItemCount, $firstItemOffset, $insertedItemCount);
 
             // Resize the bytemap if the negative first item offset is greater than the new item count.
             if (-$originalFirstItemOffset > $this->itemCount) {

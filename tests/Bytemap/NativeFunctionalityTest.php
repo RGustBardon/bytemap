@@ -124,10 +124,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
+     * @covers \Bytemap\Bytemap::offsetSet
      * @dataProvider invalidOffsetTypeProvider
      * @expectedException \TypeError
      *
@@ -140,10 +140,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
+     * @covers \Bytemap\Bytemap::offsetSet
      * @dataProvider negativeOffsetProvider
      * @expectedException \OutOfRangeException
      */
@@ -154,10 +154,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
+     * @covers \Bytemap\Bytemap::offsetSet
      * @dataProvider invalidItemTypeProvider
      * @expectedException \TypeError
      *
@@ -170,10 +170,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
+     * @covers \Bytemap\Bytemap::offsetSet
      * @dataProvider invalidLengthProvider
      * @expectedException \LengthException
      */
@@ -184,7 +184,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
+     * @covers \Bytemap\Bytemap::offsetUnset
      * @dataProvider nullOffsetProvider
      * @dataProvider invalidOffsetTypeProvider
      * @doesNotPerformAssertions
@@ -198,7 +201,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::offsetUnset
      * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
      * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
      * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset

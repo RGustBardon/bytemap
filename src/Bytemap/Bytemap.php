@@ -129,11 +129,23 @@ class Bytemap extends AbstractBytemap
     // `BytemapInterface`
     public function insert(iterable $items, int $firstItemOffset = -1): void
     {
-        $items = \implode('', \is_array($items) ? $items : \iterator_to_array($items));
+        $substring = '';
+
+        $bytesPerItem = $this->bytesPerItem;
+        foreach ($items as $item) {
+            if (\is_string($item) && \strlen($item) === $bytesPerItem) {
+                $substring .= $item;
+            } elseif (\is_string($item)) {
+                throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+            } else {
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
+            }
+        }
+
         if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
             // Insert the items.
-            $padLength = \strlen($items) + \max(0, $firstItemOffset - $this->itemCount) * $this->bytesPerItem;
-            $this->map .= \str_pad($items, (int) $padLength, $this->defaultItem, \STR_PAD_LEFT);
+            $padLength = \strlen($substring) + \max(0, $firstItemOffset - $this->itemCount) * $this->bytesPerItem;
+            $this->map .= \str_pad($substring, (int) $padLength, $this->defaultItem, \STR_PAD_LEFT);
         } else {
             $originalFirstItemOffset = $firstItemOffset;
             // Calculate the positive offset corresponding to the negative one.
@@ -147,16 +159,16 @@ class Bytemap extends AbstractBytemap
             }
 
             // Resize the bytemap if the negative first item offset is greater than the new item count.
-            $insertedItemCount = (int) (\strlen($items) / $this->bytesPerItem);
+            $insertedItemCount = (int) (\strlen($substring) / $this->bytesPerItem);
             $newItemCount = $this->itemCount + $insertedItemCount;
             if (-$originalFirstItemOffset > $newItemCount) {
                 $overflow = -$originalFirstItemOffset - $newItemCount - ($insertedItemCount > 0 ? 0 : 1);
                 $padLength = ($overflow + $insertedItemCount) * $this->bytesPerItem;
-                $items = \str_pad($items, $padLength, $this->defaultItem, \STR_PAD_RIGHT);
+                $substring = \str_pad($substring, $padLength, $this->defaultItem, \STR_PAD_RIGHT);
             }
 
             // Insert the items.
-            $this->map = \substr_replace($this->map, $items, $firstItemOffset * $this->bytesPerItem, 0);
+            $this->map = \substr_replace($this->map, $substring, $firstItemOffset * $this->bytesPerItem, 0);
         }
 
         $this->deriveProperties();

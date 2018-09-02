@@ -266,13 +266,7 @@ abstract class AbstractBytemap implements BytemapInterface
         // Assume that no gap exists between the tail of the bytemap and `$firstItemOffset`.
 
         if (\is_array($additionalItems) || $additionalItems instanceof \Countable) {
-            $insertedItemCount = \count($additionalItems);
-            $newSize = $this->itemCount + $insertedItemCount;
-            if ($firstItemOffset < -1 && -$firstItemOffset > $this->itemCount) {
-                $newSize += -$firstItemOffset - $newSize - ($insertedItemCount > 0 ? 0 : 1);
-            }
-
-            return $newSize;
+            return $this->itemCount + \count($additionalItems);
         }
 
         return null;
@@ -307,7 +301,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         if (!\is_string($item)) {
-            throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type integer, '.\gettype($item).' given');
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
         }
 
         throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$this->bytesPerItem.' bytes, '.\strlen($item).' given');
@@ -336,6 +330,28 @@ abstract class AbstractBytemap implements BytemapInterface
         }
         if ('' === $this->defaultItem) {
             throw new \LengthException(self::EXCEPTION_PREFIX.'The default item cannot be an empty string');
+        }
+    }
+
+    protected function validateItems(
+        int $firstItemOffsetToCheck,
+        int $howManyToCheck,
+        int $firstItemOffsetToRollBack,
+        int $howManyToRollBack
+    ): void {
+        $bytesPerItem = $this->bytesPerItem;
+        $lastItemOffsetToCheck = $firstItemOffsetToCheck + $howManyToCheck;
+        for ($offset = $firstItemOffsetToCheck; $offset < $lastItemOffsetToCheck; ++$offset) {
+            if (!\is_string($item = $this->map[$offset])) {
+                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
+
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
+            }
+            if (\strlen($item) !== $bytesPerItem) {
+                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
+
+                throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+            }
         }
     }
 

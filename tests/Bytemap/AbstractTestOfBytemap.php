@@ -106,8 +106,8 @@ abstract class AbstractTestOfBytemap extends TestCase
                 \fopen('php://memory', 'r'),
                 function (): int { return 0; },
                 function (): \Generator { yield 0; },
-            ] as $item) {
-                yield [$impl, $items, $item];
+            ] as $invalidItem) {
+                yield [$impl, $items, $invalidItem];
             }
         }
     }
@@ -172,12 +172,12 @@ abstract class AbstractTestOfBytemap extends TestCase
 
     protected static function assertSequence(array $sequence, BytemapInterface $bytemap): void
     {
+        self::assertCount(\count($sequence), $bytemap);
         $i = 0;
         foreach ($bytemap as $key => $value) {
             self::assertSame($i, $key);
             self::assertSame($sequence[$key], $value);
             ++$i;
         }
-        self::assertSame(\count($sequence), $i);
     }
 }
