@@ -65,6 +65,7 @@ class SplBytemap extends AbstractBytemap
     {
         $this->unserializeAndValidate($serialized);
         $this->map->__wakeup();
+        $this->validateUnserializedItems();
         $this->deriveProperties();
     }
 
@@ -316,6 +317,33 @@ class SplBytemap extends AbstractBytemap
                     } else {
                         ++$lookupSize;
                     }
+                }
+            }
+        }
+    }
+
+    protected function validateUnserializedItems(): void
+    {
+        if (!\is_object($this->map)) {
+            $reason = 'Failed to unserialize (the internal representation of a bytemap must be an SplFixedArray, '.\gettype($this->map).' given)';
+
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+        }
+
+        if (!($this->map instanceof \SplFixedArray)) {
+            $reason = 'Failed to unserialize (the internal representation of a bytemap must be an SplFixedArray, '.\get_class($this->map).' given)';
+
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+        }
+
+        $bytesPerItem = \strlen($this->defaultItem);
+        foreach ($this->map as $item) {
+            if (null !== $item) {
+                if (!\is_string($item)) {
+                    throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
+                }
+                if (\strlen($item) !== $bytesPerItem) {
+                    throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
                 }
             }
         }

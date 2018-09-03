@@ -77,7 +77,7 @@ final class ArrayBytemap extends AbstractBytemap
             } catch (\ArgumentCountError $e) {
             }
             $this->itemCount += \count($this->map) - $itemCount;
-            $this->validateItems($itemCount, $this->itemCount - $itemCount, $originalItemCount, $this->itemCount - $originalItemCount);
+            $this->validateInsertedItems($itemCount, $this->itemCount - $itemCount, $originalItemCount, $this->itemCount - $originalItemCount);
         } else {
             $this->fillAndSort();
 
@@ -97,7 +97,7 @@ final class ArrayBytemap extends AbstractBytemap
             \array_splice($this->map, $firstItemOffset, 0, \is_array($items) ? $items : \iterator_to_array($items));
             $insertedItemCount = \count($this->map) - $itemCount;
             $this->itemCount += $insertedItemCount;
-            $this->validateItems($firstItemOffset, $insertedItemCount, $firstItemOffset, $insertedItemCount);
+            $this->validateInsertedItems($firstItemOffset, $insertedItemCount, $firstItemOffset, $insertedItemCount);
 
             // Resize the bytemap if the negative first item offset is greater than the new item count.
             if (-$originalFirstItemOffset > $this->itemCount) {
@@ -270,6 +270,35 @@ final class ArrayBytemap extends AbstractBytemap
                     } else {
                         ++$lookupSize;
                     }
+                }
+            }
+        }
+    }
+
+    protected function validateUnserializedItems(): void
+    {
+        if (!\is_array($this->map)) {
+            $reason = 'Failed to unserialize (the internal representation of a bytemap must be an array, '.\gettype($this->map).' given)';
+
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+        }
+
+        $bytesPerItem = \strlen($this->defaultItem);
+        foreach ($this->map as $offset => $item) {
+            if (!\is_int($offset)) {
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (index must be of type integer, '.\gettype($offset).' given)');
+            }
+
+            if ($offset < 0) {
+                throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Failed to unserialize (negative index: '.$offset.')');
+            }
+
+            if (null !== $item) {
+                if (!\is_string($item)) {
+                    throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
+                }
+                if (\strlen($item) !== $bytesPerItem) {
+                    throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
                 }
             }
         }

@@ -108,7 +108,7 @@ class DsBytemap extends AbstractBytemap
             $this->map->push(...$items);
 
             $this->itemCount = \count($this->map);
-            $this->validateItems($firstItemOffsetToCheck, $this->itemCount - $firstItemOffsetToCheck, $originalItemCount, $this->itemCount - $originalItemCount);
+            $this->validateInsertedItems($firstItemOffsetToCheck, $this->itemCount - $firstItemOffsetToCheck, $originalItemCount, $this->itemCount - $originalItemCount);
         } else {
             $originalFirstItemOffset = $firstItemOffset;
             // Calculate the positive offset corresponding to the negative one.
@@ -126,7 +126,7 @@ class DsBytemap extends AbstractBytemap
             $this->map->insert($firstItemOffset, ...$items);
             $insertedItemCount = \count($this->map) - $itemCount;
             $this->itemCount += $insertedItemCount;
-            $this->validateItems($firstItemOffset, $insertedItemCount, $firstItemOffset, $insertedItemCount);
+            $this->validateInsertedItems($firstItemOffset, $insertedItemCount, $firstItemOffset, $insertedItemCount);
 
             // Resize the bytemap if the negative first item offset is greater than the new item count.
             if (-$originalFirstItemOffset > $this->itemCount) {
@@ -310,6 +310,31 @@ class DsBytemap extends AbstractBytemap
                         ++$lookupSize;
                     }
                 }
+            }
+        }
+    }
+
+    protected function validateUnserializedItems(): void
+    {
+        if (!\is_object($this->map)) {
+            $reason = 'Failed to unserialize (the internal representation of a bytemap must be a Ds\\Vector, '.\gettype($this->map).' given)';
+
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+        }
+
+        if (!($this->map instanceof \Ds\Vector)) {
+            $reason = 'Failed to unserialize (the internal representation of a bytemap must be a Ds\\Vector, '.\get_class($this->map).' given)';
+
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+        }
+
+        $bytesPerItem = \strlen($this->defaultItem);
+        foreach ($this->map as $item) {
+            if (!\is_string($item)) {
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
+            }
+            if (\strlen($item) !== $bytesPerItem) {
+                throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
             }
         }
     }

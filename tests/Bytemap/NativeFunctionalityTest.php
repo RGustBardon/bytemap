@@ -487,6 +487,30 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         \unserialize($serialized);
     }
 
+    public static function unexpectedMapProvider(): \Generator
+    {
+        foreach ([
+            'C:15:"Bytemap\Bytemap":36:{a:2:{i:0;s:3:"foo";i:1;s:5:"fooba";}}' => 'not a multiple',
+        ] as $data => $expectedMessage) {
+            yield [$data, $expectedMessage];
+        }
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::unserialize
+     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
+     * @dataProvider unexpectedMapProvider
+     */
+    public function testUnserializedUnexpectedMap(string $data, string $expectedMessage): void
+    {
+        try {
+            \unserialize($data);
+        } catch (\UnexpectedValueException $e) {
+        }
+        self::assertTrue(isset($e), 'Failed asserting that exception of type "\\UnexpectedValueException" is thrown.');
+        self::assertContains($expectedMessage, $e->getMessage());
+    }
+
     private static function assertNativeJson($expected, $actual): void
     {
         $expectedJson = \json_encode($expected);

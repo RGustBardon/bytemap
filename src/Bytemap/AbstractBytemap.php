@@ -119,6 +119,7 @@ abstract class AbstractBytemap implements BytemapInterface
     public function unserialize($serialized)
     {
         $this->unserializeAndValidate($serialized);
+        $this->validateUnserializedItems();
         $this->deriveProperties();
     }
 
@@ -320,20 +321,20 @@ abstract class AbstractBytemap implements BytemapInterface
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize ('.$errorMessage.')');
         }
         if (!\is_array($result) || !\in_array(\array_keys($result), [[0, 1], [1, 0]], true)) {
-            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Unserialized data must be an array of two elements');
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize (expected an array of two elements)');
         }
 
         [$this->defaultItem, $this->map] = $result;
 
         if (!\is_string($this->defaultItem)) {
-            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'The default item must be a string');
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item must be a string, '.\gettype($this->defaultItem).' given)');
         }
         if ('' === $this->defaultItem) {
-            throw new \LengthException(self::EXCEPTION_PREFIX.'The default item cannot be an empty string');
+            throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item cannot be an empty string)');
         }
     }
 
-    protected function validateItems(
+    protected function validateInsertedItems(
         int $firstItemOffsetToCheck,
         int $howManyToCheck,
         int $firstItemOffsetToRollBack,
@@ -447,4 +448,6 @@ abstract class AbstractBytemap implements BytemapInterface
         int $howManyToReturn,
         int $howManyToSkip
         ): \Generator;
+
+    abstract protected function validateUnserializedItems(): void;
 }

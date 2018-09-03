@@ -402,4 +402,18 @@ class Bytemap extends AbstractBytemap
             }
         }
     }
+
+    protected function validateUnserializedItems(): void
+    {
+        if (!\is_string($this->map)) {
+            $reason = 'Failed to unserialize (the internal representation of a bytemap must be a string, '.\gettype($this->map).' given)';
+
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+        }
+        if (0 !== \strlen($this->map) % \strlen($this->defaultItem)) {
+            $reason = 'Failed to unserialize (the length of the internal string, '.\strlen($this->map).', is not a multiple of the length of the default item, '.\strlen($this->defaultItem).')';
+
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+        }
+    }
 }
