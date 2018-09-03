@@ -278,9 +278,9 @@ final class ArrayBytemap extends AbstractBytemap
     protected function validateUnserializedItems(): void
     {
         if (!\is_array($this->map)) {
-            $reason = 'Failed to unserialize (the internal representation of a bytemap must be an array, '.\gettype($this->map).' given)';
+            $reason = 'Failed to unserialize (the internal representation of a bytemap must be of type array, '.\gettype($this->map).' given)';
 
-            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+            throw new \TypeError(self::EXCEPTION_PREFIX.$reason);
         }
 
         $bytesPerItem = \strlen($this->defaultItem);
@@ -288,18 +288,15 @@ final class ArrayBytemap extends AbstractBytemap
             if (!\is_int($offset)) {
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (index must be of type integer, '.\gettype($offset).' given)');
             }
-
             if ($offset < 0) {
                 throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Failed to unserialize (negative index: '.$offset.')');
             }
 
-            if (null !== $item) {
-                if (!\is_string($item)) {
-                    throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
-                }
-                if (\strlen($item) !== $bytesPerItem) {
-                    throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
-                }
+            if (!\is_string($item)) {
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
+            }
+            if (\strlen($item) !== $bytesPerItem) {
+                throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
             }
         }
     }

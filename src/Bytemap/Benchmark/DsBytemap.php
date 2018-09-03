@@ -316,16 +316,10 @@ class DsBytemap extends AbstractBytemap
 
     protected function validateUnserializedItems(): void
     {
-        if (!\is_object($this->map)) {
+        if (!\is_object($this->map) || !($this->map instanceof \Ds\Vector)) {
             $reason = 'Failed to unserialize (the internal representation of a bytemap must be a Ds\\Vector, '.\gettype($this->map).' given)';
 
-            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
-        }
-
-        if (!($this->map instanceof \Ds\Vector)) {
-            $reason = 'Failed to unserialize (the internal representation of a bytemap must be a Ds\\Vector, '.\get_class($this->map).' given)';
-
-            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$reason);
+            throw new \TypeError(self::EXCEPTION_PREFIX.$reason);
         }
 
         $bytesPerItem = \strlen($this->defaultItem);

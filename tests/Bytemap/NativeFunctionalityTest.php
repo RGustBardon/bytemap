@@ -417,98 +417,85 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertDefaultItem($items[0], $bytemap, $items[2]);
     }
 
-    /**
-     * @covers \Bytemap\AbstractBytemap::unserialize
-     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
-     * @dataProvider implementationProvider
-     * @depends testSerializable
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage unserialize
-     */
-    public function testUnserializeMalformed(string $impl): void
+    public static function invalidSerializedDataProvider(): \Generator
     {
-        $bytemap = self::instantiate($impl, 'quux');
-        @\unserialize(\strtr(\serialize($bytemap), ['quux' => 'quuux']));
-    }
+        yield from [
+            // C:30:"Bytemap\Benchmark\ArrayBytemap":44:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":10:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
 
-    public static function bogusSerializationProvider(): \Generator
-    {
-        foreach (self::implementationProvider() as [$impl]) {
-            $serialized = \serialize(self::instantiate($impl, 'quux'));
-            foreach ([
-                \strtr($serialized, [';i:1;' => ';i:2;']),
-                \preg_replace('~:[0-9]+:\\{.*~', ':4:{b:1;}', \substr($serialized, 0, -1)),
-            ] as $data) {
-                yield [$impl, $data];
-            }
-        }
-    }
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":52:{a:3:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
-    /**
-     * @covers \Bytemap\AbstractBytemap::unserialize
-     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
-     * @dataProvider bogusSerializationProvider
-     * @depends testSerializable
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage array of two
-     */
-    public function testUnserializeBogus(string $impl, string $serialized): void
-    {
-        \unserialize($serialized);
-    }
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":40:{a:2:{i:0;i:100;i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":41:{a:2:{i:0;s:0:"";i:1;a:1:{i:1;s:3:"bar";}}}', \LengthException::class, 'cannot be an empty string'],
 
-    /**
-     * @covers \Bytemap\AbstractBytemap::unserialize
-     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
-     * @dataProvider implementationProvider
-     * @depends testSerializable
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage default item must be a string
-     */
-    public function testUnserializeInvalidType(string $impl): void
-    {
-        \unserialize(\strtr(\serialize(self::instantiate($impl, 'quux')), [';s:4:"quux";' => ';i:12345678;']));
-    }
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be of type array'],
 
-    /**
-     * @covers \Bytemap\AbstractBytemap::unserialize
-     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
-     * @dataProvider implementationProvider
-     * @depends testSerializable
-     * @expectedException \LengthException
-     * @expectedExceptionMessage default item cannot be an empty string
-     */
-    public function testUnserializeEmptyString(string $impl): void
-    {
-        $serialized = \strtr(\serialize(self::instantiate($impl, 'quux')), [';s:4:"quux";' => ';s:0:"";']);
-        $serialized = \preg_replace_callback('~(:)([0-9]+)(:\\{)~', function (array $matches): string {
-            return $matches[1].($matches[2] - 4).$matches[3];
-        }, $serialized, 1);
-        \unserialize($serialized);
-    }
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":50:{a:2:{i:0;s:3:"foo";i:1;a:1:{s:3:"baz";s:3:"bar";}}}', \TypeError::class, 'index must be of type integer'],
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":45:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:-1;s:3:"bar";}}}', \OutOfRangeException::class, 'negative index'],
 
-    public static function unexpectedMapProvider(): \Generator
-    {
-        foreach ([
-            'C:15:"Bytemap\Bytemap":36:{a:2:{i:0;s:3:"foo";i:1;s:5:"fooba";}}' => 'not a multiple',
-        ] as $data => $expectedMessage) {
-            yield [$data, $expectedMessage];
-        }
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":39:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
+            ['C:30:"Bytemap\Benchmark\ArrayBytemap":43:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+
+            // C:27:"Bytemap\Benchmark\DsBytemap":65:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\Vector":20:{s:3:"foo";s:3:"bar";}}}
+            ['C:27:"Bytemap\Benchmark\DsBytemap":10:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\Vector":20:{s:3:"foo";s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
+
+            ['C:27:"Bytemap\Benchmark\DsBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:27:"Bytemap\Benchmark\DsBytemap":73:{a:3:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+
+            ['C:27:"Bytemap\Benchmark\DsBytemap":60:{a:2:{i:0;i:100;i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
+            ['C:27:"Bytemap\Benchmark\DsBytemap":61:{a:2:{i:0;s:0:"";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \LengthException::class, 'cannot be an empty string'],
+
+            ['C:27:"Bytemap\Benchmark\DsBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be a Ds\\Vector'],
+            ['C:27:"Bytemap\Benchmark\DsBytemap":68:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:2:"ba";}}}', \TypeError::class, 'must be a Ds\\Vector'],
+            ['C:27:"Bytemap\Benchmark\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
+            ['C:27:"Bytemap\Benchmark\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+
+            // C:28:"Bytemap\Benchmark\SplBytemap":69:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}
+            ['C:28:"Bytemap\Benchmark\SplBytemap":10:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
+
+            ['C:28:"Bytemap\Benchmark\SplBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:28:"Bytemap\Benchmark\SplBytemap":77:{a:3:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+
+            ['C:28:"Bytemap\Benchmark\SplBytemap":65:{a:2:{i:0;i:100;i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
+            ['C:28:"Bytemap\Benchmark\SplBytemap":66:{a:2:{i:0;s:0:"";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \LengthException::class, 'cannot be an empty string'],
+
+            ['C:28:"Bytemap\Benchmark\SplBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be an SplFixedArray'],
+            ['C:28:"Bytemap\Benchmark\SplBytemap":65:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}}}', \TypeError::class, 'must be an SplFixedArray'],
+            ['C:28:"Bytemap\Benchmark\SplBytemap":64:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
+            ['C:28:"Bytemap\Benchmark\SplBytemap":68:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+
+            // C:15:"Bytemap\Bytemap":37:{a:2:{i:0;s:3:"foo";i:1;s:6:"foobar";}}
+            ['C:15:"Bytemap\Bytemap":10:{a:2:{i:0;s:3:"foo";i:1;s:6:"foobar";}}', \UnexpectedValueException::class, 'error at offset'],
+
+            ['C:15:"Bytemap\Bytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:15:"Bytemap\Bytemap":45:{a:3:{i:0;s:3:"foo";i:1;s:6:"foobar";i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+
+            ['C:15:"Bytemap\Bytemap":33:{a:2:{i:0;i:100;i:1;s:6:"foobar";}}', \TypeError::class, 'must be of type string'],
+            ['C:15:"Bytemap\Bytemap":34:{a:2:{i:0;s:0:"";i:1;s:6:"foobar";}}', \LengthException::class, 'cannot be an empty string'],
+
+            ['C:15:"Bytemap\Bytemap":44:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
+            ['C:15:"Bytemap\Bytemap":36:{a:2:{i:0;s:3:"foo";i:1;s:5:"fooba";}}', \LengthException::class, 'not a multiple'],
+        ];
     }
 
     /**
      * @covers \Bytemap\AbstractBytemap::unserialize
      * @covers \Bytemap\Benchmark\SplBytemap::unserialize
-     * @dataProvider unexpectedMapProvider
+     * @dataProvider invalidSerializedDataProvider
      */
-    public function testUnserializedUnexpectedMap(string $data, string $expectedMessage): void
+    public function testUnserializeInvalidData(string $data, string $expectedThrowable, string $expectedMessage): void
     {
         try {
             \unserialize($data);
-        } catch (\UnexpectedValueException $e) {
+        } catch (\Throwable $e) {
+            if (!($e instanceof $expectedThrowable)) {
+                $format = 'Failed asserting that a throwable of type %s is thrown as opposed to %s with message "%s"';
+                self::fail(\sprintf($format, $expectedThrowable, \get_class($e), $e->getMessage()));
+            }
         }
-        self::assertTrue(isset($e), 'Failed asserting that exception of type "\\UnexpectedValueException" is thrown.');
-        self::assertContains($expectedMessage, $e->getMessage());
+        self::assertTrue(isset($e), 'Nothing thrown although "\\'.$expectedThrowable.'" was expected.');
+        self::assertContains($expectedMessage, $e->getMessage(), '', true);
     }
 
     private static function assertNativeJson($expected, $actual): void

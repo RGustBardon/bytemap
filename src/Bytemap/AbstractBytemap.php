@@ -327,7 +327,7 @@ abstract class AbstractBytemap implements BytemapInterface
         [$this->defaultItem, $this->map] = $result;
 
         if (!\is_string($this->defaultItem)) {
-            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item must be a string, '.\gettype($this->defaultItem).' given)');
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item must be of type string, '.\gettype($this->defaultItem).' given)');
         }
         if ('' === $this->defaultItem) {
             throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item cannot be an empty string)');
