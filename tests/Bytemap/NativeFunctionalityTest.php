@@ -420,63 +420,83 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     public static function invalidSerializedDataProvider(): \Generator
     {
         yield from [
-            // C:30:"Bytemap\Benchmark\ArrayBytemap":44:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":10:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
+            // C:30:"Bytemap\\Benchmark\\ArrayBytemap":44:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":10:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
 
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":52:{a:3:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":52:{a:3:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":40:{a:2:{i:0;i:100;i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":41:{a:2:{i:0;s:0:"";i:1;a:1:{i:1;s:3:"bar";}}}', \LengthException::class, 'cannot be an empty string'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":40:{a:2:{i:0;i:100;i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":41:{a:2:{i:0;s:0:"";i:1;a:1:{i:1;s:3:"bar";}}}', \LengthException::class, 'cannot be an empty string'],
 
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be of type array'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be of type array'],
 
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":50:{a:2:{i:0;s:3:"foo";i:1;a:1:{s:3:"baz";s:3:"bar";}}}', \TypeError::class, 'index must be of type integer'],
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":45:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:-1;s:3:"bar";}}}', \OutOfRangeException::class, 'negative index'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":50:{a:2:{i:0;s:3:"foo";i:1;a:1:{s:3:"baz";s:3:"bar";}}}', \TypeError::class, 'index must be of type integer'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":45:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:-1;s:3:"bar";}}}', \OutOfRangeException::class, 'negative index'],
 
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":39:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
-            ['C:30:"Bytemap\Benchmark\ArrayBytemap":43:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":39:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":43:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
 
-            // C:27:"Bytemap\Benchmark\DsBytemap":65:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\Vector":20:{s:3:"foo";s:3:"bar";}}}
-            ['C:27:"Bytemap\Benchmark\DsBytemap":10:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\Vector":20:{s:3:"foo";s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
+            // DsBytemap
+            ['C:27:"Bytemap\\Benchmark\\DsBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
 
-            ['C:27:"Bytemap\Benchmark\DsBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
-            ['C:27:"Bytemap\Benchmark\DsBytemap":73:{a:3:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:27:"Bytemap\\Benchmark\\DsBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be a Ds\\Vector'],
+            ['C:27:"Bytemap\\Benchmark\\DsBytemap":68:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:2:"ba";}}}', \TypeError::class, 'must be a Ds\\Vector'],
 
-            ['C:27:"Bytemap\Benchmark\DsBytemap":60:{a:2:{i:0;i:100;i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
-            ['C:27:"Bytemap\Benchmark\DsBytemap":61:{a:2:{i:0;s:0:"";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \LengthException::class, 'cannot be an empty string'],
+            // C:28:"Bytemap\\Benchmark\\SplBytemap":69:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":10:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
 
-            ['C:27:"Bytemap\Benchmark\DsBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be a Ds\\Vector'],
-            ['C:27:"Bytemap\Benchmark\DsBytemap":68:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:2:"ba";}}}', \TypeError::class, 'must be a Ds\\Vector'],
-            ['C:27:"Bytemap\Benchmark\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
-            ['C:27:"Bytemap\Benchmark\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":77:{a:3:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
-            // C:28:"Bytemap\Benchmark\SplBytemap":69:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}
-            ['C:28:"Bytemap\Benchmark\SplBytemap":10:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":65:{a:2:{i:0;i:100;i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":66:{a:2:{i:0;s:0:"";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \LengthException::class, 'cannot be an empty string'],
 
-            ['C:28:"Bytemap\Benchmark\SplBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
-            ['C:28:"Bytemap\Benchmark\SplBytemap":77:{a:3:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be an SplFixedArray'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":65:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}}}', \TypeError::class, 'must be an SplFixedArray'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":64:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":68:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
 
-            ['C:28:"Bytemap\Benchmark\SplBytemap":65:{a:2:{i:0;i:100;i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
-            ['C:28:"Bytemap\Benchmark\SplBytemap":66:{a:2:{i:0;s:0:"";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \LengthException::class, 'cannot be an empty string'],
+            // C:15:"Bytemap\\Bytemap":37:{a:2:{i:0;s:3:"foo";i:1;s:6:"foobar";}}
+            ['C:15:"Bytemap\\Bytemap":10:{a:2:{i:0;s:3:"foo";i:1;s:6:"foobar";}}', \UnexpectedValueException::class, 'error at offset'],
 
-            ['C:28:"Bytemap\Benchmark\SplBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be an SplFixedArray'],
-            ['C:28:"Bytemap\Benchmark\SplBytemap":65:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}}}', \TypeError::class, 'must be an SplFixedArray'],
-            ['C:28:"Bytemap\Benchmark\SplBytemap":64:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
-            ['C:28:"Bytemap\Benchmark\SplBytemap":68:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+            ['C:15:"Bytemap\\Bytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
+            ['C:15:"Bytemap\\Bytemap":45:{a:3:{i:0;s:3:"foo";i:1;s:6:"foobar";i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
-            // C:15:"Bytemap\Bytemap":37:{a:2:{i:0;s:3:"foo";i:1;s:6:"foobar";}}
-            ['C:15:"Bytemap\Bytemap":10:{a:2:{i:0;s:3:"foo";i:1;s:6:"foobar";}}', \UnexpectedValueException::class, 'error at offset'],
+            ['C:15:"Bytemap\\Bytemap":33:{a:2:{i:0;i:100;i:1;s:6:"foobar";}}', \TypeError::class, 'must be of type string'],
+            ['C:15:"Bytemap\\Bytemap":34:{a:2:{i:0;s:0:"";i:1;s:6:"foobar";}}', \LengthException::class, 'cannot be an empty string'],
 
-            ['C:15:"Bytemap\Bytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
-            ['C:15:"Bytemap\Bytemap":45:{a:3:{i:0;s:3:"foo";i:1;s:6:"foobar";i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
-
-            ['C:15:"Bytemap\Bytemap":33:{a:2:{i:0;i:100;i:1;s:6:"foobar";}}', \TypeError::class, 'must be of type string'],
-            ['C:15:"Bytemap\Bytemap":34:{a:2:{i:0;s:0:"";i:1;s:6:"foobar";}}', \LengthException::class, 'cannot be an empty string'],
-
-            ['C:15:"Bytemap\Bytemap":44:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
-            ['C:15:"Bytemap\Bytemap":36:{a:2:{i:0;s:3:"foo";i:1;s:5:"fooba";}}', \LengthException::class, 'not a multiple'],
+            ['C:15:"Bytemap\\Bytemap":44:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
+            ['C:15:"Bytemap\\Bytemap":36:{a:2:{i:0;s:3:"foo";i:1;s:5:"fooba";}}', \LengthException::class, 'not a multiple'],
         ];
+
+        if (\extension_loaded('ds')) {
+            yield from [
+                // C:27:"Bytemap\\Benchmark\\DsBytemap":65:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}}}
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":10:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
+
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":73:{a:3:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":60:{a:2:{i:0;i:100;i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":61:{a:2:{i:0;s:0:"";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \LengthException::class, 'cannot be an empty string'],
+
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+            ];
+        } else {
+            yield from [
+                // C:27:"Bytemap\\Benchmark\\DsBytemap":133:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"Ds\\Vectorarray";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"Ds\\Vectorcapacity";i:8;}}}
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":10:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \UnexpectedValueException::class, 'error at offset'],
+
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":141:{a:3:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":129:{a:2:{i:0;i:100;i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \TypeError::class, 'must be of type string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":130:{a:2:{i:0;s:0:"";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \LengthException::class, 'cannot be an empty string'],
+
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":128:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;i:42;}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \TypeError::class, 'must be of type string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":132:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:2:"ba";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \LengthException::class, 'value must be exactly'],
+            ];
+        }
     }
 
     /**
