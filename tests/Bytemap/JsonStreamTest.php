@@ -54,32 +54,60 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         }
     }
 
-    public static function invalidJsonProvider(): \Generator
+    public static function invalidJsonDataProvider(): \Generator
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            foreach (['}', '"a"'] as $invalidJson) {
-                foreach ([false, true] as $useStreamingParser) {
-                    yield [$impl, $useStreamingParser, $invalidJson];
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([false, true] as $useStreamingParser) {
+                foreach ([
+                    ['}', \UnexpectedValueException::class, 'FIXME'],
+                    ['"a"', \UnexpectedValueException::class, 'FIXME'],
+                    ['{0:"a"}', \UnexpectedValueException::class, 'FIXME'],
+                    ['[[]]', \TypeError::class, 'FIXME'],
+                    ['[2]', \TypeError::class, 'FIXME'],
+                    ['["ab"]', \LengthException::class, 'FIXME'],
+                    ['["a", "ab"]', \LengthException::class, 'FIXME'],
+                    ['{"a":"ab"}', \TypeError::class, 'FIXME'],
+                    ['{"-1":"ab"}', \OutOfRangeException::class, 'FIXME'],
+                    ['{"0":"ab"}', \LengthException::class, 'FIXME'],
+                    ['{"0":"a","1":"ab"}', \LengthException::class, 'FIXME'],
+                ] as [$invalidJsonData, $expectedThrowable, $expectedMessage]) {
+                    yield [$impl, $useStreamingParser, $invalidJsonData, $expectedThrowable, $expectedMessage];
                 }
             }
-            yield [$impl, true, '[[]]'];
         }
     }
 
     /**
+     * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\DsBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
+     * @covers \Bytemap\Bytemap::parseJsonStream
      * @covers \Bytemap\JsonListener\BytemapListener
-     * @dataProvider invalidJsonProvider
-     * @expectedException \UnexpectedValueException
+     * @dataProvider invalidJsonDataProvider
      */
-    public function testParsingException(string $impl, bool $useStreamingParser, string $invalidJson): void
-    {
-        $jsonStream = self::getStream($invalidJson);
-        if ($useStreamingParser) {
-            unset($_ENV['BYTEMAP_STREAMING_PARSER']);
-        } else {
-            $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
+    public function testParsingInvalidData(
+        string $impl,
+        bool $useStreamingParser,
+        string $invalidJsonData,
+        string $expectedThrowable,
+        string $expectedMessage
+    ): void {
+        try {
+            $jsonStream = self::getStream($invalidJsonData);
+            if ($useStreamingParser) {
+                unset($_ENV['BYTEMAP_STREAMING_PARSER']);
+            } else {
+                $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
+            }
+            self::instantiate($impl, "\x00")::parseJsonStream($jsonStream, "\x00");
+        } catch (\Throwable $e) {
+            if (!($e instanceof $expectedThrowable)) {
+                $format = 'Failed asserting that a throwable of type %s is thrown as opposed to %s with message "%s"';
+                self::fail(\sprintf($format, $expectedThrowable, \get_class($e), $e->getMessage()));
+            }
         }
-        self::instantiate($impl, "\x00")::parseJsonStream($jsonStream, "\x00");
+        self::assertTrue(isset($e), 'Nothing thrown although "\\'.$expectedThrowable.'" was expected.');
+        self::assertContains($expectedMessage, $e->getMessage(), '', true);
     }
 
     public static function validJsonProvider(): \Generator
