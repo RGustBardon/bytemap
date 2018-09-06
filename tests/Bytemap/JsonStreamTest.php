@@ -65,7 +65,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
                     ['[2]', \TypeError::class, 'must be of (?:the )?type string'],
                     ['["ab"]', \LengthException::class, 'value must be exactly'],
                     ['["a", "ab"]', \LengthException::class, 'value must be exactly'],
-                    ['{"a":"ab"}', \TypeError::class, 'must be of (?:the )?type integer'],
+                    ['{"a":"ab"}', \TypeError::class, 'must be of (?:the )?type int'],
                     ['{"-1":"ab"}', \OutOfRangeException::class, 'negative index'],
                     ['{"0":"ab"}', \LengthException::class, 'value must be exactly'],
                     ['{"0":"a","1":"ab"}', \LengthException::class, 'value must be exactly'],

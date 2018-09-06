@@ -286,7 +286,7 @@ final class ArrayBytemap extends AbstractBytemap
         $bytesPerItem = \strlen($this->defaultItem);
         foreach ($this->map as $offset => $item) {
             if (!\is_int($offset)) {
-                throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (index must be of type integer, '.\gettype($offset).' given)');
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (index must be of type int, '.\gettype($offset).' given)');
             }
             if ($offset < 0) {
                 throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Failed to unserialize (negative index: '.$offset.')');

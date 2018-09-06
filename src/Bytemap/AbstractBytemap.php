@@ -281,7 +281,7 @@ abstract class AbstractBytemap implements BytemapInterface
     protected function throwOnOffsetGet($offset): void
     {
         if (!\is_int($offset)) {
-            throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type integer, '.\gettype($offset).' given');
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type int, '.\gettype($offset).' given');
         }
 
         if (0 === $this->itemCount) {
