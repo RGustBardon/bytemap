@@ -65,7 +65,7 @@ abstract class AbstractTestOfBytemap extends TestCase
                         return '0';
                     }
                 },
-                \fopen('php://memory', 'r'),
+                \fopen('php://memory', 'rb'),
                 function (): int { return 0; },
                 function (): \Generator { yield 0; },
             ] as $offset) {
@@ -103,7 +103,7 @@ abstract class AbstractTestOfBytemap extends TestCase
                         return '0';
                     }
                 },
-                \fopen('php://memory', 'r'),
+                \fopen('php://memory', 'rb'),
                 function (): int { return 0; },
                 function (): \Generator { yield 0; },
             ] as $invalidItem) {

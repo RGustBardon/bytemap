@@ -74,12 +74,13 @@ class BytemapListener implements Listener
 
     public function key($key)
     {
-        $this->key = $key;
+        $intKey = (int) $key;
+        $this->key = ((string) $intKey === $key) ? $intKey : $key;
     }
 
     public function value($value)
     {
-        ($this->closure)($value, null === $this->key ? null : (int) $this->key);
+        ($this->closure)($value, $this->key);
         $this->key = null;
     }
 

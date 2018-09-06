@@ -74,7 +74,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         $this->impl = $impl;
         $dsStatus = \extension_loaded('ds') ? 'extension' : 'polyfill';
         $this->runtimeId = \sprintf('%s %s (%s, php-ds/%s)', $benchmark, $impl, \PHP_VERSION, $dsStatus);
-        $this->statusHandle = \fopen('/proc/'.\getmypid().'/status', 'r');
+        $this->statusHandle = \fopen('/proc/'.\getmypid().'/status', 'rb');
         \assert(\is_resource($this->statusHandle), $this->runtimeId);
 
         $this->instantiate("\x00");
@@ -98,7 +98,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         switch ($benchmark) {
             case self::BENCHMARK_JSON_STREAM:
                 \assert(\class_exists('\\JsonStreamingParser\\Parser'));
-                $stream = \fopen('php://temp/maxmemory:0', 'r+');
+                $stream = \fopen('php://temp/maxmemory:0', 'r+b');
                 \assert(\is_resource($stream));
                 $bytemap = $this->instantiate("\x00\x00\x00\x00");
                 for ($i = 'aaaa'; 'kaaa' !== $i; ++$i) {

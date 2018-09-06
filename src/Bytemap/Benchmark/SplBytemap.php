@@ -46,7 +46,7 @@ class SplBytemap extends AbstractBytemap
             }
             $this->map[$offset] = $item;
         } else {
-            self::throwOnOffsetSet($offset, $item);
+            self::throwOnOffsetSet($offset, $item, $this->bytesPerItem);
         }
     }
 
@@ -181,8 +181,8 @@ class SplBytemap extends AbstractBytemap
             });
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
-            $map = \json_decode(\stream_get_contents($jsonStream), true);
-            self::ensureJsonDecodedSuccessfully($defaultItem, $map);
+            $map = self::parseJsonNatively($jsonStream);
+            self::validateMapAndGetMaxKey($map, $defaultItem);
             if ($map) {
                 $bytemap->map = \SplFixedArray::fromArray($map);
                 $bytemap->deriveProperties();

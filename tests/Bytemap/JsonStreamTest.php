@@ -59,21 +59,25 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         foreach (self::implementationProvider() as [$impl]) {
             foreach ([false, true] as $useStreamingParser) {
                 foreach ([
-                    ['}', \UnexpectedValueException::class, 'FIXME'],
-                    ['"a"', \UnexpectedValueException::class, 'FIXME'],
-                    ['{0:"a"}', \UnexpectedValueException::class, 'FIXME'],
-                    ['[[]]', \TypeError::class, 'FIXME'],
-                    ['[2]', \TypeError::class, 'FIXME'],
-                    ['["ab"]', \LengthException::class, 'FIXME'],
-                    ['["a", "ab"]', \LengthException::class, 'FIXME'],
-                    ['{"a":"ab"}', \TypeError::class, 'FIXME'],
-                    ['{"-1":"ab"}', \OutOfRangeException::class, 'FIXME'],
-                    ['{"0":"ab"}', \LengthException::class, 'FIXME'],
-                    ['{"0":"a","1":"ab"}', \LengthException::class, 'FIXME'],
-                ] as [$invalidJsonData, $expectedThrowable, $expectedMessage]) {
-                    yield [$impl, $useStreamingParser, $invalidJsonData, $expectedThrowable, $expectedMessage];
+                    ['}', \UnexpectedValueException::class, 'failed to parse JSON'],
+                    ['"a"', \UnexpectedValueException::class, 'expected an array or an object|failed to parse JSON'],
+                    ['{0:"a"}', \UnexpectedValueException::class, 'failed to parse JSON'],
+                    ['[2]', \TypeError::class, 'must be of (?:the )?type string'],
+                    ['["ab"]', \LengthException::class, 'value must be exactly'],
+                    ['["a", "ab"]', \LengthException::class, 'value must be exactly'],
+                    ['{"a":"ab"}', \TypeError::class, 'must be of (?:the )?type integer'],
+                    ['{"-1":"ab"}', \OutOfRangeException::class, 'negative index'],
+                    ['{"0":"ab"}', \LengthException::class, 'value must be exactly'],
+                    ['{"0":"a","1":"ab"}', \LengthException::class, 'value must be exactly'],
+                ] as [$invalidJsonData, $expectedThrowable, $pattern]) {
+                    yield [$impl, $useStreamingParser, $invalidJsonData, $expectedThrowable, $pattern];
                 }
             }
+
+            yield from [
+                [$impl, false, '[[]]', \TypeError::class, 'must be of type string'],
+                [$impl, true, '[[]]', \UnexpectedValueException::class, 'failed to parse JSON'],
+            ];
         }
     }
 
@@ -90,7 +94,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         bool $useStreamingParser,
         string $invalidJsonData,
         string $expectedThrowable,
-        string $expectedMessage
+        string $pattern
     ): void {
         try {
             $jsonStream = self::getStream($invalidJsonData);
@@ -107,7 +111,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
             }
         }
         self::assertTrue(isset($e), 'Nothing thrown although "\\'.$expectedThrowable.'" was expected.');
-        self::assertContains($expectedMessage, $e->getMessage(), '', true);
+        self::assertRegExp('~'.$pattern.'~i', $e->getMessage());
     }
 
     public static function validJsonProvider(): \Generator
@@ -242,7 +246,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
 
     private static function getStream(string $contents)
     {
-        $stream = \fopen('php://memory', 'r+');
+        $stream = \fopen('php://memory', 'r+b');
         self::assertNotFalse($stream);
         \fwrite($stream, $contents);
         \rewind($stream);
@@ -255,7 +259,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         $json = \json_encode($expected);
         self::assertNotFalse($json);
 
-        $stream = \fopen('php://memory', 'r+');
+        $stream = \fopen('php://memory', 'r+b');
         self::assertNotFalse($stream);
         $bytemap->streamJson($stream);
 

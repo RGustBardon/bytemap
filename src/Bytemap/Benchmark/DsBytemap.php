@@ -57,7 +57,7 @@ class DsBytemap extends AbstractBytemap
                 $this->itemCount += $unassignedCount + 1;
             }
         } else {
-            self::throwOnOffsetSet($offset, $item);
+            self::throwOnOffsetSet($offset, $item, $this->bytesPerItem);
         }
     }
 
@@ -171,10 +171,9 @@ class DsBytemap extends AbstractBytemap
             });
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
-            $map = \json_decode(\stream_get_contents($jsonStream), true);
-            self::ensureJsonDecodedSuccessfully($defaultItem, $map);
+            $map = self::parseJsonNatively($jsonStream);
+            $maxKey = self::validateMapAndGetMaxKey($map, $defaultItem);
             if ($map) {
-                $maxKey = self::getMaxKey($map);
                 $bytemap->map->allocate($maxKey + 1);
                 for ($i = 0; $i < $maxKey; ++$i) {
                     $bytemap[] = $defaultItem;

@@ -25,15 +25,15 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *
      * Values are compared strictly.
      *
-     * @param ?iterable $items      The items to look for (whitelist) or to ignore (blacklist).
-     *                              `null` means all the items except for the default one.
+     * @param ?iterable $items      the items to look for (whitelist) or to ignore (blacklist).
+     *                              `null` means all the items except for the default one
      * @param bool      $whitelist  `true` if the first argument is a whitelist
      * @param int       $howMany    The maximum number of matches. By default, all the matches are included.
      *                              If negative, the search starts from the end.
-     * @param ?int      $startAfter The index of the item after which the search should commence.
+     * @param ?int      $startAfter the index of the item after which the search should commence.
      *                              `null` means that the search will start from the first item of the
      *                              bytemap (if `$howMany` is positive) or from the last item of the
-     *                              bytemap (if `$howMany` is negative).
+     *                              bytemap (if `$howMany` is negative)
      *
      * @return \Generator items found (including their keys)
      */
@@ -46,10 +46,10 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * @param bool   $whitelist  `true` if the first argument represents a whitelist
      * @param int    $howMany    The maximum number of matches. By default, all the matches are included.
      *                           If negative, the search starts from the end.
-     * @param ?int   $startAfter The index of the item after which the search should commence.
+     * @param ?int   $startAfter the index of the item after which the search should commence.
      *                           `null` means that the search will start from the first item of the
      *                           bytemap (if `$howMany` is positive) or from the last item of the
-     *                           bytemap (if `$howMany` is negative).
+     *                           bytemap (if `$howMany` is negative)
      *
      * @return \Generator items found (including their keys)
      */
@@ -61,8 +61,8 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * Subsequent bytemap items are shifted right by the number of items inserted.
      *
      * @param iterable $items           The items to be inserted. Keys are ignored.
-     * @param int      $firstItemOffset The offset that the first newly inserted item is going to have.
-     *                                  If negative, `-1` represents the last item, `-2` the item preceding it, etc.
+     * @param int      $firstItemOffset the offset that the first newly inserted item is going to have.
+     *                                  If negative, `-1` represents the last item, `-2` the item preceding it, etc
      */
     public function insert(iterable $items, int $firstItemOffset = -1): void;
 
@@ -71,8 +71,8 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *
      * Subsequent bytemap items are shifted left by the number of items deleted.
      *
-     * @param int $firstItemOffset The offset of the first item that is to be deleted.
-     *                             If negative, `-1` represents the last item, `-2` the item preceding it, etc.
+     * @param int $firstItemOffset the offset of the first item that is to be deleted.
+     *                             If negative, `-1` represents the last item, `-2` the item preceding it, etc
      * @param int $howMany         the number of items to be deleted from the bytemap
      */
     public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void;

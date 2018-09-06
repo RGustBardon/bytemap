@@ -71,7 +71,7 @@ class Bytemap extends AbstractBytemap
                 $this->bytesInTotal = $this->itemCount * $bytesPerItem;
             }
         } else {
-            self::throwOnOffsetSet($offset, $item);
+            self::throwOnOffsetSet($offset, $item, $this->bytesPerItem);
         }
     }
 
@@ -189,12 +189,10 @@ class Bytemap extends AbstractBytemap
             });
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
-            $map = \json_decode(\stream_get_contents($jsonStream), true);
-            self::ensureJsonDecodedSuccessfully($defaultItem, $map);
-
+            $map = self::parseJsonNatively($jsonStream);
+            $maxKey = self::validateMapAndGetMaxKey($map, $defaultItem);
             $size = \count($map);
             if ($size > 0) {
-                $maxKey = self::getMaxKey($map);
                 if ($maxKey + 1 === $size) {
                     $bytemap->map = \implode('', $map);
                 } else {
