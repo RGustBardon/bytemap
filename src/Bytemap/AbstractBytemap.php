@@ -399,7 +399,13 @@ abstract class AbstractBytemap implements BytemapInterface
             // @codeCoverageIgnoreEnd
         }
 
-        return \json_decode($contents, true);
+        $result = \json_decode($contents, true);
+
+        if (\json_last_error() !== \JSON_ERROR_NONE) {
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to parse JSON ('.\json_last_error_msg().')');
+        }
+
+        return $result;
     }
 
     protected static function parseJsonStreamOnline($jsonStream, Listener $listener): void
@@ -430,10 +436,6 @@ abstract class AbstractBytemap implements BytemapInterface
 
     protected static function validateMapAndGetMaxKey($map, string $defaultItem): int
     {
-        if (\JSON_ERROR_NONE !== \json_last_error()) {
-            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to parse JSON ('.\json_last_error_msg().')');
-        }
-
         if (!\is_array($map)) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Invalid JSON (expected an array or an object, '.\gettype($map).' given)');
         }
