@@ -164,7 +164,6 @@ abstract class AbstractBytemap implements BytemapInterface
         int $howMany = \PHP_INT_MAX,
         ?int $startAfter = null
         ): \Generator {
-        $regex .= 'S';
 
         $errorMessage = 'details unavailable';
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
@@ -187,6 +186,7 @@ abstract class AbstractBytemap implements BytemapInterface
             return;
         }
 
+        $regex .= 'S';
         if ($this->bytesPerItem > 1) {
             yield from $this->grepMultibyte($regex, $whitelist, $howMany, $howManyToSkip);
         } else {
