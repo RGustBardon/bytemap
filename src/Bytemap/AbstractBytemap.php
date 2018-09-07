@@ -93,7 +93,7 @@ abstract class AbstractBytemap implements BytemapInterface
     public function getIterator(): \Traversable
     {
         return (static function (self $bytemap): \Generator {
-            for ($i = 0; $i < $bytemap->itemCount; ++$i) {
+            for ($i = 0, $itemCount = $bytemap->itemCount; $i < $itemCount; ++$i) {
                 yield $i => $bytemap[$i];
             }
         })(clone $this);
@@ -103,7 +103,7 @@ abstract class AbstractBytemap implements BytemapInterface
     public function jsonSerialize(): array
     {
         $completeMap = [];
-        for ($i = 0; $i < $this->itemCount; ++$i) {
+        for ($i = 0, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
             $completeMap[$i] = $this[$i];
         }
 
@@ -144,8 +144,9 @@ abstract class AbstractBytemap implements BytemapInterface
             $whitelist = !$whitelist;
         } else {
             $needles = [];
+            $bytesPerItem = $this->bytesPerItem;
             foreach ($items as $value) {
-                if (\is_string($value)) {
+                if (\is_string($value) && \strlen($value) === $bytesPerItem) {
                     $needles[$value] = true;
                 }
             }
@@ -164,7 +165,6 @@ abstract class AbstractBytemap implements BytemapInterface
         int $howMany = \PHP_INT_MAX,
         ?int $startAfter = null
         ): \Generator {
-
         $errorMessage = 'details unavailable';
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
             $errorMessage = $errstr;
@@ -241,25 +241,15 @@ abstract class AbstractBytemap implements BytemapInterface
             return 0;
         }
 
-        $itemCount = $this->itemCount;
-
         if ($startAfter < 0) {
-            $startAfter += $itemCount;
+            $startAfter += $this->itemCount;
         }
 
         if ($searchForwards) {
-            if ($startAfter >= $itemCount - 1) {
-                return null;
-            }
-
-            return \max(0, $startAfter + 1);
+            return $startAfter < $this->itemCount - 1 ? \max(0, $startAfter + 1) : null;
         }
 
-        if ($startAfter <= 0) {
-            return null;
-        }
-
-        return $startAfter <= 0 ? null : \max(0, $itemCount - $startAfter);
+        return $startAfter > 0 ? \max(0, $this->itemCount - $startAfter) : null;
     }
 
     protected function calculateNewSize(iterable $additionalItems, int $firstItemOffset = -1): ?int
