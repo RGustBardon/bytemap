@@ -390,7 +390,7 @@ abstract class AbstractBytemap implements BytemapInterface
         return ($_ENV['BYTEMAP_STREAMING_PARSER'] ?? true) && \class_exists('\\JsonStreamingParser\\Parser');
     }
 
-    protected static function parseJsonNatively($jsonStream)
+    protected static function parseJsonStreamNatively($jsonStream)
     {
         $contents = \stream_get_contents($jsonStream);
         if (false === $contents) {

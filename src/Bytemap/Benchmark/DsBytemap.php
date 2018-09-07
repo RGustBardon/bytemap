@@ -171,7 +171,7 @@ class DsBytemap extends AbstractBytemap
             });
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
-            $map = self::parseJsonNatively($jsonStream);
+            $map = self::parseJsonStreamNatively($jsonStream);
             $maxKey = self::validateMapAndGetMaxKey($map, $defaultItem);
             if ($map) {
                 $bytemap->map->allocate($maxKey + 1);

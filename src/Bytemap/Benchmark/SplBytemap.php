@@ -181,7 +181,7 @@ class SplBytemap extends AbstractBytemap
             });
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
-            $map = self::parseJsonNatively($jsonStream);
+            $map = self::parseJsonStreamNatively($jsonStream);
             self::validateMapAndGetMaxKey($map, $defaultItem);
             if ($map) {
                 $bytemap->map = \SplFixedArray::fromArray($map);

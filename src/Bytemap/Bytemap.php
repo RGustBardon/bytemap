@@ -189,7 +189,7 @@ class Bytemap extends AbstractBytemap
             });
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
-            $map = self::parseJsonNatively($jsonStream);
+            $map = self::parseJsonStreamNatively($jsonStream);
             $maxKey = self::validateMapAndGetMaxKey($map, $defaultItem);
             $size = \count($map);
             if ($size > 0) {

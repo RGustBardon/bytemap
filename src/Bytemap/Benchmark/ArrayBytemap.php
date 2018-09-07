@@ -125,7 +125,7 @@ final class ArrayBytemap extends AbstractBytemap
             });
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
-            $bytemap->map = self::parseJsonNatively($jsonStream);
+            $bytemap->map = self::parseJsonStreamNatively($jsonStream);
             self::validateMapAndGetMaxKey($bytemap->map, $defaultItem);
             $bytemap->deriveProperties();
         }
