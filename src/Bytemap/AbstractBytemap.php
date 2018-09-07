@@ -44,7 +44,7 @@ abstract class AbstractBytemap implements BytemapInterface
         $this->defaultItem = $defaultItem;
         $this->createEmptyMap();
 
-        static::deriveProperties();
+        $this->deriveProperties();
     }
 
     // Property overloading.
