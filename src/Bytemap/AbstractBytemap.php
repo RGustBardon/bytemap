@@ -26,9 +26,12 @@ abstract class AbstractBytemap implements BytemapInterface
 {
     protected const EXCEPTION_PREFIX = 'Bytemap: ';
     protected const GREP_MAXIMUM_LOOKUP_SIZE = 1024;
+    protected const STREAM_BUFFER_SIZE = 16384;
     protected const UNSERIALIZED_CLASSES = false;
 
+    /** @var string */
     protected $defaultItem;
+    /** @var int */
     protected $bytesPerItem;
 
     /** @var int */
@@ -74,40 +77,10 @@ abstract class AbstractBytemap implements BytemapInterface
         return \is_int($offset) && $offset >= 0 && $offset < $this->itemCount;
     }
 
-    public function offsetGet($offset): string
-    {
-        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
-            return $this->map[$offset] ?? $this->defaultItem;
-        }
-
-        self::throwOnOffsetGet($offset);
-    }
-
     // `Countable`
     public function count(): int
     {
         return $this->itemCount;
-    }
-
-    // `IteratorAggregate`
-    public function getIterator(): \Traversable
-    {
-        return (static function (self $bytemap): \Generator {
-            for ($i = 0, $itemCount = $bytemap->itemCount; $i < $itemCount; ++$i) {
-                yield $i => $bytemap[$i];
-            }
-        })(clone $this);
-    }
-
-    // `JsonSerializable`
-    public function jsonSerialize(): array
-    {
-        $completeMap = [];
-        for ($i = 0, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-            $completeMap[$i] = $this[$i];
-        }
-
-        return $completeMap;
     }
 
     // `Serializable`
@@ -221,17 +194,6 @@ abstract class AbstractBytemap implements BytemapInterface
 
         // Delete the items.
         $this->deleteWithNonNegativeOffset(\max(0, $firstItemOffset), $howMany, $itemCount);
-    }
-
-    public function streamJson($stream): void
-    {
-        self::ensureStream($stream);
-
-        \fwrite($stream, '[');
-        for ($i = 0; $i < $this->itemCount - 1; ++$i) {
-            \fwrite($stream, \json_encode($this[$i]).',');
-        }
-        \fwrite($stream, ($this->itemCount > 0 ? \json_encode($this[$i]) : '').']');
     }
 
     // `AbstractBytemap`
@@ -391,7 +353,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
         $result = \json_decode($contents, true);
 
-        if (\json_last_error() !== \JSON_ERROR_NONE) {
+        if (\JSON_ERROR_NONE !== \json_last_error()) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to parse JSON ('.\json_last_error_msg().')');
         }
 
@@ -404,6 +366,17 @@ abstract class AbstractBytemap implements BytemapInterface
             (new Parser($jsonStream, $listener))->parse();
         } catch (ParsingError | \UnexpectedValueException $e) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to parse JSON ('.$e->getMessage().')');
+        }
+    }
+
+    protected static function stream($stream, string $string): void
+    {
+        for ($written = 0, $size = \strlen($string); $written < $size; $written += $fwrite) {
+            if (false === ($fwrite = \fwrite($stream, \substr($string, (int) $written)))) {
+                // @codeCoverageIgnoreStart
+                throw new \RuntimeException(self::EXCEPTION_PREFIX.'Failed to write JSON data to a stream');
+                // @codeCoverageIgnoreEnd
+            }
         }
     }
 

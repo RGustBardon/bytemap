@@ -22,7 +22,9 @@ use Bytemap\JsonListener\BytemapListener;
  */
 class Bytemap extends AbstractBytemap
 {
+    /** @var int */
     private $bytesInTotal;
+    /** @var bool */
     private $singleByte;
 
     // `ArrayAccess`
@@ -101,7 +103,7 @@ class Bytemap extends AbstractBytemap
                 yield $i => $map[$i];
             }
         } else {
-            $bytesPerItem = (int) $this->bytesPerItem;
+            $bytesPerItem = $this->bytesPerItem;
             for ($i = 0, $offset = 0; $i < $itemCount; ++$i, $offset += $bytesPerItem) {
                 yield $i => \substr($map, $offset, $bytesPerItem);
             }
@@ -145,7 +147,7 @@ class Bytemap extends AbstractBytemap
         if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
             // Insert the items.
             $padLength = \strlen($substring) + \max(0, $firstItemOffset - $this->itemCount) * $this->bytesPerItem;
-            $this->map .= \str_pad($substring, (int) $padLength, $this->defaultItem, \STR_PAD_LEFT);
+            $this->map .= \str_pad($substring, $padLength, $this->defaultItem, \STR_PAD_LEFT);
         } else {
             $originalFirstItemOffset = $firstItemOffset;
             // Calculate the positive offset corresponding to the negative one.
@@ -172,6 +174,38 @@ class Bytemap extends AbstractBytemap
         }
 
         $this->deriveProperties();
+    }
+
+    public function streamJson($stream): void
+    {
+        self::ensureStream($stream);
+
+        $defaultItem = $this->defaultItem;
+        $bytesPerItem = $this->bytesPerItem;
+
+        $buffer = '[';
+        $map = $this->map;
+        $offset = 0;
+        $penultimate = $this->bytesInTotal - $bytesPerItem;
+        if ($this->singleByte) {
+            for (; $offset < $penultimate; ++$offset) {
+                $buffer .= \json_encode($map[$offset]).',';
+                if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
+                    self::stream($stream, $buffer);
+                    $buffer = '';
+                }
+            }
+        } else {
+            for (; $offset < $penultimate; $offset += $bytesPerItem) {
+                $buffer .= \json_encode(\substr($map, $offset, $bytesPerItem)).',';
+                if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
+                    self::stream($stream, $buffer);
+                    $buffer = '';
+                }
+            }
+        }
+        $buffer .= ($this->itemCount > 0 ? \json_encode(\substr($map, $offset)) : '').']';
+        self::stream($stream, $buffer);
     }
 
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface

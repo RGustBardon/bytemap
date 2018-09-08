@@ -178,7 +178,10 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::streamJson
+     * @covers \Bytemap\Benchmark\ArrayBytemap::streamJson
+     * @covers \Bytemap\Benchmark\DsBytemap::streamJson
+     * @covers \Bytemap\Benchmark\SplBytemap::streamJson
+     * @covers \Bytemap\Bytemap::streamJson
      * @dataProvider arrayAccessProvider
      */
     public function testStreaming(string $impl, array $items): void
@@ -193,6 +196,20 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         \array_push($sequence, $items[0], $items[0]);
 
         self::assertStreamWriting($sequence, $bytemap);
+    }
+
+    /**
+     * @covers \Bytemap\Benchmark\ArrayBytemap::streamJson
+     * @covers \Bytemap\Benchmark\DsBytemap::streamJson
+     * @covers \Bytemap\Benchmark\SplBytemap::streamJson
+     * @covers \Bytemap\Bytemap::streamJson
+     * @dataProvider arrayAccessProvider
+     * @depends testStreaming
+     */
+    public function testStreamingInBatches(string $impl, array $items): void
+    {
+        $bytemap = self::instantiateWithSize($impl, $items, 32 * 1024);
+        self::assertStreamWriting(\iterator_to_array($bytemap->getIterator()), $bytemap);
     }
 
     private static function assertStreamParsing(

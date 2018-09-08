@@ -98,7 +98,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
      * @covers \Bytemap\Bytemap::offsetGet
      * @dataProvider nullOffsetProvider
      * @dataProvider invalidOffsetTypeProvider
@@ -112,7 +114,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
      * @covers \Bytemap\Bytemap::offsetGet
      * @dataProvider negativeOffsetProvider
      * @dataProvider outOfRangeOffsetProvider
@@ -217,11 +221,13 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
 
     /**
      * @covers \Bytemap\AbstractBytemap::offsetExists
-     * @covers \Bytemap\AbstractBytemap::offsetGet
+     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetGet
      * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
      * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\DsBytemap::offsetGet
      * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
      * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
+     * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
      * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
      * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
      * @covers \Bytemap\Bytemap::offsetGet
@@ -333,8 +339,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::getIterator
+     * @covers \Bytemap\Benchmark\ArrayBytemap::getIterator
      * @covers \Bytemap\Benchmark\DsBytemap::getIterator
+     * @covers \Bytemap\Benchmark\SplBytemap::getIterator
      * @covers \Bytemap\Bytemap::getIterator
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
@@ -377,7 +384,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::jsonSerialize
+     * @covers \Bytemap\Benchmark\ArrayBytemap::jsonSerialize
      * @covers \Bytemap\Benchmark\DsBytemap::jsonSerialize
      * @covers \Bytemap\Benchmark\SplBytemap::jsonSerialize
      * @covers \Bytemap\Bytemap::jsonSerialize

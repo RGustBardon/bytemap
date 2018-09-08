@@ -32,6 +32,15 @@ class SplBytemap extends AbstractBytemap
     }
 
     // `ArrayAccess`
+    public function offsetGet($offset): string
+    {
+        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
+            return $this->map[$offset] ?? $this->defaultItem;
+        }
+
+        self::throwOnOffsetGet($offset);
+    }
+
     public function offsetSet($offset, $item): void
     {
         if (null === $offset) {  // `$bytemap[] = $item`
@@ -58,6 +67,27 @@ class SplBytemap extends AbstractBytemap
                 --$this->itemCount;
             }
         }
+    }
+
+    // `IteratorAggregate`
+    public function getIterator(): \Traversable
+    {
+        return (static function (self $bytemap): \Generator {
+            for ($i = 0, $defaultItem = $bytemap->defaultItem, $itemCount = $bytemap->itemCount; $i < $itemCount; ++$i) {
+                yield $i => $bytemap->map[$i] ?? $defaultItem;
+            }
+        })(clone $this);
+    }
+
+    // `JsonSerializable`
+    public function jsonSerialize(): array
+    {
+        $completeMap = [];
+        for ($i = 0, $defaultItem = $this->defaultItem, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
+            $completeMap[$i] = $this->map[$i] ?? $defaultItem;
+        }
+
+        return $completeMap;
     }
 
     // `Serializable`
@@ -159,6 +189,24 @@ class SplBytemap extends AbstractBytemap
             }
             $this->map[$firstItemOffset + $j] = $tmp;
         }
+    }
+
+    public function streamJson($stream): void
+    {
+        self::ensureStream($stream);
+
+        $defaultItem = $this->defaultItem;
+
+        $buffer = '[';
+        for ($i = 0, $penultimate = $this->itemCount - 1; $i < $penultimate; ++$i) {
+            $buffer .= \json_encode($this->map[$i] ?? $defaultItem).',';
+            if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
+                self::stream($stream, $buffer);
+                $buffer = '';
+            }
+        }
+        $buffer .= ($this->itemCount > 0 ? \json_encode($this->map[$i] ?? $defaultItem) : '').']';
+        self::stream($stream, $buffer);
     }
 
     public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
