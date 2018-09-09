@@ -397,25 +397,28 @@ abstract class AbstractBytemap implements BytemapInterface
         throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
     }
 
-    protected static function validateMapAndGetMaxKey($map, string $defaultItem): int
+    protected static function validateMapAndGetMaxKey($map, string $defaultItem): array
     {
         if (!\is_array($map)) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Invalid JSON (expected an array or an object, '.\gettype($map).' given)');
         }
 
+        $sorted = true;
         $maxKey = -1;
         $bytesPerItem = \strlen($defaultItem);
         foreach ($map as $key => $item) {
             if (\is_int($key) && $key >= 0 && \is_string($item) && \strlen($item) === $bytesPerItem) {
                 if ($maxKey < $key) {
                     $maxKey = $key;
+                } else {
+                    $sorted = false;
                 }
             } else {
                 self::throwOnOffsetSet($key, $item, $bytesPerItem);
             }
         }
 
-        return $maxKey;
+        return [$maxKey, $sorted];
     }
 
     abstract protected function createEmptyMap(): void;

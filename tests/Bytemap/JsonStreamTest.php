@@ -149,6 +149,13 @@ final class JsonStreamTest extends AbstractTestOfBytemap
 
         $sequence = \array_reverse($sequence, true);
         self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $instance, $items[0], $useStreamingParser);
+
+        $expectedSequence = [$items[0], $items[1], $items[2]];
+        $sequence = [1 => $items[1], 0 => $items[0], 2 => $items[2]];
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $instance, $items[0], $useStreamingParser);
+
+        $sequence = [1 => $items[1], 2 => $items[2]];
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $instance, $items[0], $useStreamingParser);
     }
 
     /**

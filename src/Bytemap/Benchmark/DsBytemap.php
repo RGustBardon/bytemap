@@ -199,14 +199,23 @@ class DsBytemap extends AbstractBytemap
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
-            $maxKey = self::validateMapAndGetMaxKey($map, $defaultItem);
-            if ($map) {
+            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultItem);
+            $size = \count($map);
+            if ($size > 0) {
                 $bytemap->map->allocate($maxKey + 1);
-                for ($i = 0; $i < $maxKey; ++$i) {
-                    $bytemap[] = $defaultItem;
+                if (!$sorted) {
+                    \ksort($map, \SORT_NUMERIC);
                 }
-                foreach ($map as $key => $value) {
-                    $bytemap[$key] = $value;
+                if ($maxKey + 1 === $size) {
+                    $bytemap->map->push(...$map);
+                } else {
+                    $lastIndex = -1;
+                    foreach ($map as $key => $value) {
+                        for ($i = $lastIndex + 1; $i < $key; ++$i) {
+                            $bytemap[$i] = $defaultItem;
+                        }
+                        $bytemap[$lastIndex = $key] = $value;
+                    }
                 }
                 $bytemap->deriveProperties();
             }

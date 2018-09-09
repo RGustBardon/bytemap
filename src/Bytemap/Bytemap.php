@@ -224,10 +224,13 @@ class Bytemap extends AbstractBytemap
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
-            $maxKey = self::validateMapAndGetMaxKey($map, $defaultItem);
+            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultItem);
             $size = \count($map);
             if ($size > 0) {
                 if ($maxKey + 1 === $size) {
+                    if (!$sorted) {
+                        \ksort($map, \SORT_NUMERIC);
+                    }
                     $bytemap->map = \implode('', $map);
                 } else {
                     $bytemap[$maxKey] = $map[$maxKey];  // Avoid unnecessary resizing.
