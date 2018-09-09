@@ -25,67 +25,27 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class AbstractTestOfBytemap extends TestCase
 {
-    public static function implementationProvider(): array
+    public static function implementationProvider(): \Generator
     {
-        return [[ArrayBytemap::class], [DsBytemap::class], [SplBytemap::class], [Bytemap::class]];
-    }
-
-    public static function tripleProvider(): array
-    {
-        return [['b', 'd', 'f'], ['bd', 'df', 'gg']];
+        foreach ([
+            ArrayBytemap::class,
+            DsBytemap::class,
+            SplBytemap::class,
+            Bytemap::class,
+        ] as $impl) {
+            yield [$impl];
+        }
     }
 
     public static function arrayAccessProvider(): \Generator
     {
         foreach (self::implementationProvider() as [$impl]) {
-            foreach (self::tripleProvider() as $items) {
+            foreach ([
+                ['b', 'd', 'f'],
+                ['bd', 'df', 'gg'],
+            ] as $items) {
                 yield [$impl, $items];
             }
-        }
-    }
-
-    public static function nullOffsetProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            yield [$impl, $items, null];
-        }
-    }
-
-    public static function invalidOffsetTypeProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            foreach ([
-                false, true,
-                0., 1.,
-                '', '+0', '00', '01', '0e0', '0a', 'a0', '01', '1e0', '1a', 'a1',
-                [], [0], [1],
-                new \stdClass(), new class() {
-                    public function __toString(): string
-                    {
-                        return '0';
-                    }
-                },
-                \fopen('php://memory', 'rb'),
-                function (): int { return 0; },
-                function (): \Generator { yield 0; },
-            ] as $offset) {
-                yield [$impl, $items, $offset];
-            }
-        }
-    }
-
-    public static function negativeOffsetProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            yield [$impl, $items, 0, -1];
-        }
-    }
-
-    public static function outOfRangeOffsetProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            yield [$impl, $items, 0, 0];
-            yield [$impl, $items, 1, 1];
         }
     }
 

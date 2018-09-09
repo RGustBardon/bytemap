@@ -75,6 +75,36 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         unset((self::instantiate($impl, 'a'))->undefinedProperty);
     }
 
+    public static function nullOffsetProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            yield [$impl, $items, null];
+        }
+    }
+
+    public static function invalidOffsetTypeProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            foreach ([
+                false, true,
+                0., 1.,
+                '', '+0', '00', '01', '0e0', '0a', 'a0', '01', '1e0', '1a', 'a1',
+                [], [0], [1],
+                new \stdClass(), new class() {
+                    public function __toString(): string
+                    {
+                        return '0';
+                    }
+                },
+                \fopen('php://memory', 'rb'),
+                function (): int { return 0; },
+                function (): \Generator { yield 0; },
+            ] as $offset) {
+                yield [$impl, $items, $offset];
+            }
+        }
+    }
+
     /**
      * @covers \Bytemap\AbstractBytemap::offsetExists
      * @dataProvider nullOffsetProvider
@@ -85,6 +115,25 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     public function testExistsInvalidType(string $impl, array $items, $offset): void
     {
         self::assertFalse(isset(self::instantiate($impl, $items[0])[$offset]));
+    }
+
+    public static function negativeOffsetProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            yield [$impl, $items, 0, -1];
+        }
+    }
+
+    public static function outOfRangeOffsetProvider(): \Generator
+    {
+        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+            foreach ([
+                [0, 0],
+                [1, 1],
+            ] as [$itemCount, $offset]) {
+                yield [$impl, $items, $itemCount, $offset];
+            }
+        }
     }
 
     /**
@@ -234,16 +283,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Bytemap::offsetSet
      * @covers \Bytemap\Bytemap::offsetUnset
      * @dataProvider arrayAccessProvider
-     * @depends testExistsInvalidType
-     * @depends testExistsOutOfRange
-     * @depends testGetInvalidType
-     * @depends testGetOutOfRange
-     * @depends testSetInvalidOffsetType
-     * @depends testSetNegativeOffset
-     * @depends testSetInvalidItemType
-     * @depends testSetInvalidLength
-     * @depends testUnsetInvalidType
-     * @depends testUnsetOutOfRange
      */
     public function testArrayAccess(string $impl, array $items): void
     {
@@ -403,27 +442,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertNativeJson($sequence, $bytemap);
     }
 
-    /**
-     * @covers \Bytemap\AbstractBytemap::serialize
-     * @covers \Bytemap\AbstractBytemap::unserialize
-     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
-     * @dataProvider arrayAccessProvider
-     * @depends testCountable
-     */
-    public function testSerializable(string $impl, array $items): void
-    {
-        $sequence = [$items[1], $items[2], $items[1], $items[0], $items[0]];
-
-        $bytemap = self::instantiate($impl, $items[0]);
-        self::pushItems($bytemap, ...$sequence);
-
-        $copy = \unserialize(\serialize($bytemap), ['allowed_classes' => [$impl]]);
-        self::assertNotSame($bytemap, $copy);
-        self::assertSequence($sequence, $copy);
-        self::assertDefaultItem($items[0], $copy, $items[1]);
-        self::assertDefaultItem($items[0], $bytemap, $items[2]);
-    }
-
     public static function invalidSerializedDataProvider(): \Generator
     {
         yield from [
@@ -523,6 +541,27 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         }
         self::assertTrue(isset($e), 'Nothing thrown although "\\'.$expectedThrowable.'" was expected.');
         self::assertContains($expectedMessage, $e->getMessage(), '', true);
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::serialize
+     * @covers \Bytemap\AbstractBytemap::unserialize
+     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
+     * @dataProvider arrayAccessProvider
+     * @depends testCountable
+     */
+    public function testSerializable(string $impl, array $items): void
+    {
+        $sequence = [$items[1], $items[2], $items[1], $items[0], $items[0]];
+
+        $bytemap = self::instantiate($impl, $items[0]);
+        self::pushItems($bytemap, ...$sequence);
+
+        $copy = \unserialize(\serialize($bytemap), ['allowed_classes' => [$impl]]);
+        self::assertNotSame($bytemap, $copy);
+        self::assertSequence($sequence, $copy);
+        self::assertDefaultItem($items[0], $copy, $items[1]);
+        self::assertDefaultItem($items[0], $bytemap, $items[2]);
     }
 
     private static function assertNativeJson($expected, $actual): void

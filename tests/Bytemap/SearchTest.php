@@ -167,6 +167,7 @@ final class SearchTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap::find
      * @depends testFinding
      * @dataProvider implementationDirectionProvider
      */
@@ -186,8 +187,10 @@ final class SearchTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap::grep
      * @dataProvider implementationProvider
      * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessage PREG_INTERNAL_ERROR
      */
     public function testGreppingInvalidRegex(string $impl): void
     {
@@ -327,7 +330,6 @@ final class SearchTest extends AbstractTestOfBytemap
     /**
      * @covers \Bytemap\AbstractBytemap::grep
      * @dataProvider greppingProvider
-     * @depends testGreppingInvalidRegex
      */
     public function testGrepping(
         string $impl,
@@ -353,12 +355,15 @@ final class SearchTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\AbstractBytemap::grep
      * @depends testGrepping
      * @dataProvider implementationDirectionProvider
      */
     public function testGreppingCircularLookup(string $impl, bool $forward): void
     {
         $bytemap = self::instantiate($impl, "\x00\x00\x00");
+
+        // The number of unique items should exceed `AbstractBytemap::GREP_MAXIMUM_LOOKUP_SIZE`.
         for ($item = 'aaa'; $item <= 'pzz'; ++$item) {  // 16 * 26 * 26 = 10816 items.
             $bytemap[] = $item;
         }

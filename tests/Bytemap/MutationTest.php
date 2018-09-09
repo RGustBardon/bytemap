@@ -141,8 +141,6 @@ final class MutationTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\SplBytemap::insert
      * @covers \Bytemap\Bytemap::insert
      * @dataProvider insertionProvider
-     * @depends testInsertionOfInvalidType
-     * @depends testInsertionOfInvalidLength
      */
     public function testInsertion(
         string $impl,
