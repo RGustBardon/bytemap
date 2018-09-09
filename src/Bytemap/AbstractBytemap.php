@@ -269,28 +269,6 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    protected function validateInsertedItems(
-        int $firstItemOffsetToCheck,
-        int $howManyToCheck,
-        int $firstItemOffsetToRollBack,
-        int $howManyToRollBack
-    ): void {
-        $bytesPerItem = $this->bytesPerItem;
-        $lastItemOffsetToCheck = $firstItemOffsetToCheck + $howManyToCheck;
-        for ($offset = $firstItemOffsetToCheck; $offset < $lastItemOffsetToCheck; ++$offset) {
-            if (!\is_string($item = $this->map[$offset])) {
-                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
-
-                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
-            }
-            if (\strlen($item) !== $bytesPerItem) {
-                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
-
-                throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
-            }
-        }
-    }
-
     protected static function calculateGreatestCommonDivisor(int $a, int $b): int
     {
         while (0 !== $b) {

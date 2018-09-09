@@ -262,14 +262,6 @@ final class ArrayBytemap extends AbstractBytemap
         }
     }
 
-    protected function fillAndSort(): void
-    {
-        if (\count($this->map) !== $this->itemCount) {
-            $this->map += \array_fill(0, $this->itemCount, $this->defaultItem);
-        }
-        \ksort($this->map, \SORT_NUMERIC);
-    }
-
     protected function grepMultibyte(
         string $regex,
         bool $whitelist,
@@ -345,6 +337,37 @@ final class ArrayBytemap extends AbstractBytemap
             }
             if (\strlen($item) !== $bytesPerItem) {
                 throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
+            }
+        }
+    }
+
+    // `ArrayBytemap`
+    protected function fillAndSort(): void
+    {
+        if (\count($this->map) !== $this->itemCount) {
+            $this->map += \array_fill(0, $this->itemCount, $this->defaultItem);
+        }
+        \ksort($this->map, \SORT_NUMERIC);
+    }
+
+    protected function validateInsertedItems(
+        int $firstItemOffsetToCheck,
+        int $howManyToCheck,
+        int $firstItemOffsetToRollBack,
+        int $howManyToRollBack
+        ): void {
+        $bytesPerItem = $this->bytesPerItem;
+        $lastItemOffsetToCheck = $firstItemOffsetToCheck + $howManyToCheck;
+        for ($offset = $firstItemOffsetToCheck; $offset < $lastItemOffsetToCheck; ++$offset) {
+            if (!\is_string($item = $this->map[$offset])) {
+                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
+
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
+            }
+            if (\strlen($item) !== $bytesPerItem) {
+                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
+
+                throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
             }
         }
     }

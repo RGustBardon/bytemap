@@ -21,8 +21,10 @@ use Bytemap\JsonListener\BytemapListener;
  * An implementation of the `BytemapInterface` using `\Ds\Vector`.
  *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
+ *
+ * @internal
  */
-class DsBytemap extends AbstractBytemap
+final class DsBytemap extends AbstractBytemap
 {
     protected const UNSERIALIZED_CLASSES = ['Ds\\Vector'];
 
@@ -364,6 +366,29 @@ class DsBytemap extends AbstractBytemap
             }
             if (\strlen($item) !== $bytesPerItem) {
                 throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
+            }
+        }
+    }
+
+    // `DsBytemap`
+    protected function validateInsertedItems(
+        int $firstItemOffsetToCheck,
+        int $howManyToCheck,
+        int $firstItemOffsetToRollBack,
+        int $howManyToRollBack
+        ): void {
+        $bytesPerItem = $this->bytesPerItem;
+        $lastItemOffsetToCheck = $firstItemOffsetToCheck + $howManyToCheck;
+        for ($offset = $firstItemOffsetToCheck; $offset < $lastItemOffsetToCheck; ++$offset) {
+            if (!\is_string($item = $this->map[$offset])) {
+                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
+
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
+            }
+            if (\strlen($item) !== $bytesPerItem) {
+                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
+
+                throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
             }
         }
     }

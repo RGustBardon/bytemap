@@ -21,8 +21,10 @@ use Bytemap\JsonListener\BytemapListener;
  * An implementation of the `BytemapInterface` using `\SplFixedArray`.
  *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
+ *
+ * @internal
  */
-class SplBytemap extends AbstractBytemap
+final class SplBytemap extends AbstractBytemap
 {
     protected const UNSERIALIZED_CLASSES = ['SplFixedArray'];
 
