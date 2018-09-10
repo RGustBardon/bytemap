@@ -143,7 +143,10 @@ abstract class AbstractBytemap implements BytemapInterface
             $errorMessage = $errstr;
         });
         if (false === \preg_match($regex, $this->defaultItem)) {
-            $errorName = \array_flip(\get_defined_constants(true)['pcre'])[\preg_last_error()];
+            $constants = \get_defined_constants(true)['pcre'];
+            $matches = \preg_grep('~^PREG_.*_ERROR$~', \array_keys($constants));
+            $constants = \array_intersect_key($constants, \array_flip($matches));
+            $errorName = $constants[\preg_last_error()] ?? '';
         }
         \restore_error_handler();
         if (isset($errorName)) {

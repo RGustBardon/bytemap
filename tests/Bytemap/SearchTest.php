@@ -190,7 +190,7 @@ final class SearchTest extends AbstractTestOfBytemap
      * @covers \Bytemap\AbstractBytemap::grep
      * @dataProvider implementationProvider
      * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage PREG_INTERNAL_ERROR
+     * @expectedExceptionMessage Empty regular expression
      */
     public function testGreppingInvalidRegex(string $impl): void
     {
