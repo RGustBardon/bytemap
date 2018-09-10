@@ -75,12 +75,8 @@ final class DsBytemap extends AbstractBytemap
     public function offsetUnset($offset): void
     {
         if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
-            if ($this->itemCount - 1 === $offset) {
-                unset($this->map[$offset]);
-                --$this->itemCount;
-            } else {
-                $this->map[$offset] = $this->defaultItem;
-            }
+            --$this->itemCount;
+            unset($this->map[$offset]);
         }
     }
 

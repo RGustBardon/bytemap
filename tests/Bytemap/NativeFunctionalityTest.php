@@ -303,9 +303,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         unset($bytemap[2]);
         self::assertFalse(isset($bytemap[2]));
 
-        unset($bytemap[2]);
-        self::assertFalse(isset($bytemap[2]));
-
         unset($bytemap[0]);
         self::assertTrue(isset($bytemap[0]));
         self::assertSame($items[0], $bytemap[0]);
@@ -319,6 +316,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertFalse(isset($bytemap[2]));
         self::assertSame($items[1], $bytemap[0]);
         self::assertSame($items[2], $bytemap[1]);
+
+        unset($bytemap[0]);
+        self::assertSame($items[2], $bytemap[0]);
+        self::assertFalse(isset($bytemap[1]));
     }
 
     /**
@@ -342,10 +343,13 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertCount(5, $bytemap);
 
         unset($bytemap[1]);
-        self::assertCount(5, $bytemap);
+        self::assertCount(4, $bytemap);
 
         unset($bytemap[4]);
         self::assertCount(4, $bytemap);
+
+        unset($bytemap[3]);
+        self::assertCount(3, $bytemap);
     }
 
     /**

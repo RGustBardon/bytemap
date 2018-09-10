@@ -63,13 +63,14 @@ final class SplBytemap extends AbstractBytemap
 
     public function offsetUnset($offset): void
     {
-        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
-            if ($this->itemCount - 1 === $offset) {
-                --$this->itemCount;
-                $this->map->setSize($offset);
-            } else {
-                unset($this->map[$offset]);
+        $itemCount = $this->itemCount;
+        if (\is_int($offset) && $offset >= 0 && $offset < $itemCount) {
+            // Shift all the subsequent items left by one.
+            for ($i = $offset + 1; $i < $itemCount; ++$i) {
+                $this->map[$i - 1] = $this->map[$i];
             }
+
+            $this->map->setSize(--$this->itemCount);
         }
     }
 
@@ -255,18 +256,14 @@ final class SplBytemap extends AbstractBytemap
         // Keep the offsets within the bounds.
         $howMany = \min($howMany, $itemCount - $firstItemOffset);
 
+        // Shift all the subsequent items left by the number of items deleted.
+        for ($i = $firstItemOffset + $howMany; $i < $itemCount; ++$i) {
+            $this->map[$i - $howMany] = $this->map[$i];
+        }
+
         // Delete the trailing items.
         $this->itemCount -= $howMany;
-        if (0 === $this->itemCount) {
-            $this->createEmptyMap();
-        } else {
-            // Shift all the subsequent items left by the numbers of items deleted.
-            for ($i = $firstItemOffset + $howMany; $i < $itemCount; ++$i) {
-                $this->map[$i - $howMany] = $this->map[$i];
-            }
-
-            $this->map->setSize($this->itemCount);
-        }
+        $this->map->setSize($this->itemCount);
     }
 
     protected function deriveProperties(): void

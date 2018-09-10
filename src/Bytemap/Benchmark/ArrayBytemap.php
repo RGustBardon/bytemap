@@ -60,9 +60,17 @@ final class ArrayBytemap extends AbstractBytemap
     public function offsetUnset($offset): void
     {
         if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
-            unset($this->map[$offset]);
             if ($this->itemCount - 1 === $offset) {
                 --$this->itemCount;
+                unset($this->map[$offset]);
+            } else {
+                $this->fillAndSort();
+                \array_splice($this->map, $offset, 1);
+                $this->map = \array_diff($this->map, [$this->defaultItem]);
+                --$this->itemCount;
+                if (!isset($this->map[$this->itemCount - 1])) {
+                    $this->map[$this->itemCount - 1] = $this->defaultItem;
+                }
             }
         }
     }

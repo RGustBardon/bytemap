@@ -80,16 +80,9 @@ class Bytemap extends AbstractBytemap
     public function offsetUnset($offset): void
     {
         if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
-            if ($offset === $this->itemCount - 1) {
-                $this->bytesInTotal -= $this->bytesPerItem;
-                $this->map = \substr($this->map, 0, $this->bytesInTotal);
-                --$this->itemCount;
-            } else {
-                $firstByteIndex = $offset * $this->bytesPerItem;
-                for ($i = 0; $i < $this->bytesPerItem; ++$i) {
-                    $this->map[$firstByteIndex + $i] = $this->defaultItem[$i];
-                }
-            }
+            --$this->itemCount;
+            $this->bytesInTotal -= $this->bytesPerItem;
+            $this->map = \substr_replace($this->map, '', $offset * $this->bytesPerItem, $this->bytesPerItem);
         }
     }
 
