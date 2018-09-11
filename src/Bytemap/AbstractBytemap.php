@@ -51,34 +51,34 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // Property overloading.
-    public function __get($name)
+    final public function __get($name)
     {
         throw new \ErrorException('Undefined property: '.static::class.'::$'.$name);
     }
 
-    public function __set($name, $value): void
+    final public function __set($name, $value): void
     {
         self::__get($name);
     }
 
-    public function __isset($name): bool
+    final public function __isset($name): bool
     {
         self::__get($name);
     }
 
-    public function __unset($name): void
+    final public function __unset($name): void
     {
         self::__get($name);
     }
 
     // `ArrayAccess`
-    public function offsetExists($offset): bool
+    final public function offsetExists($offset): bool
     {
         return \is_int($offset) && $offset >= 0 && $offset < $this->itemCount;
     }
 
     // `Countable`
-    public function count(): int
+    final public function count(): int
     {
         return $this->itemCount;
     }
@@ -181,7 +181,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
+    final public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
     {
         $itemCount = $this->itemCount;
 
@@ -200,7 +200,7 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // `AbstractBytemap`
-    protected function calculateHowManyToSkip(bool $searchForwards, ?int $startAfter): ?int
+    final protected function calculateHowManyToSkip(bool $searchForwards, ?int $startAfter): ?int
     {
         if (null === $startAfter) {
             return 0;
@@ -217,7 +217,7 @@ abstract class AbstractBytemap implements BytemapInterface
         return $startAfter > 0 ? \max(0, $this->itemCount - $startAfter) : null;
     }
 
-    protected function calculateNewSize(iterable $additionalItems, int $firstItemOffset = -1): ?int
+    final protected function calculateNewSize(iterable $additionalItems, int $firstItemOffset = -1): ?int
     {
         // Assume that no gap exists between the tail of the bytemap and `$firstItemOffset`.
 
@@ -233,7 +233,7 @@ abstract class AbstractBytemap implements BytemapInterface
         $this->bytesPerItem = \strlen($this->defaultItem);
     }
 
-    protected function throwOnOffsetGet($offset): void
+    final protected function throwOnOffsetGet($offset): void
     {
         if (!\is_int($offset)) {
             throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type int, '.\gettype($offset).' given');
@@ -272,7 +272,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    protected static function calculateGreatestCommonDivisor(int $a, int $b): int
+    final protected static function calculateGreatestCommonDivisor(int $a, int $b): int
     {
         while (0 !== $b) {
             $tmp = $b;
@@ -286,7 +286,7 @@ abstract class AbstractBytemap implements BytemapInterface
     /**
      * @param mixed $value
      */
-    protected static function ensureStream($value): void
+    final protected static function ensureStream($value): void
     {
         if (!\is_resource($value)) {
             $type = \gettype($value);
@@ -305,7 +305,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    protected static function getMaxKey(iterable $map): int
+    final protected static function getMaxKey(iterable $map): int
     {
         // `\max(\array_keys($map))` would affect peak memory usage.
         $maxKey = -1;
@@ -318,12 +318,12 @@ abstract class AbstractBytemap implements BytemapInterface
         return $maxKey;
     }
 
-    protected static function hasStreamingParser(): bool
+    final protected static function hasStreamingParser(): bool
     {
         return ($_ENV['BYTEMAP_STREAMING_PARSER'] ?? true) && \class_exists('\\JsonStreamingParser\\Parser');
     }
 
-    protected static function parseJsonStreamNatively($jsonStream)
+    final protected static function parseJsonStreamNatively($jsonStream)
     {
         $contents = \stream_get_contents($jsonStream);
         if (false === $contents) {
@@ -341,7 +341,7 @@ abstract class AbstractBytemap implements BytemapInterface
         return $result;
     }
 
-    protected static function parseJsonStreamOnline($jsonStream, Listener $listener): void
+    final protected static function parseJsonStreamOnline($jsonStream, Listener $listener): void
     {
         try {
             (new Parser($jsonStream, $listener))->parse();
@@ -350,7 +350,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    protected static function stream($stream, string $string): void
+    final protected static function stream($stream, string $string): void
     {
         for ($written = 0, $size = \strlen($string); $written < $size; $written += $fwrite) {
             if (false === ($fwrite = \fwrite($stream, \substr($string, (int) $written)))) {
