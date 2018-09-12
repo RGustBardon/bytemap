@@ -515,15 +515,15 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         } else {
             yield from [
                 // C:27:"Bytemap\\Benchmark\\DsBytemap":133:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"Ds\\Vectorarray";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"Ds\\Vectorcapacity";i:8;}}}
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":133:{a:2:{i:0;s:2:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \UnexpectedValueException::class, 'error at offset'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":133:{a:2:{i:0;s:2:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \UnexpectedValueException::class, 'error at offset'],
 
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":141:{a:3:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":141:{a:3:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":129:{a:2:{i:0;i:100;i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \TypeError::class, 'must be of type string'],
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":130:{a:2:{i:0;s:0:"";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \LengthException::class, 'cannot be an empty string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":129:{a:2:{i:0;i:100;i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \TypeError::class, 'must be of type string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":130:{a:2:{i:0;s:0:"";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \LengthException::class, 'cannot be an empty string'],
 
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":128:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;i:42;}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \TypeError::class, 'must be of type string'],
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":132:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x00".'Ds\\Vector'."\x00".'array";a:2:{i:0;s:3:"foo";i:1;s:2:"ba";}s:19:"'."\x00".'Ds\\Vector'."\x00".'capacity";i:8;}}}', \LengthException::class, 'value must be exactly'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":128:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;i:42;}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \TypeError::class, 'must be of type string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":132:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:2:"ba";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \LengthException::class, 'value must be exactly'],
             ];
         }
     }

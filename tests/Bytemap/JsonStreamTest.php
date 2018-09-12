@@ -34,7 +34,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
      */
     public function testParsingClosedResource(string $impl): void
     {
-        self::instantiate($impl, "\x00")::parseJsonStream(self::getClosedStream(), "\x00");
+        self::instantiate($impl, "\x0")::parseJsonStream(self::getClosedStream(), "\x0");
     }
 
     /**
@@ -45,11 +45,11 @@ final class JsonStreamTest extends AbstractTestOfBytemap
      */
     public function testParsingNonStream(string $impl): void
     {
-        $bytemap = self::instantiate($impl, "\x00");
+        $bytemap = self::instantiate($impl, "\x0");
         $process = self::getProcess();
 
         try {
-            $bytemap::parseJsonStream($process, "\x00");
+            $bytemap::parseJsonStream($process, "\x0");
         } finally {
             \proc_close($process);
         }
@@ -97,7 +97,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         string $expectedThrowable,
         string $pattern
     ): void {
-        $bytemap = self::instantiate($impl, "\x00");
+        $bytemap = self::instantiate($impl, "\x0");
         $jsonStream = self::getStream($invalidJsonData);
         if ($useStreamingParser) {
             unset($_ENV['BYTEMAP_STREAMING_PARSER']);
@@ -106,7 +106,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         }
 
         try {
-            $bytemap::parseJsonStream($jsonStream, "\x00");
+            $bytemap::parseJsonStream($jsonStream, "\x0");
         } catch (\Throwable $e) {
             if (!($e instanceof $expectedThrowable)) {
                 $format = 'Failed asserting that a throwable of type %s is thrown as opposed to %s with message "%s"';
@@ -168,7 +168,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
      */
     public function testStreamingToClosedResource(string $impl): void
     {
-        self::instantiate($impl, "\x00")->streamJson(self::getClosedStream());
+        self::instantiate($impl, "\x0")->streamJson(self::getClosedStream());
     }
 
     /**
@@ -178,7 +178,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
      */
     public function testStreamingToNonStream(string $impl): void
     {
-        $bytemap = self::instantiate($impl, "\x00");
+        $bytemap = self::instantiate($impl, "\x0");
         $process = self::getProcess();
 
         try {

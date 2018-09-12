@@ -173,7 +173,7 @@ final class SearchTest extends AbstractTestOfBytemap
      */
     public function testFindingCloning(string $impl, bool $forward): void
     {
-        $bytemap = self::instantiate($impl, "\x00");
+        $bytemap = self::instantiate($impl, "\x0");
         self::pushItems($bytemap, 'a', 'b', 'c', 'a', 'b', 'c');
 
         $matchCount = 0;
@@ -194,7 +194,7 @@ final class SearchTest extends AbstractTestOfBytemap
      */
     public function testGreppingInvalidRegex(string $impl): void
     {
-        self::instantiate($impl, "\x00")->grep('')->rewind();
+        self::instantiate($impl, "\x0")->grep('')->rewind();
     }
 
     public static function greppingProvider(): \Generator
@@ -361,7 +361,7 @@ final class SearchTest extends AbstractTestOfBytemap
      */
     public function testGreppingCircularLookup(string $impl, bool $forward): void
     {
-        $bytemap = self::instantiate($impl, "\x00\x00\x00");
+        $bytemap = self::instantiate($impl, "\x0\x0\x0");
 
         // The number of unique items should exceed `AbstractBytemap::GREP_MAXIMUM_LOOKUP_SIZE`.
         for ($item = 'aaa'; $item <= 'pzz'; ++$item) {  // 16 * 26 * 26 = 10816 items.
