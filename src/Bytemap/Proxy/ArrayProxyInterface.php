@@ -17,6 +17,16 @@ use Bytemap\BytemapInterface;
 
 interface ArrayProxyInterface extends ProxyInterface
 {
+    // Bytemap encapsulation
+    public static function wrap(BytemapInterface $bytemap): self;
+
+    // Array conversion
+    public function exportArray(): array;
+
+    public static function importArray(string $defaultItem, array $array): self;
+
+    // Array API
+
     /**
      * `array_fill` (fill an array with values).
      *
@@ -26,6 +36,4 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param string $value       value to use for filling
      */
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): self;
-
-    public static function wrap(BytemapInterface $bytemap): self;
 }

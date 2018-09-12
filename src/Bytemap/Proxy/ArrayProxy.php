@@ -31,6 +31,25 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     }
 
     // `ArrayProxyInterface`
+    public static function wrap(BytemapInterface $bytemap): ArrayProxyInterface
+    {
+        /** @var ArrayProxyInterface $arrayProxy */
+        $arrayProxy = self::wrapGenerically($bytemap);
+        \count($arrayProxy);  // PHP CS Fixer.
+
+        return $arrayProxy;
+    }
+
+    public function exportArray(): array
+    {
+        return $this->jsonSerialize();
+    }
+
+    public static function importArray(string $defaultItem, array $array): ArrayProxyInterface
+    {
+        return new self($defaultItem, ...$array);
+    }
+
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): ArrayProxyInterface
     {
         if ($startIndex < 0) {
@@ -53,11 +72,5 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         })(), $startIndex);
 
         return $arrayProxy;
-    }
-
-    // `AbstractProxy`
-    public static function wrap(BytemapInterface $bytemap): ArrayProxyInterface
-    {
-        return self::wrapGenerically($bytemap);
     }
 }
