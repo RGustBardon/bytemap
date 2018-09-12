@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Bytemap\Proxy;
 
-interface ArrayProxyInterface
+interface ArrayProxyInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
 {
     /**
      * `array_fill` (fill an array with values).
