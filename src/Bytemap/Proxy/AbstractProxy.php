@@ -78,7 +78,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
     // `JsonSerializable`
     public function jsonSerialize(): array
     {
-        return \json_encode($this->bytemap);
+        return $this->bytemap->jsonSerialize();
     }
 
     // `Serializable`
@@ -93,12 +93,18 @@ abstract class AbstractProxy implements ArrayProxyInterface
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
             $errorMessage = $errstr;
         });
-        $result = \unserialize($serialized, ['allowed_classes' => Bytemap::class]);
+        $result = \unserialize($serialized, ['allowed_classes' => [Bytemap::class]]);
         \restore_error_handler();
 
         if (false === $result) {
             throw new \UnexpectedValueException(static::class.': Failed to unserialize ('.$errorMessage.')');
         }
+
+        if (!\is_object($result) || !($result instanceof Bytemap)) {
+            throw new \UnexpectedValueException(static::class.': Failed to unserialize (expected a bytemap)');
+        }
+
+        $this->bytemap = $result;
     }
 
     // `ProxyInterface`
@@ -111,6 +117,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
     protected static function wrapGenerically(BytemapInterface $bytemap): ProxyInterface
     {
         $class = new \ReflectionClass(static::class);
+        /** @var AbstractProxy $proxy */
         $proxy = $class->newInstanceWithoutConstructor();
         $proxy->bytemap = $bytemap;
 
