@@ -100,4 +100,20 @@ abstract class AbstractProxy implements ArrayProxyInterface
             throw new \UnexpectedValueException(static::class.': Failed to unserialize ('.$errorMessage.')');
         }
     }
+
+    // `ProxyInterface`
+    public function unwrap(): BytemapInterface
+    {
+        return $this->bytemap;
+    }
+
+    // `AbstractProxy`
+    protected static function wrapGenerically(BytemapInterface $bytemap): ProxyInterface
+    {
+        $class = new \ReflectionClass(static::class);
+        $proxy = $class->newInstanceWithoutConstructor();
+        $proxy->bytemap = $bytemap;
+
+        return $proxy;
+    }
 }

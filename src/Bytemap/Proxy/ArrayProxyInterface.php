@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Bytemap\Proxy;
 
-interface ArrayProxyInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
+use Bytemap\BytemapInterface;
+
+interface ArrayProxyInterface extends ProxyInterface
 {
     /**
      * `array_fill` (fill an array with values).
@@ -24,4 +26,6 @@ interface ArrayProxyInterface extends \ArrayAccess, \Countable, \IteratorAggrega
      * @param string $value       value to use for filling
      */
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): self;
+
+    public static function wrap(BytemapInterface $bytemap): self;
 }

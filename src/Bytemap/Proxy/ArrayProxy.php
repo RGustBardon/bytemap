@@ -14,13 +14,20 @@ declare(strict_types=1);
 namespace Bytemap\Proxy;
 
 use Bytemap\Bytemap;
+use Bytemap\BytemapInterface;
 
-class ArrayProxy extends AbstractProxy
+class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 {
     public function __construct(string $defaultItem, string ...$values)
     {
         $this->bytemap = new Bytemap($defaultItem);
         $this->bytemap->insert($values);
+    }
+
+    // `ProxyInterface`
+    public function unwrap(): BytemapInterface
+    {
+        return $this->bytemap;
     }
 
     // `ArrayProxyInterface`
@@ -46,5 +53,11 @@ class ArrayProxy extends AbstractProxy
         })(), $startIndex);
 
         return $arrayProxy;
+    }
+
+    // `AbstractProxy`
+    public static function wrap(BytemapInterface $bytemap): ArrayProxyInterface
+    {
+        return self::wrapGenerically($bytemap);
     }
 }
