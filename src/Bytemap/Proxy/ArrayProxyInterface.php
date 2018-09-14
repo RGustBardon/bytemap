@@ -26,6 +26,13 @@ interface ArrayProxyInterface extends ProxyInterface
     public static function importArray(string $defaultItem, array $array): self;
 
     // Array API
+    public function keyExists($key): bool;
+
+    public function keyFirst(): ?int;
+
+    public function keyLast(): ?int;
+
+    public function keys($searchValue = null, bool $strict = false): array;
 
     /**
      * `array_fill` (fill an array with values).

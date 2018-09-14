@@ -30,7 +30,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $this->bytemap;
     }
 
-    // `ArrayProxyInterface`
+    // `ArrayProxyInterface`: Bytemap encapsulation
     public static function wrap(BytemapInterface $bytemap): ArrayProxyInterface
     {
         /** @var ArrayProxyInterface $arrayProxy */
@@ -40,6 +40,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $arrayProxy;
     }
 
+    // `ArrayProxyInterface`: Array conversion
     public function exportArray(): array
     {
         return $this->jsonSerialize();
@@ -48,6 +49,51 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public static function importArray(string $defaultItem, array $array): ArrayProxyInterface
     {
         return new self($defaultItem, ...$array);
+    }
+
+    // `ArrayProxyInterface`: Array API
+    public function keyExists($key): bool
+    {
+        if (!\is_int($key)) {
+            if (!\is_string($key)) {
+                throw new \TypeError('The argument should be either a string or an integer');
+            }
+
+            if ((string) (int) $key !== $key) {
+                return false;
+            }
+        }
+
+        return $key >= 0 && $key < \count($this->bytemap);
+    }
+
+    public function keyFirst(): ?int
+    {
+        return \count($this->bytemap) > 0 ? 0 : null;
+    }
+
+    public function keyLast(): ?int
+    {
+        $itemCount = \count($this->bytemap);
+        return $itemCount > 0 ? $itemCount - 1 : null;
+    }
+
+    public function keys($searchValue = null, bool $strict = false): array
+    {
+        if (null === $searchValue) {
+            $itemCount = \count($this->bytemap);
+            return $itemCount > 0 ? range(0, $itemCount - 1) : [];
+        }
+
+        if ($strict && !\is_string($searchValue)) {
+            return [];
+        }
+
+        $keys = [];
+        foreach ($this->bytemap->find([(string) $searchValue]) as $key => $value) {
+            $keys[] = $key;
+        }
+        return $keys;
     }
 
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): ArrayProxyInterface
