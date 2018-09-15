@@ -52,18 +52,13 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     }
 
     // `ArrayProxyInterface`: Array API
-    public function keyExists($key): bool
+    public function inArray(string $needle): bool
     {
-        if (!\is_int($key)) {
-            if (!\is_string($key)) {
-                throw new \TypeError('The argument should be either a string or an integer');
-            }
+        return (bool) \iterator_to_array($this->bytemap->find([$needle], true, 1));
+    }
 
-            if ((string) (int) $key !== $key) {
-                return false;
-            }
-        }
-
+    public function keyExists(int $key): bool
+    {
         return $key >= 0 && $key < \count($this->bytemap);
     }
 
@@ -78,22 +73,59 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $itemCount > 0 ? $itemCount - 1 : null;
     }
 
-    public function keys($searchValue = null, bool $strict = false): array
+    public function keys(?string $searchValue = null): \Generator
     {
         if (null === $searchValue) {
-            $itemCount = \count($this->bytemap);
-            return $itemCount > 0 ? range(0, $itemCount - 1) : [];
+            for ($i = 0, $itemCount = \count($this->bytemap); $i < $itemCount; ++$i) {
+                yield $i;
+            }
+        } else {
+            foreach ($this->bytemap->find([$searchValue]) as $key => $value) {
+                yield $key;
+            }
+        }
+    }
+
+    public function pop(): ?string
+    {
+        $itemCount = \count($this->bytemap);
+        if ($itemCount > 0) {
+            $item = $this->bytemap[$itemCount - 1];
+            unset($this->bytemap[$itemCount - 1]);
+
+            return $item;
         }
 
-        if ($strict && !\is_string($searchValue)) {
-            return [];
+        return null;
+    }
+
+    public function push(string ...$values): int
+    {
+        $this->bytemap->insert($values);
+        return \count($this->bytemap);
+    }
+
+    public function search(string $needle)
+    {
+        return \array_keys(\iterator_to_array($this->bytemap->find([$needle], true, 1)))[0] ?? false;
+    }
+
+    public function shift(): ?string
+    {
+        if (\count($this->bytemap) > 0) {
+            $item = $this->bytemap[0];
+            unset($this->bytemap[0]);
+
+            return $item;
         }
 
-        $keys = [];
-        foreach ($this->bytemap->find([(string) $searchValue]) as $key => $value) {
-            $keys[] = $key;
-        }
-        return $keys;
+        return null;
+    }
+
+    public function unshift(string ...$values): int
+    {
+        $this->bytemap->insert($values, 0);
+        return \count($this->bytemap);
     }
 
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): ArrayProxyInterface
