@@ -36,15 +36,23 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function keys(?string $searchValue = null): \Generator;
 
+    public function pad(int $size, string $value): self;
+
     public function pop(): ?string;
 
     public function push(string ...$values): int;
+
+    public function reverse(): self;
 
     public function search(string $needle);
 
     public function shift(): ?string;
 
+    public function slice(int $offset, ?int $length = null): self;
+
     public function unshift(string ...$values): int;
+
+    public function values(): \Generator;
 
     /**
      * `array_fill` (fill an array with values).
@@ -56,4 +64,6 @@ interface ArrayProxyInterface extends ProxyInterface
      *                             `null` means that the default item will be used
      */
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): self;
+
+    public static function fillKeys(string $defaultItem, iterable $keys, ?string $value = null);
 }

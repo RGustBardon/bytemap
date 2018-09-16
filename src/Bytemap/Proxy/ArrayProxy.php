@@ -24,6 +24,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $this->bytemap->insert($values);
     }
 
+    public function __clone()
+    {
+        $this->bytemap = clone $this->bytemap;
+    }
+
     // `ProxyInterface`
     public function unwrap(): BytemapInterface
     {
@@ -70,6 +75,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function keyLast(): ?int
     {
         $itemCount = \count($this->bytemap);
+
         return $itemCount > 0 ? $itemCount - 1 : null;
     }
 
@@ -84,6 +90,23 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 yield $key;
             }
         }
+    }
+
+    public function pad(int $size, string $value): ArrayProxyInterface
+    {
+        $itemCount = \count($this->bytemap);
+        $itemPendingCount = \abs($size) - $itemCount;
+        $clone = clone $this;
+
+        if ($itemPendingCount > 0) {
+            $clone->bytemap->insert((function () use ($itemPendingCount, $value): \Generator {
+                for ($i = 0; $i < $itemPendingCount; ++$i) {
+                    yield $value;
+                }
+            })(), $size > 0 ? -1 : -$itemCount - $itemPendingCount);
+        }
+
+        return $clone;
     }
 
     public function pop(): ?string
@@ -102,7 +125,19 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function push(string ...$values): int
     {
         $this->bytemap->insert($values);
+
         return \count($this->bytemap);
+    }
+
+    public function reverse(): ArrayProxyInterface
+    {
+        $lastOffset = \count($this->bytemap) - 1;
+        $clone = clone $this;
+        foreach ($this->bytemap as $offset => $item) {
+            $clone[$lastOffset - $offset] = $item;
+        }
+
+        return $clone;
     }
 
     public function search(string $needle)
@@ -122,10 +157,41 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return null;
     }
 
+    public function slice(int $offset, ?int $length = null): ArrayProxyInterface
+    {
+        $itemCount = \count($this->bytemap);
+        $clone = clone $this;
+
+        if ($offset < 0) {
+            $offset += $itemCount;
+        }
+
+        if (null === $length) {
+            $length = $itemCount;
+        } elseif ($length < 0) {
+            $length += $itemCount - $offset;
+        }
+
+        $clone->bytemap->delete($offset + $length);
+        $clone->bytemap->delete(0, $offset);
+
+        return $clone;
+    }
+
     public function unshift(string ...$values): int
     {
         $this->bytemap->insert($values, 0);
+
         return \count($this->bytemap);
+    }
+
+    public function values(): \Generator
+    {
+        /** @var \Generator $generator */
+        $generator = $this->bytemap->getIterator();
+        $generator->rewind();
+
+        return $generator;
     }
 
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): ArrayProxyInterface
@@ -148,6 +214,23 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 yield $value;
             }
         })(), $startIndex);
+
+        return $arrayProxy;
+    }
+
+    public static function fillKeys(string $defaultItem, iterable $keys, ?string $value = null): ArrayProxyInterface
+    {
+        if (null === $value) {
+            $value = $defaultItem;
+        }
+
+        $arrayProxy = new self($defaultItem);
+        if (\is_array($keys)) {
+            $arrayProxy[\max($keys)] = $value;
+        }
+        foreach ($keys as $key) {
+            $arrayProxy[$key] = $value;
+        }
 
         return $arrayProxy;
     }
