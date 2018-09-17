@@ -57,6 +57,19 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     }
 
     // `ArrayProxyInterface`: Array API
+    public function countValues(): array
+    {
+        $values = [];
+        foreach ($this->bytemap as $value) {
+            if (!isset($values[$value])) {
+                $values[$value] = 0;
+            }
+            ++$values[$value];
+        }
+
+        return $values;
+    }
+
     public function inArray(string $needle): bool
     {
         return (bool) \iterator_to_array($this->bytemap->find([$needle], true, 1));
@@ -127,6 +140,15 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $this->bytemap->insert($values);
 
         return \count($this->bytemap);
+    }
+
+    public function reduce(callable $callback, $initial = null)
+    {
+        foreach ($this->bytemap as $value) {
+            $initial = $callback($initial, $value);
+        }
+
+        return $initial;
     }
 
     public function reverse(): ArrayProxyInterface

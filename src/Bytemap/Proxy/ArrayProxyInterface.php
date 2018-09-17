@@ -26,6 +26,8 @@ interface ArrayProxyInterface extends ProxyInterface
     public static function importArray(string $defaultItem, array $array): self;
 
     // Array API
+    public function countValues(): array;
+
     public function inArray(string $needle): bool;
 
     public function keyExists(int $key): bool;
@@ -41,6 +43,8 @@ interface ArrayProxyInterface extends ProxyInterface
     public function pop(): ?string;
 
     public function push(string ...$values): int;
+
+    public function reduce(callable $callback, $initial = null);
 
     public function reverse(): self;
 
