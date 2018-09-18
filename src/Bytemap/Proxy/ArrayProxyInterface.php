@@ -26,6 +26,8 @@ interface ArrayProxyInterface extends ProxyInterface
     public static function importArray(string $defaultItem, array $array): self;
 
     // Array API
+    public function chunk(int $size, bool $preserveKeys = false): \Generator;
+
     public function countValues(): array;
 
     public function inArray(string $needle): bool;
@@ -37,6 +39,8 @@ interface ArrayProxyInterface extends ProxyInterface
     public function keyLast(): ?int;
 
     public function keys(?string $searchValue = null): \Generator;
+
+    public function merge(iterable ...$iterables): self;
 
     public function pad(int $size, string $value): self;
 
@@ -57,6 +61,8 @@ interface ArrayProxyInterface extends ProxyInterface
     public function unshift(string ...$values): int;
 
     public function values(): \Generator;
+
+    public static function combine(string $defaultItem, iterable $keys, iterable $values): self;
 
     /**
      * `array_fill` (fill an array with values).

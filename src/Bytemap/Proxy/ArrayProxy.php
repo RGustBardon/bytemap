@@ -57,6 +57,32 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     }
 
     // `ArrayProxyInterface`: Array API
+    public function chunk(int $size, bool $preserveKeys = false): \Generator
+    {
+        if ($size < 1) {
+            throw new \OutOfRangeException('Size parameter expected to be greater than 0');
+        }
+
+        $chunk = [];
+        $itemCount = 0;
+        foreach ($this->bytemap as $key => $value) {
+            if ($preserveKeys) {
+                $chunk[$key] = $value;
+            } else {
+                $chunk[] = $value;
+            }
+            ++$itemCount;
+            if ($size === $itemCount) {
+                yield $chunk;
+                $chunk = [];
+                $itemCount = 0;
+            }
+        }
+        if ($chunk) {
+            yield $chunk;
+        }
+    }
+
     public function countValues(): array
     {
         $values = [];
@@ -103,6 +129,19 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 yield $key;
             }
         }
+    }
+
+    public function merge(iterable ...$iterables): ArrayProxyInterface
+    {
+        $clone = clone $this;
+
+        foreach ($iterables as $iterable) {
+            foreach ($iterable as $value) {
+                $clone->bytemap[] = $value;
+            }
+        }
+
+        return $clone;
     }
 
     public function pad(int $size, string $value): ArrayProxyInterface
@@ -214,6 +253,28 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $generator->rewind();
 
         return $generator;
+    }
+
+    public static function combine(string $defaultItem, iterable $keys, iterable $values): ArrayProxyInterface
+    {
+        $arrayProxy = new self($defaultItem);
+        $bytemap = new Bytemap($defaultItem);
+        $bytemap->insert($values);
+        $offset = 0;
+
+        try {
+            foreach ($keys as $key) {
+                $arrayProxy->bytemap[$key] = $bytemap[$offset];
+                ++$offset;
+            }
+        } catch (\OutOfRangeException $e) {
+        }
+
+        if (isset($e) || \count($bytemap) !== $offset) {
+            throw new \UnderflowException('Both parameters should have an equal number of elements');
+        }
+
+        return $arrayProxy;
     }
 
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): ArrayProxyInterface
