@@ -27,6 +27,18 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['cd', 'cd', 'cd'], $arrayProxy->exportArray());
     }
 
+    public function testCombine(): void
+    {
+        $arrayProxy = self::instantiate()::combine('cd', [1, 6, 3], ['ab', 'ef', 'xy']);
+        self::assertSame(['cd', 'ab', 'cd', 'xy', 'cd', 'cd', 'ef'], $arrayProxy->exportArray());
+    }
+
+    public function testFillKeys(): void
+    {
+        $arrayProxy = self::instantiate()::fillKeys('cd', [1, 6, 3], 'ab');
+        self::assertSame(['cd', 'ab', 'cd', 'ab', 'cd', 'cd', 'ab'], $arrayProxy->exportArray());
+    }
+
     public static function instantiate(): ArrayProxyInterface
     {
         return new ArrayProxy('ab');
