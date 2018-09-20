@@ -29,12 +29,6 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $this->bytemap = clone $this->bytemap;
     }
 
-    // `ProxyInterface`
-    public function unwrap(): BytemapInterface
-    {
-        return $this->bytemap;
-    }
-
     // `ArrayProxyInterface`: Bytemap encapsulation
     public static function wrap(BytemapInterface $bytemap): ArrayProxyInterface
     {
@@ -250,7 +244,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     {
         /** @var \Generator $generator */
         $generator = $this->bytemap->getIterator();
-        $generator->rewind();
+        \count($this->bytemap);  // PHP CS Fixer vs. PHPStan.
 
         return $generator;
     }
