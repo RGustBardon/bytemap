@@ -42,6 +42,10 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function merge(iterable ...$iterables): self;
 
+    public function natCaseSort(): void;
+
+    public function natSort(): void;
+
     public function pad(int $size, string $value): self;
 
     public function pop(): ?string;
@@ -52,13 +56,19 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function reverse(): self;
 
+    public function rSort(int $sortFlags = \SORT_REGULAR): void;
+
     public function search(string $needle);
 
     public function shift(): ?string;
 
     public function slice(int $offset, ?int $length = null): self;
 
+    public function sort(int $sortFlags = \SORT_REGULAR): void;
+
     public function unshift(string ...$values): int;
+
+    public function uSort(callable $valueCompareFunc): void;
 
     public function values(): \Generator;
 

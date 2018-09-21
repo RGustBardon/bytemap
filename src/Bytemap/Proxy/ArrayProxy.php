@@ -138,6 +138,22 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $clone;
     }
 
+    public function natCaseSort(): void
+    {
+        if (!\defined('\\SORT_NATURAL') || !\is_callable('\\strnatcasecmp')) {
+            throw new \RuntimeException('Natural order comparator is not available');
+        }
+        self::sortBytemapByItem($this->bytemap, self::getComparator(\SORT_NATURAL | \SORT_FLAG_CASE));
+    }
+
+    public function natSort(): void
+    {
+        if (!\defined('\\SORT_NATURAL') || !\is_callable('\\strnatcmp')) {
+            throw new \RuntimeException('Natural order comparator is not available');
+        }
+        self::sortBytemapByItem($this->bytemap, self::getComparator(\SORT_NATURAL));
+    }
+
     public function pad(int $size, string $value): ArrayProxyInterface
     {
         $itemCount = \count($this->bytemap);
@@ -195,6 +211,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $clone;
     }
 
+    public function rSort(int $sortFlags = \SORT_REGULAR): void
+    {
+        self::sortBytemapByItem($this->bytemap, self::getComparator($sortFlags, true));
+    }
+
     public function search(string $needle)
     {
         return \array_keys(\iterator_to_array($this->bytemap->find([$needle], true, 1)))[0] ?? false;
@@ -233,11 +254,21 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $clone;
     }
 
+    public function sort(int $sortFlags = \SORT_REGULAR): void
+    {
+        self::sortBytemapByItem($this->bytemap, self::getComparator($sortFlags));
+    }
+
     public function unshift(string ...$values): int
     {
         $this->bytemap->insert($values, 0);
 
         return \count($this->bytemap);
+    }
+
+    public function usort(callable $valueCompareFunc): void
+    {
+        self::sortBytemapByItem($this->bytemap, $valueCompareFunc);
     }
 
     public function values(): \Generator
