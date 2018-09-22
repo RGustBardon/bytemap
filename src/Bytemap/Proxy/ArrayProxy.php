@@ -191,6 +191,25 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return \count($this->bytemap);
     }
 
+    public function rand(int $num = 1)
+    {
+        $itemCount = \count($this->bytemap);
+
+        if (1 === $num) {
+            return \mt_rand(0, $itemCount - 1);
+        }
+
+        if ($num === $itemCount) {
+            return \range(0, $itemCount - 1);
+        }
+
+        if ($num < 1 || $num > $itemCount) {
+            throw new \OutOfRangeException('Argument has to be between 1 and the number of elements');
+        }
+
+        return \array_rand(\range(0, $itemCount - 1), $num);
+    }
+
     public function reduce(callable $callback, $initial = null)
     {
         foreach ($this->bytemap as $value) {
@@ -252,6 +271,20 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $clone->bytemap->delete(0, $offset);
 
         return $clone;
+    }
+
+    public function shuffle(): void
+    {
+        // Fisher-Yates.
+        $nLeft = \count($this->bytemap);
+        while (--$nLeft) {
+            $rndIdx = \mt_rand(0, $nLeft);
+            if ($rndIdx !== $nLeft) {
+                $tmp = $this->bytemap[$nLeft];
+                $this->bytemap[$nLeft] = $this->bytemap[$rndIdx];
+                $this->bytemap[$rndIdx] = $tmp;
+            }
+        }
     }
 
     public function sort(int $sortFlags = \SORT_REGULAR): void

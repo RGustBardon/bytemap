@@ -52,6 +52,8 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function push(string ...$values): int;
 
+    public function rand(int $num = 1);
+
     public function reduce(callable $callback, $initial = null);
 
     public function reverse(): self;
@@ -61,6 +63,8 @@ interface ArrayProxyInterface extends ProxyInterface
     public function search(string $needle);
 
     public function shift(): ?string;
+
+    public function shuffle(): void;
 
     public function slice(int $offset, ?int $length = null): self;
 
