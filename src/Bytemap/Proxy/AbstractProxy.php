@@ -163,6 +163,18 @@ abstract class AbstractProxy implements ArrayProxyInterface
             }
         }
 
+        if (\SORT_REGULAR === $sortFlags) {
+            if ($reverse) {
+                return function (string $a, string $b): int {
+                    return (\is_numeric($b) ? (string) (float) $b : $b) <=> (\is_numeric($a) ? (string) (float) $a : $a);
+                };
+            }
+
+            return function (string $a, string $b): int {
+                return (\is_numeric($a) ? (string) (float) $a : $a) <=> (\is_numeric($b) ? (string) (float) $b : $b);
+            };
+        }
+
         if ($caseInsensitive) {
             if ($reverse) {
                 return function (string $a, string $b): int {

@@ -23,7 +23,7 @@ interface ArrayProxyInterface extends ProxyInterface
     // Array conversion
     public function exportArray(): array;
 
-    public static function importArray(string $defaultItem, array $array): self;
+    public static function import(string $defaultItem, iterable $iterms): self;
 
     // Array API
     public function chunk(int $size, bool $preserveKeys = false): \Generator;
@@ -69,6 +69,8 @@ interface ArrayProxyInterface extends ProxyInterface
     public function slice(int $offset, ?int $length = null): self;
 
     public function sort(int $sortFlags = \SORT_REGULAR): void;
+
+    public function unique(int $sortFlags = \SORT_STRING): \Generator;
 
     public function unshift(string ...$values): int;
 

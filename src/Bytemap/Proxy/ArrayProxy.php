@@ -45,9 +45,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $this->jsonSerialize();
     }
 
-    public static function importArray(string $defaultItem, array $array): ArrayProxyInterface
+    public static function import(string $defaultItem, iterable $items): ArrayProxyInterface
     {
-        return new self($defaultItem, ...$array);
+        return new self($defaultItem, ...$items);
     }
 
     // `ArrayProxyInterface`: Array API
@@ -290,6 +290,45 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function sort(int $sortFlags = \SORT_REGULAR): void
     {
         self::sortBytemapByItem($this->bytemap, self::getComparator($sortFlags));
+    }
+
+    public function unique(int $sortFlags = \SORT_STRING): \Generator
+    {
+        if (\defined('\\SORT_LOCALE_STRING') && \SORT_LOCALE_STRING === $sortFlags) {
+            yield from \array_unique($this->exportArray(), \SORT_LOCALE_STRING);
+        } else {
+            $seen = [];
+            switch ($sortFlags) {
+                case \SORT_NUMERIC:
+                    foreach ($this->bytemap as $key => $value) {
+                        $mapKey = ' '.(float) $value;
+                        if (!isset($seen[$mapKey])) {
+                            yield $key => $value;
+                            $seen[$mapKey] = true;
+                        }
+                    }
+                    break;
+
+                case \SORT_REGULAR:
+                    foreach ($this->bytemap as $key => $value) {
+                        $mapKey = ' '.(\is_numeric($value) ? (float) $value : $value);
+                        if (!isset($seen[$mapKey])) {
+                            yield $key => $value;
+                            $seen[$mapKey] = true;
+                        }
+                    }
+                    break;
+
+                default:
+                    foreach ($this->bytemap as $key => $value) {
+                        if (!isset($seen[$value])) {
+                            yield $key => $value;
+                            $seen[$value] = true;
+                        }
+                    }
+                    break;
+            }
+        }
     }
 
     public function unshift(string ...$values): int

@@ -17,6 +17,8 @@ use Bytemap\BytemapInterface;
 
 interface ProxyInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
 {
+    public static function import(string $defaultItem, iterable $iterms);
+
     public function unwrap(): BytemapInterface;
 
     public static function wrap(BytemapInterface $bytemap);

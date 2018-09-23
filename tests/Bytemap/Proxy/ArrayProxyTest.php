@@ -59,9 +59,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($values, $arrayProxy->exportArray());
     }
 
-    public function testImportArray(): void
+    public function testImport(): void
     {
-        $arrayProxy = self::instantiate()::importArray('cd', ['xy', 2 => 'ef']);
+        $arrayProxy = self::instantiate()::import('cd', ['xy', 2 => 'ef']);
         self::assertSame(['xy', 'ef'], $arrayProxy->exportArray());
     }
 
