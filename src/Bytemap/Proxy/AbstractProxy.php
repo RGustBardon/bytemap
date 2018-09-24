@@ -114,6 +114,20 @@ abstract class AbstractProxy implements ArrayProxyInterface
     }
 
     // `AbstractProxy`
+    protected function createEmptyBytemap(): BytemapInterface
+    {
+        $itemCount = \count($this->bytemap);
+        if ($itemCount > 0) {
+            $this->bytemap[$itemCount + 1] = $this->bytemap[0];
+            $clone = new Bytemap($this->bytemap[$itemCount]);
+            $this->bytemap->delete($itemCount);
+
+            return $clone;
+        }
+
+        return clone $this->bytemap;
+    }
+
     protected static function getComparator(int $sortFlags, bool $reverse = false): callable
     {
         $caseInsensitive = ($sortFlags & \SORT_FLAG_CASE);

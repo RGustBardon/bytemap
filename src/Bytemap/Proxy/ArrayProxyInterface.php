@@ -30,6 +30,8 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function countValues(): array;
 
+    public function filter(?callable $callback = null, int $flag = 0): \Generator;
+
     public function inArray(string $needle): bool;
 
     public function keyExists(int $key): bool;
@@ -68,6 +70,8 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function slice(int $offset, ?int $length = null): self;
 
+    public function splice(int $offset, ?int $length = null, $replacement = []): self;
+
     public function sort(int $sortFlags = \SORT_REGULAR): void;
 
     public function unique(int $sortFlags = \SORT_STRING): \Generator;
@@ -77,6 +81,8 @@ interface ArrayProxyInterface extends ProxyInterface
     public function uSort(callable $valueCompareFunc): void;
 
     public function values(): \Generator;
+
+    public function walk(callable $callback, $userdata = null): void;
 
     public static function combine(string $defaultItem, iterable $keys, iterable $values): self;
 

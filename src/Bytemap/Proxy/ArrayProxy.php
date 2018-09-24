@@ -90,6 +90,41 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $values;
     }
 
+    public function filter(?callable $callback = null, int $flag = 0): \Generator
+    {
+        if (null === $callback) {
+            yield from $this->bytemap->find(['0'], false);
+        } else {
+            switch ($flag) {
+                case \ARRAY_FILTER_USE_KEY:
+                    $clone = clone $this->bytemap;
+                    for ($i = 0, $itemCount = \count($this->bytemap); $i < $itemCount; ++$i) {
+                        if ($callback($i)) {
+                            yield $clone[$i];
+                        }
+                    }
+
+                    break;
+                case \ARRAY_FILTER_USE_BOTH:
+                    foreach ($this->bytemap as $offset => $item) {
+                        if ($callback($item, $offset)) {
+                            yield $item;
+                        }
+                    }
+
+                    break;
+                default:
+                    foreach ($this->bytemap as $item) {
+                        if ($callback($item)) {
+                            yield $item;
+                        }
+                    }
+
+                    break;
+            }
+        }
+    }
+
     public function inArray(string $needle): bool
     {
         return (bool) \iterator_to_array($this->bytemap->find([$needle], true, 1));
@@ -255,22 +290,25 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function slice(int $offset, ?int $length = null): ArrayProxyInterface
     {
         $itemCount = \count($this->bytemap);
-        $clone = clone $this;
+        [$offset, $length] = self::calculateOffsetAndLength($itemCount, $offset, $length);
 
-        if ($offset < 0) {
-            $offset += $itemCount;
+        return self::wrap($this->getBytemapSlice($offset, $length));
+    }
+
+    public function splice(int $offset, ?int $length = null, $replacement = []): ArrayProxyInterface
+    {
+        $itemCount = \count($this->bytemap);
+
+        [$offset, $length] = self::calculateOffsetAndLength($itemCount, $offset, $length);
+        if (!\is_iterable($replacement)) {
+            $replacement = (array) $replacement;
         }
+        $extracted = $this->getBytemapSlice($offset, $length);
+        $this->bytemap->insert($replacement, $offset);
+        $replacementCount = \count($this->bytemap) - $itemCount;
+        $this->bytemap->delete($offset + $replacementCount, $length);
 
-        if (null === $length) {
-            $length = $itemCount;
-        } elseif ($length < 0) {
-            $length += $itemCount - $offset;
-        }
-
-        $clone->bytemap->delete($offset + $length);
-        $clone->bytemap->delete(0, $offset);
-
-        return $clone;
+        return self::wrap($extracted);
     }
 
     public function shuffle(): void
@@ -307,8 +345,8 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                             $seen[$mapKey] = true;
                         }
                     }
-                    break;
 
+                    break;
                 case \SORT_REGULAR:
                     foreach ($this->bytemap as $key => $value) {
                         $mapKey = ' '.(\is_numeric($value) ? (float) $value : $value);
@@ -317,8 +355,8 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                             $seen[$mapKey] = true;
                         }
                     }
-                    break;
 
+                    break;
                 default:
                     foreach ($this->bytemap as $key => $value) {
                         if (!isset($seen[$value])) {
@@ -326,6 +364,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                             $seen[$value] = true;
                         }
                     }
+
                     break;
             }
         }
@@ -338,7 +377,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return \count($this->bytemap);
     }
 
-    public function usort(callable $valueCompareFunc): void
+    public function uSort(callable $valueCompareFunc): void
     {
         self::sortBytemapByItem($this->bytemap, $valueCompareFunc);
     }
@@ -350,6 +389,40 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         \count($this->bytemap);  // PHP CS Fixer vs. PHPStan.
 
         return $generator;
+    }
+
+    public function walk(callable $callback, $userdata = null): void
+    {
+        $passedToCallback = 2 + (\func_num_args() > 1 ? 1 : 0);
+
+        $function = new \ReflectionFunction($callback);
+        $expectedByCallback = $function->getNumberOfParameters();
+
+        if ($expectedByCallback > $passedToCallback) {
+            $message = 'Too few arguments to function %s(), %d passed and exactly %d expected';
+
+            throw new \ArgumentCountError(\sprintf($message, $function->getName(), $passedToCallback, $expectedByCallback));
+        }
+
+        if (3 === $passedToCallback) {
+            foreach ($this->bytemap as $originalOffset => $originalItem) {
+                $offset = $originalOffset;
+                $item = $originalItem;
+                $callback($item, $offset, $userdata);
+                if ($originalItem !== $item) {
+                    $this->bytemap[$originalOffset] = $item;
+                }
+            }
+        } else {
+            foreach ($this->bytemap as $originalOffset => $originalItem) {
+                $offset = $originalOffset;
+                $item = $originalItem;
+                $callback($item, $offset);
+                if ($originalItem !== $item) {
+                    $this->bytemap[$originalOffset] = $item;
+                }
+            }
+        }
     }
 
     public static function combine(string $defaultItem, iterable $keys, iterable $values): ArrayProxyInterface
@@ -413,5 +486,32 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
 
         return $arrayProxy;
+    }
+
+    protected static function calculateOffsetAndLength(int $itemCount, int $offset, ?int $length): array
+    {
+        if ($offset < 0) {
+            $offset += $itemCount;
+        }
+        $offset = \max(0, \min($itemCount - 1, $offset));
+
+        if (null === $length) {
+            $length = $itemCount;
+        } elseif ($length < 0) {
+            $length += $itemCount - $offset;
+        }
+        $length = \min($length, $itemCount - $offset);
+
+        return [$offset, $length];
+    }
+
+    protected function getBytemapSlice(int $offset, int $length): BytemapInterface
+    {
+        $bytemap = $this->createEmptyBytemap();
+        for ($i = $offset, $end = $offset + $length; $i < $end; ++$i) {
+            $bytemap[] = $this->bytemap[$i];
+        }
+
+        return $bytemap;
     }
 }
