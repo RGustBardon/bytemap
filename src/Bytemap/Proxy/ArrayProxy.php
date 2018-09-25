@@ -160,6 +160,32 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
+    public function map(callable $callback, iterable ...$arguments): \Generator
+    {
+        if ($arguments) {
+            $multipleIterator = new \MultipleIterator(\MultipleIterator::MIT_NEED_ANY | \MultipleIterator::MIT_KEYS_NUMERIC);
+            foreach ($arguments as $column) {
+                if (\is_array($column)) {
+                    $multipleIterator->attachIterator(new \ArrayIterator($column));
+                } elseif ($column instanceof \Iterator) {
+                    $multipleIterator->attachIterator($column);
+                } elseif ($column instanceof \IteratorAggregate) {
+                    $multipleIterator->attachIterator($column->getIterator());
+                } else {
+                    throw new \InvalidArgumentException('Unsupported iterable');
+                }
+            }
+            foreach ($this->bytemap as $key => $value) {
+                yield $key => $callback($value, ...$multipleIterator->current());
+                $multipleIterator->next();
+            }
+        } else {
+            foreach ($this->bytemap as $key => $value) {
+                yield $key => $callback($value);
+            }
+        }
+    }
+
     public function merge(iterable ...$iterables): ArrayProxyInterface
     {
         $clone = clone $this;
