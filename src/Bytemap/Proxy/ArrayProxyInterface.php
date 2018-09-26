@@ -60,6 +60,8 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function reduce(callable $callback, $initial = null);
 
+    public function replace(iterable ...$iterables): self;
+
     public function reverse(): self;
 
     public function rSort(int $sortFlags = \SORT_REGULAR): void;
@@ -75,6 +77,15 @@ interface ArrayProxyInterface extends ProxyInterface
     public function splice(int $offset, ?int $length = null, $replacement = []): self;
 
     public function sort(int $sortFlags = \SORT_REGULAR): void;
+
+    /**
+     * The equivalent of the array `+` operator.
+     *
+     * @param iterable ...$iterables
+     *
+     * @return self
+     */
+    public function union(iterable ...$iterables): self;
 
     public function unique(int $sortFlags = \SORT_STRING): \Generator;
 

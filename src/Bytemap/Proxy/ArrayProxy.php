@@ -280,12 +280,24 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $initial;
     }
 
+    public function replace(iterable ...$iterables): ArrayProxyInterface
+    {
+        $clone = clone $this;
+        foreach ($iterables as $iterable) {
+            foreach ($iterable as $key => $value) {
+                $clone->bytemap[$key] = $value;
+            }
+        }
+
+        return $clone;
+    }
+
     public function reverse(): ArrayProxyInterface
     {
         $lastOffset = \count($this->bytemap) - 1;
         $clone = clone $this;
         foreach ($this->bytemap as $offset => $item) {
-            $clone[$lastOffset - $offset] = $item;
+            $clone->bytemap[$lastOffset - $offset] = $item;
         }
 
         return $clone;
@@ -354,6 +366,30 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function sort(int $sortFlags = \SORT_REGULAR): void
     {
         self::sortBytemapByItem($this->bytemap, self::getComparator($sortFlags));
+    }
+
+    public function union(iterable ...$iterables): ArrayProxyInterface
+    {
+        $clone = clone $this;
+        $itemCount = \count($clone->bytemap);
+        foreach ($iterables as $iterable) {
+            foreach ($iterable as $key => $value) {
+                if (!\is_int($key)) {
+                    throw new \TypeError('Index must be of type integer, '.\gettype($key).' given');
+                }
+
+                if ($key < 0) {
+                    throw new \OutOfRangeException('Negative index: '.$key);
+                }
+
+                if ($key >= $itemCount) {
+                    $clone->bytemap[$key] = $value;
+                    $itemCount = $key + 1;
+                }
+            }
+        }
+
+        return $clone;
     }
 
     public function unique(int $sortFlags = \SORT_STRING): \Generator
