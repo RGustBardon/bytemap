@@ -180,6 +180,100 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame([2, 3], \iterator_to_array($arrayProxy->keys('ef')));
     }
 
+    public static function mapProvider(): \Generator
+    {
+        $callback = function (?string ...$args): string {
+            return \implode(':', \array_map('strval', $args));
+        };
+
+        foreach (['array', \Iterator::class, \IteratorAggregate::class] as $iterableType) {
+            foreach ([
+                [['cd', 'xy', 'ef', 'ef'], null, [], ['cd', 'xy', 'ef', 'ef']],
+                [
+                    ['cd', 'xy', 'ef', 'ef'],
+                    null,
+                    [['i1', 'i2']],
+                    [['cd', 'i1'], ['xy', 'i2'], ['ef', null], ['ef', null]],
+                ],
+                [
+                    ['cd', 'xy', 'ef', 'ef'],
+                    null,
+                    [['i1', 'i2', 'i3', 'i4', 'i5']],
+                    [['cd', 'i1'], ['xy', 'i2'], ['ef', 'i3'], ['ef', 'i4'], [null, 'i5']],
+                ],
+                [
+                    ['cd', 'xy', 'ef', 'ef'],
+                    null,
+                    [['i1', 'i2'], ['a1']],
+                    [['cd', 'i1', 'a1'], ['xy', 'i2', null], ['ef', null, null], ['ef', null, null]],
+                ],
+                [
+                    ['cd', 'xy', 'ef', 'ef'],
+                    $callback,
+                    [['i1', 'i2']],
+                    ['cd:i1', 'xy:i2', 'ef:', 'ef:'],
+                ],
+                [
+                    ['cd', 'xy', 'ef', 'ef'],
+                    $callback,
+                    [['i1', 'i2', 'i3', 'i4', 'i5']],
+                    ['cd:i1', 'xy:i2', 'ef:i3', 'ef:i4', ':i5'],
+                ],
+                [
+                    ['cd', 'xy', 'ef', 'ef'],
+                    $callback,
+                    [['i1', 'i2'], ['a1']],
+                    ['cd:i1:a1', 'xy:i2:', 'ef::', 'ef::'],
+                ],
+            ] as [$items, $callback, $iterables, $expected]) {
+                switch ($iterableType) {
+                    case \Iterator::class:
+                        foreach ($iterables as $key => $iterable) {
+                            $iterables[$key] = (function (array $iterable) {
+                                yield from $iterable;
+                            })($iterable);
+                        }
+
+                        break;
+                    case \IteratorAggregate::class:
+                        foreach ($iterables as $key => $iterable) {
+                            $iterables[$key] = new class($iterable) implements \IteratorAggregate {
+                                private $it;
+
+                                public function __construct(array $iterable)
+                                {
+                                    $this->it = $iterable;
+                                }
+
+                                public function getIterator(): \Iterator
+                                {
+                                    return new \ArrayIterator($this->it);
+                                }
+                            };
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
+
+                yield [$items, $callback, $iterables, $expected];
+            }
+        }
+    }
+
+    /**
+     * @dataProvider mapProvider
+     *
+     * @param mixed $items
+     */
+    public function testMap($items, ?callable $callback, array $iterables, array $expected): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expected, \iterator_to_array($arrayProxy->map($callback, ...$iterables)));
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
     public function testMerge(): void
     {
         $values = ['cd', 'xy', 'ef', 'ef'];

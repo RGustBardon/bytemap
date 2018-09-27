@@ -160,10 +160,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
-    public function map(callable $callback, iterable ...$arguments): \Generator
+    public function map(?callable $callback, iterable ...$arguments): \Generator
     {
         if ($arguments) {
             $multipleIterator = new \MultipleIterator(\MultipleIterator::MIT_NEED_ANY | \MultipleIterator::MIT_KEYS_NUMERIC);
+            $multipleIterator->attachIterator($this->bytemap->getIterator());
             foreach ($arguments as $column) {
                 if (\is_array($column)) {
                     $multipleIterator->attachIterator(new \ArrayIterator($column));
@@ -172,16 +173,27 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 } elseif ($column instanceof \IteratorAggregate) {
                     $multipleIterator->attachIterator($column->getIterator());
                 } else {
+                    // @codeCoverageIgnoreStart
                     throw new \InvalidArgumentException('Unsupported iterable');
+                    // @codeCoverageIgnoreEnd
                 }
             }
-            foreach ($this->bytemap as $key => $value) {
-                yield $key => $callback($value, ...$multipleIterator->current());
-                $multipleIterator->next();
+            if (null === $callback) {
+                foreach ($multipleIterator as $value) {
+                    yield $value;
+                }
+            } else {
+                foreach ($multipleIterator as $value) {
+                    yield $callback(...$value);
+                }
+            }
+        } elseif (null === $callback) {
+            foreach ($this->bytemap as $value) {
+                yield $value;
             }
         } else {
-            foreach ($this->bytemap as $key => $value) {
-                yield $key => $callback($value);
+            foreach ($this->bytemap as $value) {
+                yield $callback($value);
             }
         }
     }

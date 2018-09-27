@@ -42,7 +42,7 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function keys(?string $searchValue = null): \Generator;
 
-    public function map(callable $callback, iterable ...$arguments): \Generator;
+    public function map(?callable $callback, iterable ...$arguments): \Generator;
 
     public function merge(iterable ...$iterables): self;
 
