@@ -74,9 +74,9 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function slice(int $offset, ?int $length = null): self;
 
-    public function splice(int $offset, ?int $length = null, $replacement = []): self;
-
     public function sort(int $sortFlags = \SORT_REGULAR): void;
+
+    public function splice(int $offset, ?int $length = null, $replacement = []): self;
 
     /**
      * The equivalent of the array `+` operator.

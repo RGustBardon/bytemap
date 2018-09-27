@@ -100,7 +100,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                     $clone = clone $this->bytemap;
                     for ($i = 0, $itemCount = \count($this->bytemap); $i < $itemCount; ++$i) {
                         if ($callback($i)) {
-                            yield $clone[$i];
+                            yield $i => $clone[$i];
                         }
                     }
 
@@ -108,15 +108,15 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 case \ARRAY_FILTER_USE_BOTH:
                     foreach ($this->bytemap as $offset => $item) {
                         if ($callback($item, $offset)) {
-                            yield $item;
+                            yield $offset => $item;
                         }
                     }
 
                     break;
                 default:
-                    foreach ($this->bytemap as $item) {
+                    foreach ($this->bytemap as $offset => $item) {
                         if ($callback($item)) {
-                            yield $item;
+                            yield $offset => $item;
                         }
                     }
 
@@ -256,6 +256,10 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     {
         $itemCount = \count($this->bytemap);
 
+        if (0 === $itemCount) {
+            throw new \UnderflowException('Iterable is empty');
+        }
+
         if (1 === $num) {
             return \mt_rand(0, $itemCount - 1);
         }
@@ -325,12 +329,31 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return null;
     }
 
+    public function shuffle(): void
+    {
+        // Fisher-Yates.
+        $nLeft = \count($this->bytemap);
+        while (--$nLeft) {
+            $rndIdx = \mt_rand(0, $nLeft);
+            if ($rndIdx !== $nLeft) {
+                $tmp = $this->bytemap[$nLeft];
+                $this->bytemap[$nLeft] = $this->bytemap[$rndIdx];
+                $this->bytemap[$rndIdx] = $tmp;
+            }
+        }
+    }
+
     public function slice(int $offset, ?int $length = null): ArrayProxyInterface
     {
         $itemCount = \count($this->bytemap);
         [$offset, $length] = self::calculateOffsetAndLength($itemCount, $offset, $length);
 
         return self::wrap($this->getBytemapSlice($offset, $length));
+    }
+
+    public function sort(int $sortFlags = \SORT_REGULAR): void
+    {
+        self::sortBytemapByItem($this->bytemap, self::getComparator($sortFlags));
     }
 
     public function splice(int $offset, ?int $length = null, $replacement = []): ArrayProxyInterface
@@ -347,25 +370,6 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $this->bytemap->delete($offset + $replacementCount, $length);
 
         return self::wrap($extracted);
-    }
-
-    public function shuffle(): void
-    {
-        // Fisher-Yates.
-        $nLeft = \count($this->bytemap);
-        while (--$nLeft) {
-            $rndIdx = \mt_rand(0, $nLeft);
-            if ($rndIdx !== $nLeft) {
-                $tmp = $this->bytemap[$nLeft];
-                $this->bytemap[$nLeft] = $this->bytemap[$rndIdx];
-                $this->bytemap[$rndIdx] = $tmp;
-            }
-        }
-    }
-
-    public function sort(int $sortFlags = \SORT_REGULAR): void
-    {
-        self::sortBytemapByItem($this->bytemap, self::getComparator($sortFlags));
     }
 
     public function union(iterable ...$iterables): ArrayProxyInterface

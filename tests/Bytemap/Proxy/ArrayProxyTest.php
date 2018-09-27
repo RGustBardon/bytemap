@@ -99,6 +99,50 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         ], self::instantiate('cd', 'xy', 'ef', 'ef', 'xy')->countValues());
     }
 
+    public static function filterProvider(): \Generator
+    {
+        foreach ([
+            [["\x00", '0', '1', '2'], null, 0, ["\x00", 2 => '1', '2']],
+            [["\x00\x00", '00', '11', '22'], null, 0, ["\x00\x00", '00', '11', '22']],
+            [
+                ['cd', 'xy', 'ef', 'ef', 'bb'],
+                function (string $item): bool {
+                    return 'ef' !== $item;
+                },
+                0,
+                ['cd', 'xy', 4 => 'bb'],
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef', 'bb'],
+                function (int $key): bool {
+                    return 3 !== $key;
+                },
+                \ARRAY_FILTER_USE_KEY,
+                ['cd', 'xy', 'ef', 4 => 'bb'],
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef', 'bb'],
+                function (string $item, int $key): bool {
+                    return 'ef' !== $item && 1 !== $key;
+                },
+                \ARRAY_FILTER_USE_BOTH,
+                ['cd', 4 => 'bb'],
+            ],
+        ] as [$items, $callable, $flag, $expected]) {
+            yield [$items, $callable, $flag, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider filterProvider
+     */
+    public function testFilter(array $items, ?callable $callback, int $flag, array $expected): void
+    {
+        $arrayProxy = new ArrayProxy($items[0], ...$items);
+        self::assertSame($expected, \iterator_to_array($arrayProxy->filter($callback, $flag)));
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
     public function testInArray(): void
     {
         self::assertFalse(self::instantiate()->inArray('ab'));
@@ -184,6 +228,52 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['cd', 'xy', 'ef', 'ef'], $arrayProxy->exportArray());
     }
 
+    /**
+     * @expectedException \UnderflowException
+     * @expectedExceptionMessage Iterable is empty
+     */
+    public function testRandEmpty(): void
+    {
+        self::instantiate()->rand();
+    }
+
+    /**
+     * @expectedException \OutOfRangeException
+     * @expectedExceptionMessage between 1 and the number of elements
+     */
+    public function testRandNegative(): void
+    {
+        self::instantiate('cd', 'xy')->rand(-1);
+    }
+
+    /**
+     * @expectedException \OutOfRangeException
+     * @expectedExceptionMessage between 1 and the number of elements
+     */
+    public function testRandOverflow(): void
+    {
+        self::instantiate('cd', 'xy')->rand(3);
+    }
+
+    public function testRand(): void
+    {
+        $arrayProxy = new ArrayProxy('cd', ...\array_fill_keys(\range(0, 999), 'ab'));
+
+        $singles = [$arrayProxy->rand(), $arrayProxy->rand(), $arrayProxy->rand()];
+        self::assertTrue(\count(\array_unique($singles)) > 1);
+        foreach ($singles as $key) {
+            self::assertTrue(isset($arrayProxy[$key]));
+        }
+
+        $batch = $arrayProxy->rand(3);
+        self::assertTrue(\count(\array_unique($batch)) > 1);
+        foreach ($batch as $key) {
+            self::assertTrue(isset($arrayProxy[$key]));
+        }
+
+        self::assertNotSame($singles, $batch);
+    }
+
     public function testReduce(): void
     {
         $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
@@ -216,6 +306,20 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         $arrayProxy = self::instantiate('ef', 'cd', 'xy');
         self::assertSame('ef', $arrayProxy->shift());
         self::assertSame(['cd', 'xy'], $arrayProxy->exportArray());
+    }
+
+    public function testShuffle(): void
+    {
+        $arrayProxy = new ArrayProxy('cd');
+        for ($item = 'aa'; $item <= 'dv'; ++$item) {
+            $arrayProxy[] = $item;
+        }
+        $sorted = $arrayProxy->exportArray();
+        $arrayProxy->shuffle();
+        $shuffled = $arrayProxy->exportArray();
+        self::assertNotSame($sorted, $shuffled);
+        \sort($shuffled, \SORT_STRING);
+        self::assertSame($sorted, $shuffled);
     }
 
     public static function sliceProvider(): \Generator
