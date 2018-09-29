@@ -267,7 +267,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      *
      * @param mixed $items
      */
-    public function testMap($items, ?callable $callback, array $iterables, array $expected): void
+    public function testMap(array $items, ?callable $callback, array $iterables, array $expected): void
     {
         $arrayProxy = self::instantiate(...$items);
         self::assertSame($expected, \iterator_to_array($arrayProxy->map($callback, ...$iterables)));
@@ -376,6 +376,34 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         }, 'bar'));
     }
 
+    public static function replaceProvider(): \Generator
+    {
+        foreach ([
+            [
+                ['cd'],
+                [],
+                ['cd'],
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef'],
+                [['a1', 'a2'], ['b1', 'b2', 'b3'], [4 => 'c1']],
+                ['b1', 'b2', 'b3', 'ef', 'c1'],
+            ],
+        ] as [$items, $iterables, $expected]) {
+            yield [$items, $iterables, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider replaceProvider
+     */
+    public function testReplace(array $items, array $iterables, array $expected): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expected, $arrayProxy->replace(...$iterables)->exportArray());
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
     public function testReverse(): void
     {
         $values = ['cd', 'xy', 'ef', 'ef', 'bb'];
@@ -441,6 +469,34 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     {
         $arrayProxy = self::instantiate(...$items);
         self::assertSame($expected, $arrayProxy->slice($offset, $length)->exportArray());
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
+    public static function unionProvider(): \Generator
+    {
+        foreach ([
+            [
+                ['cd'],
+                [],
+                ['cd'],
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef'],
+                [['a1', 'a2'], ['b1', 'b2', 'b3'], [4 => 'c1']],
+                ['cd', 'xy', 'ef', 'ef', 'c1'],
+            ],
+        ] as [$items, $iterables, $expected]) {
+            yield [$items, $iterables, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider unionProvider
+     */
+    public function testUnion(array $items, array $iterables, array $expected): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expected, $arrayProxy->union(...$iterables)->exportArray());
         self::assertSame($items, $arrayProxy->exportArray());
     }
 
