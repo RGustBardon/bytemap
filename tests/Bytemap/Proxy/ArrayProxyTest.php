@@ -514,6 +514,46 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     }
 
     /**
+     * @expectedException \ArgumentCountError
+     */
+    public function testWalkTooFewArguments(): void
+    {
+        self::instantiate()->walk(function ($item, $offset, $foo) {
+        });
+    }
+
+    public static function walkProvider(): \Generator
+    {
+        foreach ([
+            [['cd', 'xy', 'ef', 'ef'], function ($item, $offset) {
+                $item = 'ab';
+            }, null, ['cd', 'xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset) {
+                $item = \sprintf('%02d', $offset);
+            }, null, ['00', '01', '02', '03']],
+            [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset, $prefix) {
+                $item = $prefix.$offset;
+            }, 'a', ['a0', 'a1', 'a2', 'a3']],
+            ] as [$items, $callback, $userdata, $expected]) {
+            yield [$items, $callback, $userdata, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider walkProvider
+     */
+    public function testWalk(array $items, callable $callback, $userdata, array $expected): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        if (null === $userdata) {
+            $arrayProxy->walk($callback);
+        } else {
+            $arrayProxy->walk($callback, $userdata);
+        }
+        self::assertSame($expected, $arrayProxy->exportArray());
+    }
+
+    /**
      * @expectedException \UnderflowException
      * @expectedExceptionMessage equal number of elements
      */
