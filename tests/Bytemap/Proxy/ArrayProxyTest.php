@@ -23,6 +23,8 @@ use Bytemap\Bytemap;
  */
 final class ArrayProxyTest extends AbstractTestOfProxy
 {
+    private const WALK_NO_USERDATA = 'void';
+
     public function testConstructor(): void
     {
         $values = ['cd', 'xy', 'ef', 'ef'];
@@ -527,25 +529,30 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         foreach ([
             [['cd', 'xy', 'ef', 'ef'], function ($item, $offset) {
                 $item = 'ab';
-            }, null, ['cd', 'xy', 'ef', 'ef']],
+            }, self::WALK_NO_USERDATA, ['cd', 'xy', 'ef', 'ef']],
             [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset) {
                 $item = \sprintf('%02d', $offset);
-            }, null, ['00', '01', '02', '03']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset, $prefix) {
-                $item = $prefix.$offset;
-            }, 'a', ['a0', 'a1', 'a2', 'a3']],
-            ] as [$items, $callback, $userdata, $expected]) {
+            }, self::WALK_NO_USERDATA, ['00', '01', '02', '03']],
+            [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset, string $userdata) {
+                $item = \gettype($userdata)[0].$offset;
+            }, 'foo', ['s0', 's1', 's2', 's3']],
+            [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset, string $userdata = null) {
+                $item = \gettype($userdata)[0].$offset;
+            }, null, ['N0', 'N1', 'N2', 'N3']],
+        ] as [$items, $callback, $userdata, $expected]) {
             yield [$items, $callback, $userdata, $expected];
         }
     }
 
     /**
      * @dataProvider walkProvider
+     *
+     * @param mixed $userdata
      */
     public function testWalk(array $items, callable $callback, $userdata, array $expected): void
     {
         $arrayProxy = self::instantiate(...$items);
-        if (null === $userdata) {
+        if (self::WALK_NO_USERDATA === $userdata) {
             $arrayProxy->walk($callback);
         } else {
             $arrayProxy->walk($callback, $userdata);
