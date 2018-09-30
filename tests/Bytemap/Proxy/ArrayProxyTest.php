@@ -25,6 +25,18 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 {
     private const WALK_NO_USERDATA = 'void';
 
+    private $originalCollation;
+
+    protected function setUp(): void
+    {
+        $this->originalCollation = \setlocale(\LC_COLLATE, '0');
+    }
+
+    protected function tearDown(): void
+    {
+        \setlocale(\LC_COLLATE, $this->originalCollation);
+    }
+
     public function testConstructor(): void
     {
         $values = ['cd', 'xy', 'ef', 'ef'];
@@ -295,6 +307,30 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($values, $arrayProxy->exportArray());
     }
 
+    public function testNatCaseSort(): void
+    {
+        $arrayProxy = new ArrayProxy("\x0\x0\x0", '12 ', '100', "\u{d6} ", 'PPP', 'ooo');
+
+        try {
+            $arrayProxy->natCaseSort();
+            self::assertSame(['12 ', '100', 'ooo', 'PPP', "\u{d6} "], $arrayProxy->exportArray());
+        } catch (\RuntimeException $e) {
+            self::markTestSkipped($e->getMessage());
+        }
+    }
+
+    public function testNatSort(): void
+    {
+        $arrayProxy = new ArrayProxy("\x0\x0\x0", '12 ', '100', "\u{d6} ", 'PPP', 'ooo');
+
+        try {
+            $arrayProxy->natSort();
+            self::assertSame(['12 ', '100', 'PPP', 'ooo', "\u{d6} "], $arrayProxy->exportArray());
+        } catch (\RuntimeException $e) {
+            self::markTestSkipped($e->getMessage());
+        }
+    }
+
     public function testPad(): void
     {
         $values = ['cd', 'xy', 'ef', 'ef'];
@@ -474,6 +510,85 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($items, $arrayProxy->exportArray());
     }
 
+    public static function sortProvider(): \Generator
+    {
+        $defaultItem = "\x0\x0\x0";
+        $items = ['12 ', '100', "\u{d6} ", 'PPP', 'ooo'];
+
+        foreach ([
+            \SORT_REGULAR => ['100', '12 ', 'PPP', 'ooo', "\u{d6} "],
+            \SORT_NUMERIC => [null, null, null, '12 ', '100'],
+            \SORT_STRING => ['100', '12 ', 'PPP', 'ooo', "\u{d6} "],
+            \SORT_STRING | \SORT_FLAG_CASE => ['100', '12 ', 'ooo', 'PPP', "\u{d6} "],
+        ] as $sortFlags => $expected) {
+            yield [
+                $defaultItem,
+                $items,
+                function (self $that) use ($sortFlags): int {
+                    return $sortFlags;
+                },
+                $expected,
+            ];
+        }
+
+        $errorMessage = self::getSortLocaleErrorMessage();
+        if (null === $errorMessage) {
+            $sortFlagsClosure = function (self $that): int {
+                return \SORT_LOCALE_STRING;
+            };
+        } else {
+            $sortFlagsClosure = function (self $that) use ($errorMessage): int {
+                $that->markTestSkipped($errorMessage);
+            };
+        }
+
+        yield [$defaultItem, $items, $sortFlagsClosure, ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']];
+
+        $sortFlagsClosure = function (self $that): void {
+            $that->markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatcmp');
+        };
+
+        if (\defined('\\SORT_NATURAL') && \is_callable('\\strnatcmp')) {
+            $sortFlagsClosure = function (self $that): int {
+                return \SORT_NATURAL;
+            };
+        }
+
+        yield [$defaultItem, $items, $sortFlagsClosure, ['12 ', '100', 'PPP', 'ooo', "\u{d6} "]];
+
+        $sortFlagsClosure = function (self $that): void {
+            $that->markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatbasecmp');
+        };
+
+        if (\defined('\\SORT_NATURAL') && \is_callable('\\strnatcasecmp')) {
+            $sortFlagsClosure = function (self $that): int {
+                return \SORT_NATURAL | \SORT_FLAG_CASE;
+            };
+        }
+
+        yield [$defaultItem, $items, $sortFlagsClosure, ['12 ', '100', 'ooo', 'PPP', "\u{d6} "]];
+    }
+
+    /**
+     * @dataProvider sortProvider
+     */
+    public function testSort(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
+    {
+        $arrayProxy = new ArrayProxy($defaultItem, ...$items);
+        $arrayProxy->sort($sortFlagsClosure($this));
+        self::assertArrayMask($expected, $arrayProxy->exportArray());
+    }
+
+    /**
+     * @dataProvider sortProvider
+     */
+    public function testRSort(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
+    {
+        $arrayProxy = new ArrayProxy($defaultItem, ...$items);
+        $arrayProxy->rSort($sortFlagsClosure($this));
+        self::assertArrayMask(\array_reverse($expected), $arrayProxy->exportArray());
+    }
+
     public static function unionProvider(): \Generator
     {
         foreach ([
@@ -507,6 +622,17 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         $arrayProxy = self::instantiate('ef', 'cd');
         self::assertSame(4, $arrayProxy->unshift('xy', 'cc'));
         self::assertSame(['xy', 'cc', 'ef', 'cd'], $arrayProxy->exportArray());
+    }
+
+    public function testUSort(): void
+    {
+        $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
+        $arrayProxy->uSort(function (string $a, string $b): int {
+            static $weights = ['ef' => 0, 'xy' => 1, 'cd' => 2];
+
+            return $weights[$a] <=> $weights[$b];
+        });
+        self::assertSame(['ef', 'ef', 'xy', 'cd'], $arrayProxy->exportArray());
     }
 
     public function testValues(): void
@@ -608,7 +734,49 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['cd', 'ab', 'cd', 'ab', 'cd', 'cd', 'ab'], $arrayProxy->exportArray());
     }
 
-    public static function instantiate(string ...$items): ArrayProxyInterface
+    private static function assertArrayMask(array $arrayMask, array $array): void
+    {
+        self::assertCount(\count($arrayMask), $array);
+        foreach ($arrayMask as $index => &$value) {
+            if (null === $value) {
+                $value = $array[$index] ?? '';
+            }
+        }
+        self::assertSame(\serialize($arrayMask), \serialize($array));
+    }
+
+    private static function getLocaleErrorMessage(): ?string
+    {
+        if (!\defined('\\SORT_LOCALE_STRING') || !\is_callable('\\strcoll')) {
+            return 'This test requires \\SORT_LOCALE_STRING and a callable \\strcoll';
+        }
+
+        foreach (['de_DE.utf8', 'de_DE.UTF-8'] as $locale) {
+            if (false !== \setlocale(\LC_COLLATE, $locale)) {
+                return null;
+            }
+        }
+
+        return 'This test requires a '.$locale.' locale';
+    }
+
+    private static function getSortLocaleErrorMessage(): ?string
+    {
+        $errorMessage = self::getLocaleErrorMessage();
+        if (null !== $errorMessage) {
+            return $errorMessage;
+        }
+
+        $items = ['12 ', '100', "\u{d6} ", 'PPP', 'ooo'];
+        \sort($items, \SORT_LOCALE_STRING);
+        if ($items !== ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']) {
+            return 'This test requires \\strcoll to work as expected';
+        }
+
+        return null;
+    }
+
+    private static function instantiate(string ...$items): ArrayProxyInterface
     {
         return new ArrayProxy('ab', ...$items);
     }
