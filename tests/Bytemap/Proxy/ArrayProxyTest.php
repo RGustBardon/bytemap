@@ -450,66 +450,6 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($values, $arrayProxy->exportArray());
     }
 
-    public function testSearch(): void
-    {
-        $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
-        self::assertFalse($arrayProxy->search('ab'));
-        self::assertSame(1, $arrayProxy->search('xy'));
-        self::assertSame(2, $arrayProxy->search('ef'));
-    }
-
-    public function testShift(): void
-    {
-        $arrayProxy = self::instantiate();
-        self::assertNull($arrayProxy->shift());
-
-        $arrayProxy = self::instantiate('ef', 'cd', 'xy');
-        self::assertSame('ef', $arrayProxy->shift());
-        self::assertSame(['cd', 'xy'], $arrayProxy->exportArray());
-    }
-
-    public function testShuffle(): void
-    {
-        $arrayProxy = new ArrayProxy('cd');
-        for ($item = 'aa'; $item <= 'dv'; ++$item) {
-            $arrayProxy[] = $item;
-        }
-        $sorted = $arrayProxy->exportArray();
-        $arrayProxy->shuffle();
-        $shuffled = $arrayProxy->exportArray();
-        self::assertNotSame($sorted, $shuffled);
-        \sort($shuffled, \SORT_STRING);
-        self::assertSame($sorted, $shuffled);
-    }
-
-    public static function sliceProvider(): \Generator
-    {
-        foreach ([
-            [[], 0, 0, []],
-            [['cd', 'xy', 'ef', 'ef'], -3, null, ['xy', 'ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], 0, null, ['cd', 'xy', 'ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], 2, null, ['ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], 2, 0, []],
-            [['cd', 'xy', 'ef', 'ef'], -2, 1, ['ef']],
-            [['cd', 'xy', 'ef', 'ef'], 0, 1, ['cd']],
-            [['cd', 'xy', 'ef', 'ef'], 0, 3, ['cd', 'xy', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], 1, 1, ['xy']],
-            [['cd', 'xy', 'ef', 'ef'], 1, -1, ['xy', 'ef']],
-        ] as [$items, $offset, $length, $expected]) {
-            yield [$items, $offset, $length, $expected];
-        }
-    }
-
-    /**
-     * @dataProvider sliceProvider
-     */
-    public function testSlice(array $items, int $offset, ?int $length, array $expected): void
-    {
-        $arrayProxy = self::instantiate(...$items);
-        self::assertSame($expected, $arrayProxy->slice($offset, $length)->exportArray());
-        self::assertSame($items, $arrayProxy->exportArray());
-    }
-
     public static function sortProvider(): \Generator
     {
         $defaultItem = "\x0\x0\x0";
@@ -572,21 +512,81 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     /**
      * @dataProvider sortProvider
      */
-    public function testSort(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
-    {
-        $arrayProxy = new ArrayProxy($defaultItem, ...$items);
-        $arrayProxy->sort($sortFlagsClosure($this));
-        self::assertArrayMask($expected, $arrayProxy->exportArray());
-    }
-
-    /**
-     * @dataProvider sortProvider
-     */
     public function testRSort(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
     {
         $arrayProxy = new ArrayProxy($defaultItem, ...$items);
         $arrayProxy->rSort($sortFlagsClosure($this));
         self::assertArrayMask(\array_reverse($expected), $arrayProxy->exportArray());
+    }
+
+    public function testSearch(): void
+    {
+        $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
+        self::assertFalse($arrayProxy->search('ab'));
+        self::assertSame(1, $arrayProxy->search('xy'));
+        self::assertSame(2, $arrayProxy->search('ef'));
+    }
+
+    public function testShift(): void
+    {
+        $arrayProxy = self::instantiate();
+        self::assertNull($arrayProxy->shift());
+
+        $arrayProxy = self::instantiate('ef', 'cd', 'xy');
+        self::assertSame('ef', $arrayProxy->shift());
+        self::assertSame(['cd', 'xy'], $arrayProxy->exportArray());
+    }
+
+    public function testShuffle(): void
+    {
+        $arrayProxy = new ArrayProxy('cd');
+        for ($item = 'aa'; $item <= 'dv'; ++$item) {
+            $arrayProxy[] = $item;
+        }
+        $sorted = $arrayProxy->exportArray();
+        $arrayProxy->shuffle();
+        $shuffled = $arrayProxy->exportArray();
+        self::assertNotSame($sorted, $shuffled);
+        \sort($shuffled, \SORT_STRING);
+        self::assertSame($sorted, $shuffled);
+    }
+
+    public static function sliceProvider(): \Generator
+    {
+        foreach ([
+            [[], 0, 0, []],
+            [['cd', 'xy', 'ef', 'ef'], -3, null, ['xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 0, null, ['cd', 'xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 2, null, ['ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 2, 0, []],
+            [['cd', 'xy', 'ef', 'ef'], -2, 1, ['ef']],
+            [['cd', 'xy', 'ef', 'ef'], 0, 1, ['cd']],
+            [['cd', 'xy', 'ef', 'ef'], 0, 3, ['cd', 'xy', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 1, 1, ['xy']],
+            [['cd', 'xy', 'ef', 'ef'], 1, -1, ['xy', 'ef']],
+        ] as [$items, $offset, $length, $expected]) {
+            yield [$items, $offset, $length, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider sliceProvider
+     */
+    public function testSlice(array $items, int $offset, ?int $length, array $expected): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expected, $arrayProxy->slice($offset, $length)->exportArray());
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
+    /**
+     * @dataProvider sortProvider
+     */
+    public function testSort(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
+    {
+        $arrayProxy = new ArrayProxy($defaultItem, ...$items);
+        $arrayProxy->sort($sortFlagsClosure($this));
+        self::assertArrayMask($expected, $arrayProxy->exportArray());
     }
 
     public static function unionProvider(): \Generator
@@ -614,6 +614,50 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     {
         $arrayProxy = self::instantiate(...$items);
         self::assertSame($expected, $arrayProxy->union(...$iterables)->exportArray());
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
+    public static function uniqueProvider(): \Generator
+    {
+        $defaultItem = "\x0\x0\x0";
+        $items = ['100', '1e2', "\u{2010}", "\u{2011}"];
+
+        foreach ([
+            \SORT_REGULAR => ['100', 2 => "\u{2010}", "\u{2011}"],
+            \SORT_NUMERIC => ['100', 2 => "\u{2010}"],
+            \SORT_STRING => ['100', '1e2', "\u{2010}", "\u{2011}"],
+        ] as $sortFlags => $expected) {
+            yield [
+                $defaultItem,
+                $items,
+                function (self $that) use ($sortFlags): int {
+                    return $sortFlags;
+                },
+                $expected,
+            ];
+        }
+
+        $errorMessage = self::getUniqueLocaleErrorMessage();
+        if (null === $errorMessage) {
+            $sortFlagsClosure = function (self $that): int {
+                return \SORT_LOCALE_STRING;
+            };
+        } else {
+            $sortFlagsClosure = function (self $that) use ($errorMessage): int {
+                $that->markTestSkipped($errorMessage);
+            };
+        }
+
+        yield [$defaultItem, $items, $sortFlagsClosure, ['100', '1e2', "\u{2010}"]];
+    }
+
+    /**
+     * @dataProvider uniqueProvider
+     */
+    public function testUnique(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
+    {
+        $arrayProxy = new ArrayProxy($defaultItem, ...$items);
+        self::assertSame($expected, \iterator_to_array($arrayProxy->unique($sortFlagsClosure($this))));
         self::assertSame($items, $arrayProxy->exportArray());
     }
 
@@ -771,6 +815,22 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         \sort($items, \SORT_LOCALE_STRING);
         if ($items !== ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']) {
             return 'This test requires \\strcoll to work as expected';
+        }
+
+        return null;
+    }
+
+    private static function getUniqueLocaleErrorMessage(): ?string
+    {
+        $errorMessage = self::getLocaleErrorMessage();
+        if (null !== $errorMessage) {
+            return $errorMessage;
+        }
+
+        $items = ["\u{2010}", "\u{2011}"];
+        \sort($items, \SORT_LOCALE_STRING);
+        if ($items !== ["\u{2010}"]) {
+            return 'This test requires a locale to collate U+2010 and U+2011 together';
         }
 
         return null;
