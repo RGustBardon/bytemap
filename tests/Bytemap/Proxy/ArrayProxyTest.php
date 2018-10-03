@@ -589,6 +589,45 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertArrayMask($expected, $arrayProxy->exportArray());
     }
 
+    public static function spliceProvider(): \Generator
+    {
+        foreach ([
+            [[], 0, 0, [], [], []],
+            [['cd', 'xy', 'ef', 'ef'], -3, null, [], ['xy', 'ef', 'ef'], ['cd']],
+            [['cd', 'xy', 'ef', 'ef'], 0, null, [], ['cd', 'xy', 'ef', 'ef'], []],
+            [['cd', 'xy', 'ef', 'ef'], 2, null, [], ['ef', 'ef'], ['cd', 'xy']],
+            [['cd', 'xy', 'ef', 'ef'], 2, 0, [], [], ['cd', 'xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], -2, 1, [], ['ef'], ['cd', 'xy', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 0, 1, [], ['cd'], ['xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 0, 3, [], ['cd', 'xy', 'ef'], ['ef']],
+            [['cd', 'xy', 'ef', 'ef'], 1, 1, [], ['xy'], ['cd', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 1, -1, [], ['xy', 'ef'], ['cd', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 1, -1, ['rs', 'tu'], ['xy', 'ef'], ['cd', 'rs', 'tu', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 0, null, ['rs', 'tu'], ['cd', 'xy', 'ef', 'ef'], ['rs', 'tu']],
+            [['cd', 'xy', 'ef', 'ef'], -1, null, 'rs', ['ef'], ['cd', 'xy', 'ef', 'rs']],
+        ] as [$items, $offset, $length, $replacement, $expectedSlice, $expectedMutation]) {
+            yield [$items, $offset, $length, $replacement, $expectedSlice, $expectedMutation];
+        }
+    }
+
+    /**
+     * @dataProvider spliceProvider
+     *
+     * @param mixed $replacement
+     */
+    public function testSplice(
+        array $items,
+        int $offset,
+        ?int $length,
+        $replacement,
+        array $expectedSlice,
+        array $expectedMutation
+    ): void {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expectedSlice, $arrayProxy->splice($offset, $length, $replacement)->exportArray());
+        self::assertSame($expectedMutation, $arrayProxy->exportArray());
+    }
+
     public static function unionProvider(): \Generator
     {
         foreach ([
