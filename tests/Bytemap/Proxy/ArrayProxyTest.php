@@ -817,6 +817,27 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['cd', 'ab', 'cd', 'ab', 'cd', 'cd', 'ab'], $arrayProxy->exportArray());
     }
 
+    public static function pregGrepProvider(): \Generator
+    {
+        foreach ([
+            [[], '~ab~', 0, []],
+            [['ab', 'cc', 'cd'], '~^c+~', 0, [1 => 'cc', 'cd']],
+            [['ab', 'cc', 'cd'], '~^c+~', \PREG_GREP_INVERT, ['ab']],
+        ] as [$items, $pattern, $flags, $expected]) {
+            yield [$items, $pattern, $flags, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider pregGrepProvider
+     */
+    public function testPregGrep(array $items, string $pattern, int $flags, array $expected): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expected, \iterator_to_array($arrayProxy->pregGrep($pattern, $flags)));
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
     private static function assertArrayMask(array $arrayMask, array $array): void
     {
         self::assertCount(\count($arrayMask), $array);

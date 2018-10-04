@@ -566,6 +566,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $arrayProxy;
     }
 
+    public function pregGrep(string $pattern, int $flags = 0): \Generator
+    {
+        yield from $this->bytemap->grep($pattern, !($flags & \PREG_GREP_INVERT));
+    }
+
     protected static function calculateOffsetAndLength(int $itemCount, int $offset, ?int $length): array
     {
         if ($offset < 0) {

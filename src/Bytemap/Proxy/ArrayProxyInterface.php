@@ -111,4 +111,7 @@ interface ArrayProxyInterface extends ProxyInterface
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): self;
 
     public static function fillKeys(string $defaultItem, iterable $keys, ?string $value = null);
+
+    // PCRE API
+    public function pregGrep(string $pattern, int $flags = 0): \Generator;
 }
