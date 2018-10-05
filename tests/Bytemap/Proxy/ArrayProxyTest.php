@@ -808,13 +808,32 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['cd', 'cd', 'cd'], $arrayProxy->exportArray());
     }
 
-    public function testFillKeys(): void
+    public static function fillKeysProvider(): \Generator
+    {
+        foreach ([
+            ['cd', [1, 6, 3], null, ['cd', 'cd', 'cd', 'cd', 'cd', 'cd', 'cd']],
+            ['cd', [1, 6, 3], 'ab', ['cd', 'ab', 'cd', 'ab', 'cd', 'cd', 'ab']],
+        ] as [$defaultItem, $keys, $value, $expected]) {
+            yield [$defaultItem, $keys, $value, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider fillKeysProvider
+     */
+    public function testFillKeys(string $defaultItem, iterable $keys, ?string $value, array $expected): void
     {
         $arrayProxy = self::instantiate()::fillKeys('cd', [1, 6, 3], null);
         self::assertSame(['cd', 'cd', 'cd', 'cd', 'cd', 'cd', 'cd'], $arrayProxy->exportArray());
 
         $arrayProxy = self::instantiate()::fillKeys('cd', [1, 6, 3], 'ab');
         self::assertSame(['cd', 'ab', 'cd', 'ab', 'cd', 'cd', 'ab'], $arrayProxy->exportArray());
+    }
+
+    public function testImplode(): void
+    {
+        $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
+        self::assertSame('cdxyefef', $arrayProxy->implode());
     }
 
     public static function pregGrepProvider(): \Generator

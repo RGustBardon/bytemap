@@ -114,4 +114,7 @@ interface ArrayProxyInterface extends ProxyInterface
 
     // PCRE API
     public function pregGrep(string $pattern, int $flags = 0): \Generator;
+
+    // String API
+    public function implode(): string;
 }
