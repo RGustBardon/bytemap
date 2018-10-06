@@ -355,6 +355,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
+    public function sizeOf(): int
+    {
+        return \count($this->bytemap);
+    }
+
     public function slice(int $offset, ?int $length = null): ArrayProxyInterface
     {
         $itemCount = \count($this->bytemap);

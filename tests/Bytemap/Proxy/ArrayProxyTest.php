@@ -551,6 +551,11 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($sorted, $shuffled);
     }
 
+    public function testSizeOf(): void
+    {
+        self::assertSame(4, self::instantiate('cd', 'xy', 'ef', 'ef')->sizeOf());
+    }
+
     public static function sliceProvider(): \Generator
     {
         foreach ([

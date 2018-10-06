@@ -72,6 +72,8 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function shuffle(): void;
 
+    public function sizeOf(): int;
+
     public function slice(int $offset, ?int $length = null): self;
 
     public function sort(int $sortFlags = \SORT_REGULAR): void;
