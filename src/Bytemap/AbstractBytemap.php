@@ -141,16 +141,22 @@ abstract class AbstractBytemap implements BytemapInterface
         if (!\is_array($patterns)) {
             $patterns = \iterator_to_array($patterns);
         }
+        if (!$patterns) {
+            return;
+        }
 
         $errorMessage = 'details unavailable';
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
             $errorMessage = $errstr;
         });
         if (null === \preg_filter($patterns, '', $this->defaultItem)) {
-            $constants = \get_defined_constants(true)['pcre'];
-            $matches = \preg_grep('~^PREG_.*_ERROR$~', \array_keys($constants));
-            $constants = \array_intersect_key($constants, \array_flip($matches));
-            $errorName = $constants[\preg_last_error()] ?? null;
+            $pregLastError = \preg_last_error();
+            if (\PREG_NO_ERROR !== $pregLastError) {
+                $constants = \get_defined_constants(true)['pcre'];
+                $matches = \preg_grep('~^PREG_.*_ERROR$~', \array_keys($constants));
+                $constants = \array_flip(\array_intersect_key($constants, \array_flip($matches)));
+                $errorName = $constants[$pregLastError] ?? null;
+            }
         }
         \restore_error_handler();
         if (isset($errorName)) {
