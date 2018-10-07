@@ -194,7 +194,7 @@ final class SearchTest extends AbstractTestOfBytemap
      */
     public function testGreppingInvalidRegex(string $impl): void
     {
-        self::instantiate($impl, "\x0")->grep('')->rewind();
+        self::instantiate($impl, "\x0")->grep([''])->rewind();
     }
 
     public static function greppingProvider(): \Generator
@@ -257,7 +257,7 @@ final class SearchTest extends AbstractTestOfBytemap
                 [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
                 [[1, 2, 3, 4, 5, 1, 2], '~z~', false, -7, -42, []],
             ] as [$subject, $regex, $whitelist, $howMany, $startAfter, $expected]) {
-                yield [$impl, $items, $subject, $regex, $whitelist, $howMany, $startAfter, $expected];
+                yield [$impl, $items, $subject, (array) $regex, $whitelist, $howMany, $startAfter, $expected];
             }
 
             $items = ['zx', 'xy', 'yy', 'wy', 'wx', 'tu'];
@@ -322,7 +322,7 @@ final class SearchTest extends AbstractTestOfBytemap
                 [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
                 [[1, 2, 3, 4, 5, 1, 2], '~zx~', false, -7, -42, []],
             ] as [$subject, $regex, $whitelist, $howMany, $startAfter, $expected]) {
-                yield [$impl, $items, $subject, $regex, $whitelist, $howMany, $startAfter, $expected];
+                yield [$impl, $items, $subject, (array) $regex, $whitelist, $howMany, $startAfter, $expected];
             }
         }
     }
@@ -335,7 +335,7 @@ final class SearchTest extends AbstractTestOfBytemap
         string $impl,
         array $items,
         array $subject,
-        string $regex,
+        array $patterns,
         bool $whitelist,
         int $howMany,
         ?int $startAfter,
@@ -351,7 +351,7 @@ final class SearchTest extends AbstractTestOfBytemap
                 $bytemap[$index] = $items[$key];
             }
         }
-        self::assertSame($expectedSequence, \iterator_to_array($bytemap->grep($regex, $whitelist, $howMany, $startAfter)));
+        self::assertSame($expectedSequence, \iterator_to_array($bytemap->grep($patterns, $whitelist, $howMany, $startAfter)));
     }
 
     /**
@@ -371,7 +371,7 @@ final class SearchTest extends AbstractTestOfBytemap
         $bytemap[] = 'akk';
         $regex = '~(?<![c-d])(?<=[a-f])([k-p])(?=\\1)(?![m-n])~';  // [abef](kk|ll|oo|pp)
         $matchCount = 0;
-        foreach ($bytemap->grep($regex, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $item) {
+        foreach ($bytemap->grep([$regex], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $item) {
             ++$matchCount;
             if (1 === $matchCount) {
                 $bytemap[1] = 'akk';

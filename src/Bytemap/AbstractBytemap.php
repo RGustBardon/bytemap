@@ -133,20 +133,24 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     public function grep(
-        string $regex,
+        iterable $patterns,
         bool $whitelist = true,
         int $howMany = \PHP_INT_MAX,
         ?int $startAfter = null
         ): \Generator {
+        if (!\is_array($patterns)) {
+            $patterns = \iterator_to_array($patterns);
+        }
+
         $errorMessage = 'details unavailable';
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
             $errorMessage = $errstr;
         });
-        if (false === \preg_match($regex, $this->defaultItem)) {
+        if (null === \preg_filter($patterns, '', $this->defaultItem)) {
             $constants = \get_defined_constants(true)['pcre'];
             $matches = \preg_grep('~^PREG_.*_ERROR$~', \array_keys($constants));
             $constants = \array_intersect_key($constants, \array_flip($matches));
-            $errorName = $constants[\preg_last_error()] ?? '';
+            $errorName = $constants[\preg_last_error()] ?? null;
         }
         \restore_error_handler();
         if (isset($errorName)) {
@@ -162,15 +166,15 @@ abstract class AbstractBytemap implements BytemapInterface
             return;
         }
 
-        $regex .= 'S';
+        $patterns = \preg_filter('~$~', 'S', $patterns);
         if ($this->bytesPerItem > 1) {
-            yield from $this->grepMultibyte($regex, $whitelist, $howMany, $howManyToSkip);
+            yield from $this->grepMultibyte($patterns, $whitelist, $howMany, $howManyToSkip);
         } else {
             $whitelistNeedles = [];
             $blacklistNeedles = [];
             for ($i = 0; $i < 256; ++$i) {
                 $needle = \chr($i);
-                if ($whitelist xor \preg_match($regex, $needle)) {
+                if ($whitelist xor null !== \preg_filter($patterns, '', $needle)) {
                     $blacklistNeedles[$needle] = true;
                 } else {
                     $whitelistNeedles[$needle] = true;
@@ -414,7 +418,7 @@ abstract class AbstractBytemap implements BytemapInterface
         ): \Generator;
 
     abstract protected function grepMultibyte(
-        string $regex,
+        array $patterns,
         bool $whitelist,
         int $howManyToReturn,
         int $howManyToSkip

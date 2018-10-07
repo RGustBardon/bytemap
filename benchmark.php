@@ -472,7 +472,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
         $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem, 200000);
         $direction = $forward ? 'forward' : 'backward';
 
-        $result = $bytemap->grep($regex, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
+        $result = $bytemap->grep([$regex], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
         $itemCount = 0;
         foreach ($result as $key => $value) {
             ++$itemCount;

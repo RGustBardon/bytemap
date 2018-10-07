@@ -279,7 +279,7 @@ class Bytemap extends AbstractBytemap
     }
 
     protected function grepMultibyte(
-        string $regex,
+        array $patterns,
         bool $whitelist,
         int $howManyToReturn,
         int $howManyToSkip
@@ -293,7 +293,7 @@ class Bytemap extends AbstractBytemap
         $map = $this->map;
         if ($howManyToReturn > 0) {
             for ($i = $howManyToSkip, $offset = $howManyToSkip * $bytesPerItem; $i < $itemCount; ++$i, $offset += $bytesPerItem) {
-                if (!($whitelist xor $lookup[$item = \substr($map, $offset, $bytesPerItem)] ?? ($match = \preg_match($regex, $item)))) {
+                if (!($whitelist xor $lookup[$item = \substr($map, $offset, $bytesPerItem)] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
                     yield $i => $item;
                     if (0 === --$howManyToReturn) {
                         return;
@@ -312,7 +312,7 @@ class Bytemap extends AbstractBytemap
         } else {
             $i = $this->itemCount - 1 - $howManyToSkip;
             for ($offset = $i * $bytesPerItem; $i >= 0; --$i, $offset -= $bytesPerItem) {
-                if (!($whitelist xor $lookup[$item = \substr($map, $offset, $bytesPerItem)] ?? ($match = \preg_match($regex, $item)))) {
+                if (!($whitelist xor $lookup[$item = \substr($map, $offset, $bytesPerItem)] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
                         return;

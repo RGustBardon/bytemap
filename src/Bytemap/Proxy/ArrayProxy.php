@@ -574,7 +574,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     // PCRE API
     public function pregGrep(string $pattern, int $flags = 0): \Generator
     {
-        yield from $this->bytemap->grep($pattern, !($flags & \PREG_GREP_INVERT));
+        yield from $this->bytemap->grep([$pattern], !($flags & \PREG_GREP_INVERT));
     }
 
     // String API

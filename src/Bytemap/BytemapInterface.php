@@ -40,20 +40,20 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
     public function find(?iterable $items = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
 
     /**
-     * Returns the items that either match or do not match a certain POSIX regular expression.
+     * Returns the items that either match or do not match any of certain POSIX regular expressions.
      *
-     * @param string $regex      the POSIX regular expression that the items will be tested against
-     * @param bool   $whitelist  `true` if the first argument represents a whitelist
-     * @param int    $howMany    The maximum number of matches. By default, all the matches are included.
-     *                           If negative, the search starts from the end.
-     * @param ?int   $startAfter the index of the item after which the search should commence.
-     *                           `null` means that the search will start from the first item of the
-     *                           bytemap (if `$howMany` is positive) or from the last item of the
-     *                           bytemap (if `$howMany` is negative)
+     * @param iterable $patterns   POSIX regular expressions that the items will be tested against
+     * @param bool     $whitelist  `true` if the first argument represents a whitelist
+     * @param int      $howMany    The maximum number of matches. By default, all the matches are included.
+     *                             If negative, the search starts from the end.
+     * @param ?int     $startAfter the index of the item after which the search should commence.
+     *                             `null` means that the search will start from the first item of the
+     *                             bytemap (if `$howMany` is positive) or from the last item of the
+     *                             bytemap (if `$howMany` is negative)
      *
      * @return \Generator items found (including their keys)
      */
-    public function grep(string $regex, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
+    public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
 
     /**
      * Inserts items at a certain offset.
