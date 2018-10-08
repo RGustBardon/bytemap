@@ -142,8 +142,13 @@ abstract class AbstractBytemap implements BytemapInterface
             $patterns = \iterator_to_array($patterns);
         }
         if (!$patterns) {
+            if (!$whitelist) {
+                yield from $this->getIterator();
+            }
+
             return;
         }
+        $patterns = \array_unique($patterns);
 
         $errorMessage = 'details unavailable';
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
