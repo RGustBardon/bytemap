@@ -841,6 +841,37 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame('cdxyefef', $arrayProxy->implode());
     }
 
+    public static function pregFilterProvider(): \Generator
+    {
+        foreach ([
+            [['cd', 'xy', 'ef', 'ef'], [], 'z', -1, [], 0],
+            [['cd', 'xy', 'ef', 'ef'], '~[cdf]~', 'z', -1, ['zz', 2 => 'ez', 'ez'], 4],
+            [['cd', 'xy', 'ef', 'ef'], '~[cdf]~', 'z', 0, ['cd', 2 => 'ef', 'ef'], 0],
+            [['cd', 'xy', 'ef', 'ef'], '~[cdf]~', 'z', 1, ['zd', 2 => 'ez', 'ez'], 3],
+            [['cd', 'xy', 'ef', 'ef'], '~[cdf]~', 'z', 2, ['zz', 2 => 'ez', 'ez'], 4],
+            [['cd', 'xy', 'ef', 'ef'], ['~c~', '~d|f~'], 'z', 2, ['zz', 2 => 'ez', 'ez'], 4],
+            [['cd', 'xy', 'ef', 'ef'], ['~c~', '~d|f~'], 'abc', 2, ['abcabc', 2 => 'eabc', 'eabc'], 4],
+            [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], ['i', 'j'], 2, ['jd'], 2],
+            [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], [], 2, ['d'], 1],
+        ] as [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount]) {
+            yield [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount];
+        }
+    }
+
+    /**
+     * @dataProvider pregFilterProvider
+     *
+     * @param mixed $pattern
+     * @param mixed $replacement
+     */
+    public function testPregFilter(array $items, $pattern, $replacement, int $limit, array $expectedResult, int $expectedCount): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expectedResult, \iterator_to_array($arrayProxy->pregFilter($pattern, $replacement, $limit, $count)));
+        self::assertSame($expectedCount, $count);
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
     public static function pregGrepProvider(): \Generator
     {
         foreach ([
