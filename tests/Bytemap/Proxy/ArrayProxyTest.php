@@ -853,6 +853,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], ['~c~', '~d|f~'], 'abc', 2, ['abcabc', 2 => 'eabc', 'eabc'], 4],
             [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], ['i', 'j'], 2, ['jd'], 2],
             [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], [], 2, ['d'], 1],
+            [['cd', 'xy', 'ef', 'ef'], '~(x)(y)~', '${2}${1}', 2, [1 => 'yx'], 1],
         ] as [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount]) {
             yield [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount];
         }
@@ -890,6 +891,38 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     {
         $arrayProxy = self::instantiate(...$items);
         self::assertSame($expected, \iterator_to_array($arrayProxy->pregGrep($pattern, $flags)));
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
+    public static function pregReplaceProvider(): \Generator
+    {
+        foreach ([
+            [['cd', 'xy', 'ef', 'ef'], [], 'z', -1, ['cd', 'xy', 'ef', 'ef'], 0],
+            [['cd', 'xy', 'ef', 'ef'], '~[cdf]~', 'z', -1, ['zz', 'xy', 'ez', 'ez'], 4],
+            [['cd', 'xy', 'ef', 'ef'], '~[cdf]~', 'z', 0, ['cd', 'xy', 'ef', 'ef'], 0],
+            [['cd', 'xy', 'ef', 'ef'], '~[cdf]~', 'z', 1, ['zd', 'xy', 'ez', 'ez'], 3],
+            [['cd', 'xy', 'ef', 'ef'], '~[cdf]~', 'z', 2, ['zz', 'xy', 'ez', 'ez'], 4],
+            [['cd', 'xy', 'ef', 'ef'], ['~c~', '~d|f~'], 'z', 2, ['zz', 'xy', 'ez', 'ez'], 4],
+            [['cd', 'xy', 'ef', 'ef'], ['~c~', '~d|f~'], 'abc', 2, ['abcabc', 'xy', 2 => 'eabc', 'eabc'], 4],
+            [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], ['i', 'j'], 2, ['jd', 'xy', 'ef', 'ef'], 2],
+            [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], [], 2, ['d', 'xy', 'ef', 'ef'], 1],
+            [['cd', 'xy', 'ef', 'ef'], '~(x)(y)~', '${2}${1}', 2, ['cd', 'yx', 'ef', 'ef'], 1],
+        ] as [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount]) {
+            yield [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount];
+        }
+    }
+
+    /**
+     * @dataProvider pregReplaceProvider
+     *
+     * @param mixed $pattern
+     * @param mixed $replacement
+     */
+    public function testPregReplace(array $items, $pattern, $replacement, int $limit, array $expectedResult, int $expectedCount): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expectedResult, \iterator_to_array($arrayProxy->pregReplace($pattern, $replacement, $limit, $count)));
+        self::assertSame($expectedCount, $count);
         self::assertSame($items, $arrayProxy->exportArray());
     }
 

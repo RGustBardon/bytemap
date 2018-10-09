@@ -587,6 +587,22 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         yield from $this->bytemap->grep([$pattern], !($flags & \PREG_GREP_INVERT));
     }
 
+    public function pregReplace($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator
+    {
+        $clone = clone $this->bytemap;
+        $lastOffset = 0;
+        foreach ($this->pregFilter($pattern, $replacement, $limit, $count) as $offset => $item) {
+            for (; $lastOffset < $offset; ++$lastOffset) {
+                yield $lastOffset => $clone[$lastOffset];
+            }
+            $lastOffset = $offset + 1;
+            yield $offset => $item;
+        }
+        for ($itemCount = \count($clone); $lastOffset < $itemCount; ++$lastOffset) {
+            yield $lastOffset => $clone[$lastOffset];
+        }
+    }
+
     // String API
     public function implode(): string
     {
