@@ -121,6 +121,8 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function pregReplace($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator;
 
+    public function pregReplaceCallbackArray(iterable $patternsAndCallbacks, int $limit = -1, ?int &$count = 0): \Generator;
+
     // String API
     public function implode(): string;
 }

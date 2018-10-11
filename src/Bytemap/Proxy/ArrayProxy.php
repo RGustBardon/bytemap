@@ -603,6 +603,33 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
+    public function pregReplaceCallbackArray(iterable $patternsAndCallbacks, int $limit = -1, ?int &$count = 0): \Generator
+    {
+        if (!\is_array($patternsAndCallbacks)) {
+            $patternsAndCallbacks = \iterator_to_array($patternsAndCallbacks);
+        }
+
+        if (!$patternsAndCallbacks) {
+            return;
+        }
+
+        $clone = clone $this->bytemap;
+        $lastOffset = 0;
+        $count = 0;
+        foreach ($clone->grep(\array_keys($patternsAndCallbacks)) as $offset => $item) {
+            for (; $lastOffset < $offset; ++$lastOffset) {
+                yield $lastOffset => $clone[$lastOffset];
+            }
+            $lastOffset = $offset + 1;
+            $item = \preg_replace_callback_array($patternsAndCallbacks, $item, $limit, $countInIteration);
+            $count += $countInIteration;
+            yield $offset => $item;
+        }
+        for ($itemCount = \count($clone); $lastOffset < $itemCount; ++$lastOffset) {
+            yield $lastOffset => $clone[$lastOffset];
+        }
+    }
+
     // String API
     public function implode(): string
     {

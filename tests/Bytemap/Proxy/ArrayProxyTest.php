@@ -926,6 +926,27 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($items, $arrayProxy->exportArray());
     }
 
+    public function testPregReplaceCallbackArray(): void
+    {
+        $items = ['cd', 'xy', 'ef', 'ef', 'zz'];
+        $arrayProxy = self::instantiate(...$items);
+        $patternsAndCallbacks = [
+            '~^c~' => function (array $matches): string {
+                return 'g';
+            },
+            '~^g~' => function (array $matches): string {
+                return 'hi';
+            },
+            '~[ef]~' => function (array $matches): string {
+                return 'w';
+            },
+        ];
+        $result = $arrayProxy->pregReplaceCallbackArray($patternsAndCallbacks, 1, $count);
+        self::assertSame(['hid', 'xy', 'wf', 'wf', 'zz'], \iterator_to_array($result));
+        self::assertSame(4, $count);
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
     private static function assertArrayMask(array $arrayMask, array $array): void
     {
         self::assertCount(\count($arrayMask), $array);
