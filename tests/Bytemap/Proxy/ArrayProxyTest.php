@@ -196,7 +196,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public static function mapProvider(): \Generator
     {
-        $callback = function (?string ...$args): string {
+        $defaultCallback = function (?string ...$args): string {
             return \implode(':', \array_map('strval', $args));
         };
 
@@ -223,21 +223,29 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 ],
                 [
                     ['cd', 'xy', 'ef', 'ef'],
-                    $callback,
+                    $defaultCallback,
                     [['i1', 'i2']],
                     ['cd:i1', 'xy:i2', 'ef:', 'ef:'],
                 ],
                 [
                     ['cd', 'xy', 'ef', 'ef'],
-                    $callback,
+                    $defaultCallback,
                     [['i1', 'i2', 'i3', 'i4', 'i5']],
                     ['cd:i1', 'xy:i2', 'ef:i3', 'ef:i4', ':i5'],
                 ],
                 [
                     ['cd', 'xy', 'ef', 'ef'],
-                    $callback,
+                    $defaultCallback,
                     [['i1', 'i2'], ['a1']],
                     ['cd:i1:a1', 'xy:i2:', 'ef::', 'ef::'],
+                ],
+                [
+                    ['cd', 'xy', 'ef', 'ef'],
+                    function (string $input): string {
+                        return \strtoupper($input);
+                    },
+                    [],
+                    ['CD', 'XY', 'EF', 'EF'],
                 ],
             ] as [$items, $callback, $iterables, $expected]) {
                 switch ($iterableType) {
@@ -404,6 +412,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         }
 
         self::assertNotSame($singles, $batch);
+
+        self::assertSame(\range(0, 999), $arrayProxy->rand(\count($arrayProxy)));
     }
 
     public function testReduce(): void
@@ -631,6 +641,24 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         $arrayProxy = self::instantiate(...$items);
         self::assertSame($expectedSlice, $arrayProxy->splice($offset, $length, $replacement)->exportArray());
         self::assertSame($expectedMutation, $arrayProxy->exportArray());
+    }
+
+    /**
+     * @expectedException \TypeError
+     * @expectedExceptionMessage must be of type integer
+     */
+    public function testUnionStringKey(): void
+    {
+        self::instantiate()->union(['foo' => 'xy']);
+    }
+
+    /**
+     * @expectedException \OutOfRangeException
+     * @expectedExceptionMessage Negative index
+     */
+    public function testUnionNegativeKey(): void
+    {
+        self::instantiate()->union([-1 => 'xy']);
     }
 
     public static function unionProvider(): \Generator
@@ -926,24 +954,129 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($items, $arrayProxy->exportArray());
     }
 
-    public function testPregReplaceCallbackArray(): void
+    public function pregReplaceCallbackProvider(): \Generator
     {
-        $items = ['cd', 'xy', 'ef', 'ef', 'zz'];
+        $defaultCallback = function (array $matches): string {
+            return $matches[0].',';
+        };
+
+        foreach ([
+            [
+                ['cd', 'xy', 'ef', 'ef', 'zz'],
+                [],
+                $defaultCallback,
+                -1,
+                ['cd', 'xy', 'ef', 'ef', 'zz'],
+                0,
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef', 'zz'],
+                (function (): \Generator {
+                    yield '~[ef]~';
+                })(),
+                $defaultCallback,
+                -1,
+                ['cd', 'xy', 'e,f,', 'e,f,', 'zz'],
+                4,
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef', 'zz'],
+                ['~^c~', '~[ef]~'],
+                function (array $matches): string {
+                    return $matches[0].',';
+                },
+                1,
+                ['c,d', 'xy', 'e,f', 'e,f', 'zz'],
+                3,
+            ],
+        ] as [$items, $pattern, $callback, $limit, $expectedResult, $expectedCount]) {
+            yield [$items, $pattern, $callback, $limit, $expectedResult, $expectedCount];
+        }
+    }
+
+    /**
+     * @dataProvider pregReplaceCallbackProvider
+     *
+     * @param mixed $pattern
+     */
+    public function testPregReplaceCallback(
+        array $items,
+        $pattern,
+        callable $callback,
+        int $limit,
+        array $expectedResult,
+        int $expectedCount
+    ): void {
         $arrayProxy = self::instantiate(...$items);
-        $patternsAndCallbacks = [
-            '~^c~' => function (array $matches): string {
-                return 'g';
-            },
-            '~^g~' => function (array $matches): string {
-                return 'hi';
-            },
-            '~[ef]~' => function (array $matches): string {
-                return 'w';
-            },
-        ];
-        $result = $arrayProxy->pregReplaceCallbackArray($patternsAndCallbacks, 1, $count);
-        self::assertSame(['hid', 'xy', 'wf', 'wf', 'zz'], \iterator_to_array($result));
-        self::assertSame(4, $count);
+        $result = $arrayProxy->pregReplaceCallback($pattern, $callback, $limit, $count);
+        self::assertSame($expectedResult, \iterator_to_array($result));
+        self::assertSame($expectedCount, $count);
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
+    public function pregReplaceCallbackArrayProvider(): \Generator
+    {
+        foreach ([
+            [
+                ['cd', 'xy', 'ef', 'ef', 'zz'],
+                [],
+                1,
+                [],
+                0,
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef', 'zz'],
+                [
+                    '~^c~' => function (array $matches): string {
+                        return 'g';
+                    },
+                ],
+                1,
+                ['gd', 'xy', 'ef', 'ef', 'zz'],
+                1,
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef', 'zz'],
+                (function (): \Generator {
+                    yield '~[ef]~' => function (array $matches): string {
+                        return 'w';
+                    };
+                })(),
+                -1,
+                ['cd', 'xy', 'ww', 'ww', 'zz'],
+                4,
+            ],
+            [
+                ['cd', 'xy', 'ef', 'ef', 'zz'],
+                [
+                    '~^c~' => function (array $matches): string {
+                        return 'g';
+                    },
+                    '~^g~' => function (array $matches): string {
+                        return 'hi';
+                    },
+                    '~[ef]~' => function (array $matches): string {
+                        return 'w';
+                    },
+                ],
+                1,
+                ['hid', 'xy', 'wf', 'wf', 'zz'],
+                4,
+            ],
+        ] as [$items, $patternsAndCallbacks, $limit, $expectedResult, $expectedCount]) {
+            yield [$items, $patternsAndCallbacks, $limit, $expectedResult, $expectedCount];
+        }
+    }
+
+    /**
+     * @dataProvider pregReplaceCallbackArrayProvider
+     */
+    public function testPregReplaceCallbackArray(array $items, iterable $patternsAndCallbacks, int $limit, array $expectedResult, int $expectedCount): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        $result = $arrayProxy->pregReplaceCallbackArray($patternsAndCallbacks, $limit, $count);
+        self::assertSame($expectedResult, \iterator_to_array($result));
+        self::assertSame($expectedCount, $count);
         self::assertSame($items, $arrayProxy->exportArray());
     }
 

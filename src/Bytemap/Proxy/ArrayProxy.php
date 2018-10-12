@@ -214,7 +214,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function natCaseSort(): void
     {
         if (!\defined('\\SORT_NATURAL') || !\is_callable('\\strnatcasecmp')) {
+            // @codeCoverageIgnoreStart
             throw new \RuntimeException('Natural order comparator is not available');
+            // @codeCoverageIgnoreEnd
         }
         self::sortBytemapByItem($this->bytemap, self::getComparator(\SORT_NATURAL | \SORT_FLAG_CASE));
     }
@@ -222,7 +224,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function natSort(): void
     {
         if (!\defined('\\SORT_NATURAL') || !\is_callable('\\strnatcmp')) {
+            // @codeCoverageIgnoreStart
             throw new \RuntimeException('Natural order comparator is not available');
+            // @codeCoverageIgnoreEnd
         }
         self::sortBytemapByItem($this->bytemap, self::getComparator(\SORT_NATURAL));
     }
@@ -416,7 +420,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function unique(int $sortFlags = \SORT_STRING): \Generator
     {
         if (\defined('\\SORT_LOCALE_STRING') && \SORT_LOCALE_STRING === $sortFlags) {
+            // @codeCoverageIgnoreStart
             yield from \array_unique($this->exportArray(), \SORT_LOCALE_STRING);
+        // @codeCoverageIgnoreEnd
         } else {
             $seen = [];
             switch ($sortFlags) {
@@ -603,8 +609,42 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
+    public function pregReplaceCallback($pattern, callable $callback, int $limit = -1, ?int &$count = 0): \Generator
+    {
+        $count = 0;
+
+        if (\is_iterable($pattern)) {
+            if (!\is_array($pattern)) {
+                $pattern = \iterator_to_array($pattern);
+            }
+
+            if (!$pattern) {
+                yield from $this->bytemap->getIterator();
+
+                return;
+            }
+        }
+
+        $clone = clone $this->bytemap;
+        $lastOffset = 0;
+        foreach ($clone->grep(\is_iterable($pattern) ? $pattern : [$pattern]) as $offset => $item) {
+            for (; $lastOffset < $offset; ++$lastOffset) {
+                yield $lastOffset => $clone[$lastOffset];
+            }
+            $lastOffset = $offset + 1;
+            $item = \preg_replace_callback($pattern, $callback, $item, $limit, $countInIteration);
+            $count += $countInIteration;
+            yield $offset => $item;
+        }
+        for ($itemCount = \count($clone); $lastOffset < $itemCount; ++$lastOffset) {
+            yield $lastOffset => $clone[$lastOffset];
+        }
+    }
+
     public function pregReplaceCallbackArray(iterable $patternsAndCallbacks, int $limit = -1, ?int &$count = 0): \Generator
     {
+        $count = 0;
+
         if (!\is_array($patternsAndCallbacks)) {
             $patternsAndCallbacks = \iterator_to_array($patternsAndCallbacks);
         }
@@ -613,9 +653,15 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             return;
         }
 
+        if (1 === \count($patternsAndCallbacks)) {
+            $callback = \reset($patternsAndCallbacks);
+            yield from $this->pregReplaceCallback(\key($patternsAndCallbacks), $callback, $limit, $count);
+
+            return;
+        }
+
         $clone = clone $this->bytemap;
         $lastOffset = 0;
-        $count = 0;
         foreach ($clone->grep(\array_keys($patternsAndCallbacks)) as $offset => $item) {
             for (; $lastOffset < $offset; ++$lastOffset) {
                 yield $lastOffset => $clone[$lastOffset];
