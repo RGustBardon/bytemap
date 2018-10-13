@@ -677,14 +677,19 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     }
 
     // String API
-    public function implode(): string
+    public function implode(string $glue): string
     {
         $result = '';
         foreach ($this->bytemap as $item) {
-            $result .= $item;
+            $result .= $item.$glue;
         }
 
-        return $result;
+        return ('' === $glue || '' === $result) ? $result : \substr($result, 0, -\strlen($glue));
+    }
+
+    public function join(string $glue): string
+    {
+        return $this->implode($glue);
     }
 
     protected static function calculateOffsetAndLength(int $itemCount, int $offset, ?int $length): array

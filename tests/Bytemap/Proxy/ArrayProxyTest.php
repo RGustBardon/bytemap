@@ -863,10 +863,29 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['cd', 'ab', 'cd', 'ab', 'cd', 'cd', 'ab'], $arrayProxy->exportArray());
     }
 
-    public function testImplode(): void
+    public static function implodeJoinProvider(): \Generator
     {
-        $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
-        self::assertSame('cdxyefef', $arrayProxy->implode());
+        foreach ([
+            [[], '', ''],
+            [[], ',', ''],
+            [['cd'], '', 'cd'],
+            [['cd'], ',', 'cd'],
+            [['cd', 'xy', 'ef', 'ef'], '', 'cdxyefef'],
+            [['cd', 'xy', 'ef', 'ef'], ',', 'cd,xy,ef,ef'],
+        ] as [$items, $glue, $expected]) {
+            yield [$items, $glue, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider implodeJoinProvider
+     */
+    public function testImplodeJoin(array $items, string $glue, string $expected): void
+    {
+        $arrayProxy = self::instantiate(...$items);
+        self::assertSame($expected, $arrayProxy->implode($glue));
+        self::assertSame($expected, $arrayProxy->join($glue));
+        self::assertSame($items, $arrayProxy->exportArray());
     }
 
     public static function pregFilterProvider(): \Generator
