@@ -231,21 +231,29 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         self::sortBytemapByItem($this->bytemap, self::getComparator(\SORT_NATURAL));
     }
 
-    public function pad(int $size, string $value): ArrayProxyInterface
+    public function pad(int $size, string $value): \Generator
     {
-        $itemCount = \count($this->bytemap);
+        $clone = clone $this->bytemap;
+        $itemCount = \count($clone);
         $itemPendingCount = \abs($size) - $itemCount;
-        $clone = clone $this;
 
-        if ($itemPendingCount > 0) {
-            $clone->bytemap->insert((function () use ($itemPendingCount, $value): \Generator {
-                for ($i = 0; $i < $itemPendingCount; ++$i) {
-                    yield $value;
-                }
-            })(), $size > 0 ? -1 : -$itemCount - $itemPendingCount);
+        if ($itemPendingCount <= 0) {
+            yield from $clone->getIterator();
+        } elseif ($size > 0) {
+            yield from $clone->getIterator();
+
+            for ($end = $itemCount + $itemPendingCount; $itemCount < $end; ++$itemCount) {
+                yield $itemCount => $value;
+            }
+        } else {
+            for ($i = 0; $i < $itemPendingCount; ++$i) {
+                yield $i => $value;
+            }
+
+            foreach ($clone as $offset => $bytemapValue) {
+                yield $offset + $i => $bytemapValue;
+            }
         }
-
-        return $clone;
     }
 
     public function pop(): ?string
@@ -577,7 +585,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $arrayProxy;
     }
 
-    // PCRE API
+    // `ArrayProxyInterface`: PCRE API
     public function pregFilter($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator
     {
         $count = 0;
@@ -676,7 +684,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
-    // String API
+    // `ArrayProxyInterface`: String API
     public function implode(string $glue): string
     {
         $result = '';

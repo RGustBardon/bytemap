@@ -343,9 +343,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     {
         $values = ['cd', 'xy', 'ef', 'ef'];
         $arrayProxy = self::instantiate(...$values);
-        self::assertSame($values, $arrayProxy->pad(2, 'bb')->exportArray());
-        self::assertSame($values + [4 => 'bb', 5 => 'bb'], $arrayProxy->pad(6, 'bb')->exportArray());
-        self::assertSame(\array_merge(['bb', 'bb'], $values), $arrayProxy->pad(-6, 'bb')->exportArray());
+        self::assertSame($values, \iterator_to_array($arrayProxy->pad(2, 'bb')));
+        self::assertSame($values + [4 => 'bb', 5 => 'bb'], \iterator_to_array($arrayProxy->pad(6, 'bb')));
+        self::assertSame(\array_merge(['bb', 'bb'], $values), \iterator_to_array($arrayProxy->pad(-6, 'bb')));
         self::assertSame($values, $arrayProxy->exportArray());
     }
 

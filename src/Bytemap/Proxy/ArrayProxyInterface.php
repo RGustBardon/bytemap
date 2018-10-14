@@ -50,7 +50,7 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function natSort(): void;
 
-    public function pad(int $size, string $value): self;
+    public function pad(int $size, string $value): \Generator;
 
     public function pop(): ?string;
 
