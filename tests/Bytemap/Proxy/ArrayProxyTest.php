@@ -456,7 +456,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     {
         $values = ['cd', 'xy', 'ef', 'ef', 'bb'];
         $arrayProxy = self::instantiate(...$values);
-        self::assertSame(['bb', 'ef', 'ef', 'xy', 'cd'], \iterator_to_array($arrayProxy->reverse()));
+        self::assertSame(['bb', 'ef', 'ef', 'xy', 'cd'], \iterator_to_array($arrayProxy->reverse(false)));
+        self::assertSame([4 => 'bb', 3 => 'ef', 2 => 'ef', 1 => 'xy', 0 => 'cd'], \iterator_to_array($arrayProxy->reverse(true)));
         self::assertSame($values, $arrayProxy->exportArray());
     }
 

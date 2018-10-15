@@ -320,10 +320,19 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $clone;
     }
 
-    public function reverse(): \Generator
+    public function reverse(bool $preserveKeys = false): \Generator
     {
-        for ($clone = $this->bytemap, $i = \count($this->bytemap) - 1; $i >= 0; --$i) {
-            yield $clone[$i];
+        $clone = $this->bytemap;
+        $i = \count($clone) - 1;
+
+        if ($preserveKeys) {
+            for (; $i >= 0; --$i) {
+                yield $i => $clone[$i];
+            }
+        } else {
+            for (; $i >= 0; --$i) {
+                yield $clone[$i];
+            }
         }
     }
 
