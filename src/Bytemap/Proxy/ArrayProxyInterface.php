@@ -62,7 +62,7 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function replace(iterable ...$iterables): self;
 
-    public function reverse(): self;
+    public function reverse(): \Generator;
 
     public function rSort(int $sortFlags = \SORT_REGULAR): void;
 

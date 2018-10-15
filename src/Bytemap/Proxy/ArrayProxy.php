@@ -320,15 +320,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $clone;
     }
 
-    public function reverse(): ArrayProxyInterface
+    public function reverse(): \Generator
     {
-        $lastOffset = \count($this->bytemap) - 1;
-        $clone = clone $this;
-        foreach ($this->bytemap as $offset => $item) {
-            $clone->bytemap[$lastOffset - $offset] = $item;
+        for ($clone = $this->bytemap, $i = \count($this->bytemap) - 1; $i >= 0; --$i) {
+            yield $clone[$i];
         }
-
-        return $clone;
     }
 
     public function rSort(int $sortFlags = \SORT_REGULAR): void
