@@ -97,7 +97,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             foreach ($iterable as $value) {
                 $blacklist[$value] = true;
             }
-        };
+        }
 
         foreach ($this->bytemap as $offset => $value) {
             if (!isset($blacklist[$value])) {

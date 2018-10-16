@@ -150,7 +150,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
         $patterns = \array_unique($patterns);
 
-        $errorMessage = 'details unavailable';
+        $errorMessage = null;
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
             $errorMessage = $errstr;
         });
@@ -164,8 +164,8 @@ abstract class AbstractBytemap implements BytemapInterface
             }
         }
         \restore_error_handler();
-        if (isset($errorName)) {
-            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.$errorName.' ('.$errorMessage.')');
+        if (isset($errorMessage)) {
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.($errorName ?? 'Grep failed').' ('.$errorMessage.')');
         }
 
         if (0 === $howMany) {
