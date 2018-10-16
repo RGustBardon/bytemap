@@ -113,6 +113,30 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         ], self::instantiate('cd', 'xy', 'ef', 'ef', 'xy')->countValues());
     }
 
+    public static function diffProvider(): \Generator
+    {
+        foreach ([
+            [[], [], []],
+            [[], [['cd']], []],
+            [['cd', 'xy', 'ef', 'ef'], [], ['cd', 'xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], [['bb']], ['cd', 'xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], [['cd'], ['ef']], [1 => 'xy']],
+            [['cd', 'xy', 'ef', 'ef'], [['ef', 'cd']], [1 => 'xy']],
+        ] as [$items, $iterables, $expected]) {
+            yield [$items, $iterables, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider diffProvider
+     */
+    public function testDiff(array $items, array $iterables, array $expected): void
+    {
+        $arrayProxy = new ArrayProxy('ab', ...$items);
+        self::assertSame($expected, \iterator_to_array($arrayProxy->diff(...$iterables)));
+        self::assertSame($items, $arrayProxy->exportArray());
+    }
+
     public static function filterProvider(): \Generator
     {
         foreach ([

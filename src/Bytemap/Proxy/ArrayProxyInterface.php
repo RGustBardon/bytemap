@@ -30,6 +30,8 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function countValues(): array;
 
+    public function diff(iterable ...$iterables): \Generator;
+
     public function filter(?callable $callback = null, int $flag = 0): \Generator;
 
     public function inArray(string $needle): bool;

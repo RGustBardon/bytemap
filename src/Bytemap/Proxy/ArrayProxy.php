@@ -90,6 +90,22 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $values;
     }
 
+    public function diff(iterable ...$iterables): \Generator
+    {
+        $blacklist = [];
+        foreach ($iterables as $iterable) {
+            foreach ($iterable as $value) {
+                $blacklist[$value] = true;
+            }
+        };
+
+        foreach ($this->bytemap as $offset => $value) {
+            if (!isset($blacklist[$value])) {
+                yield $offset => $value;
+            }
+        }
+    }
+
     public function filter(?callable $callback = null, int $flag = 0): \Generator
     {
         if (null === $callback) {
@@ -401,10 +417,14 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         if (!\is_iterable($replacement)) {
             $replacement = (array) $replacement;
         }
-        $extracted = $this->getBytemapSlice($offset, $length);
+
+        $extracted = $this->createEmptyBytemap();
+        for ($i = $offset, $end = $offset + $length; $i < $end; ++$i) {
+            $extracted[] = $this->bytemap[$i];
+        }
+
         $this->bytemap->insert($replacement, $offset);
-        $replacementCount = \count($this->bytemap) - $itemCount;
-        $this->bytemap->delete($offset + $replacementCount, $length);
+        $this->bytemap->delete($offset + \count($this->bytemap) - $itemCount, $length);
 
         return self::wrap($extracted);
     }
@@ -723,15 +743,5 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $length = \min($length, $itemCount - $offset);
 
         return [$offset, $length];
-    }
-
-    protected function getBytemapSlice(int $offset, int $length): BytemapInterface
-    {
-        $bytemap = $this->createEmptyBytemap();
-        for ($i = $offset, $end = $offset + $length; $i < $end; ++$i) {
-            $bytemap[] = $this->bytemap[$i];
-        }
-
-        return $bytemap;
     }
 }
