@@ -570,28 +570,29 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public static function sliceProvider(): \Generator
     {
         foreach ([
-            [[], 0, 0, []],
-            [['cd', 'xy', 'ef', 'ef'], -3, null, ['xy', 'ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], 0, null, ['cd', 'xy', 'ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], 2, null, ['ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], 2, 0, []],
-            [['cd', 'xy', 'ef', 'ef'], -2, 1, ['ef']],
-            [['cd', 'xy', 'ef', 'ef'], 0, 1, ['cd']],
-            [['cd', 'xy', 'ef', 'ef'], 0, 3, ['cd', 'xy', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], 1, 1, ['xy']],
-            [['cd', 'xy', 'ef', 'ef'], 1, -1, ['xy', 'ef']],
-        ] as [$items, $offset, $length, $expected]) {
-            yield [$items, $offset, $length, $expected];
+            [[], 0, 0, false, []],
+            [['cd', 'xy', 'ef', 'ef'], -3, null, false, ['xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 0, null, false, ['cd', 'xy', 'ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 2, null, false, ['ef', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 2, 0, false, []],
+            [['cd', 'xy', 'ef', 'ef'], -2, 1, false, ['ef']],
+            [['cd', 'xy', 'ef', 'ef'], 0, 1, false, ['cd']],
+            [['cd', 'xy', 'ef', 'ef'], 0, 3, false, ['cd', 'xy', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 1, 1, false, ['xy']],
+            [['cd', 'xy', 'ef', 'ef'], 1, -1, false, ['xy', 'ef']],
+            [['cd', 'xy', 'ef', 'ef'], 1, -1, true, [1 => 'xy', 'ef']],
+        ] as [$items, $offset, $length, $preserveKeys, $expected]) {
+            yield [$items, $offset, $length, $preserveKeys, $expected];
         }
     }
 
     /**
      * @dataProvider sliceProvider
      */
-    public function testSlice(array $items, int $offset, ?int $length, array $expected): void
+    public function testSlice(array $items, int $offset, ?int $length, bool $preserveKeys, array $expected): void
     {
         $arrayProxy = self::instantiate(...$items);
-        self::assertSame($expected, $arrayProxy->slice($offset, $length)->exportArray());
+        self::assertSame($expected, \iterator_to_array($arrayProxy->slice($offset, $length, $preserveKeys)));
         self::assertSame($items, $arrayProxy->exportArray());
     }
 

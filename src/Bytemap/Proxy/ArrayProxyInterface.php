@@ -74,7 +74,7 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function sizeOf(): int;
 
-    public function slice(int $offset, ?int $length = null): self;
+    public function slice(int $offset, ?int $length = null, bool $preserveKeys = false): \Generator;
 
     public function sort(int $sortFlags = \SORT_REGULAR): void;
 

@@ -377,12 +377,15 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return \count($this->bytemap);
     }
 
-    public function slice(int $offset, ?int $length = null): ArrayProxyInterface
+    public function slice(int $offset, ?int $length = null, bool $preserveKeys = false): \Generator
     {
         $itemCount = \count($this->bytemap);
         [$offset, $length] = self::calculateOffsetAndLength($itemCount, $offset, $length);
 
-        return self::wrap($this->getBytemapSlice($offset, $length));
+        $sliceOffset = $preserveKeys ? $offset : 0;
+        for ($i = $offset, $end = $offset + $length; $i < $end; ++$i, ++$sliceOffset) {
+            yield $sliceOffset => $this->bytemap[$i];
+        }
     }
 
     public function sort(int $sortFlags = \SORT_REGULAR): void
