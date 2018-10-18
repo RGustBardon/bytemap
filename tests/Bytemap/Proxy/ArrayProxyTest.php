@@ -310,8 +310,6 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     /**
      * @dataProvider mapProvider
-     *
-     * @param mixed $items
      */
     public function testMap(array $items, ?callable $callback, array $iterables, array $expected): void
     {
@@ -1142,6 +1140,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             return 'This test requires \\SORT_LOCALE_STRING and a callable \\strcoll';
         }
 
+        $locale = null;
         foreach (['de_DE.utf8', 'de_DE.UTF-8'] as $locale) {
             if (false !== \setlocale(\LC_COLLATE, $locale)) {
                 return null;

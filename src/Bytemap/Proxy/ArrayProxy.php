@@ -424,7 +424,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
 
         $this->bytemap->insert($replacement, $offset);
-        $this->bytemap->delete($offset + \count($this->bytemap) - $itemCount, $length);
+        $this->bytemap->delete((int) $offset + \count($this->bytemap) - $itemCount, $length);
 
         return self::wrap($extracted);
     }
