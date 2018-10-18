@@ -227,9 +227,15 @@ abstract class AbstractProxy implements ArrayProxyInterface
             }
 
             $bytemap->delete(0);
-            $bytemap->insert(self::sortBytemapByItem($left, $comparator));
-            $bytemap[] = $pivot;
-            $bytemap->insert(self::sortBytemapByItem($right, $comparator));
+            if (isset($left) && $left instanceof BytemapInterface) {
+                $bytemap->insert(self::sortBytemapByItem($left, $comparator));
+            }
+            if (isset($pivot)) {
+                $bytemap[] = $pivot;
+            }
+            if (isset($right) && $right instanceof BytemapInterface) {
+                $bytemap->insert(self::sortBytemapByItem($right, $comparator));
+            }
         }
 
         return $bytemap;

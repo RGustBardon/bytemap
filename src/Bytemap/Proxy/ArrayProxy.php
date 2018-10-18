@@ -45,6 +45,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $this->jsonSerialize();
     }
 
+    /**
+     * @param string[] $items
+     */
     public static function import(string $defaultItem, iterable $items): ArrayProxyInterface
     {
         return new self($defaultItem, ...$items);
@@ -180,19 +183,31 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     {
         if ($arguments) {
             $multipleIterator = new \MultipleIterator(\MultipleIterator::MIT_NEED_ANY | \MultipleIterator::MIT_KEYS_NUMERIC);
-            $multipleIterator->attachIterator($this->bytemap->getIterator());
+            /** @var \Iterator $bytemapIterator */
+            $bytemapIterator = $this->bytemap->getIterator();
+            $multipleIterator->attachIterator($bytemapIterator);
             foreach ($arguments as $column) {
                 if (\is_array($column)) {
                     $multipleIterator->attachIterator(new \ArrayIterator($column));
-                } elseif ($column instanceof \Iterator) {
-                    $multipleIterator->attachIterator($column);
-                } elseif ($column instanceof \IteratorAggregate) {
-                    $multipleIterator->attachIterator($column->getIterator());
-                } else {
-                    // @codeCoverageIgnoreStart
-                    throw new \InvalidArgumentException('Unsupported iterable');
-                    // @codeCoverageIgnoreEnd
+
+                    continue;
                 }
+                if ($column instanceof \Iterator) {
+                    $multipleIterator->attachIterator($column);
+
+                    continue;
+                }
+                if ($column instanceof \IteratorAggregate) {
+                    $columnIterator = $column->getIterator();
+                    if ($columnIterator instanceof \Iterator) {
+                        $multipleIterator->attachIterator($columnIterator);
+
+                        continue;
+                    }
+                }
+                // @codeCoverageIgnoreStart
+                throw new \InvalidArgumentException('Unsupported iterable');
+                // @codeCoverageIgnoreEnd
             }
             if (null === $callback) {
                 foreach ($multipleIterator as $value) {
@@ -520,13 +535,26 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     {
         $passedToCallback = 2 + (\func_num_args() > 1 ? 1 : 0);
 
-        $function = new \ReflectionFunction($callback);
-        $expectedByCallback = $function->getNumberOfParameters();
+        try {
+            $reflection = new \ReflectionMethod(...(array) $callback);
+        } catch (\TypeError | \ReflectionException $e) {
+            if (\is_string($callback) || \is_object($callback) && $callback instanceof \Closure) {
+                try {
+                    $reflection = new \ReflectionFunction($callback);
+                    // @codeCoverageIgnoreStart
+                } catch (\TypeError | \ReflectionException $e) {
+                    // @codeCoverageIgnoreEnd
+                }
+            }
+        }
 
-        if ($expectedByCallback > $passedToCallback) {
-            $message = 'Too few arguments to function %s(), %d passed and exactly %d expected';
+        if (isset($reflection)) {
+            $expectedByCallback = $reflection->getNumberOfParameters();
+            if ($expectedByCallback > $passedToCallback) {
+                $message = 'Too few arguments to function %s(), %d passed and exactly %d expected';
 
-            throw new \ArgumentCountError(\sprintf($message, $function->getName(), $passedToCallback, $expectedByCallback));
+                throw new \ArgumentCountError(\sprintf($message, $reflection->getName(), $passedToCallback, $expectedByCallback));
+            }
         }
 
         if (3 === $passedToCallback) {

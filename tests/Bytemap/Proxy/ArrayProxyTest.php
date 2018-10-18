@@ -790,6 +790,11 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         });
     }
 
+    public static function walkMethod(&$item, $offset, string $userdata = null): void
+    {
+        $item = \gettype($userdata)[0].$offset;
+    }
+
     public static function walkProvider(): \Generator
     {
         foreach ([
@@ -805,6 +810,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset, string $userdata = null) {
                 $item = \gettype($userdata)[0].$offset;
             }, null, ['N0', 'N1', 'N2', 'N3']],
+            [['cd', 'xy', 'ef', 'ef'], self::class.'::walkMethod', null, ['N0', 'N1', 'N2', 'N3']],
+            [['cd', 'xy', 'ef', 'ef'], __NAMESPACE__.'\\transform', null, ['N0', 'N1', 'N2', 'N3']],
         ] as [$items, $callback, $userdata, $expected]) {
             yield [$items, $callback, $userdata, $expected];
         }
@@ -1186,4 +1193,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     {
         return new ArrayProxy('ab', ...$items);
     }
+}
+
+function transform(&$item, $offset, string $userdata = null): void
+{
+    $item = \gettype($userdata)[0].$offset;
 }
