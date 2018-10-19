@@ -333,7 +333,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             'a1', 'a2', 'a3',
             'b1', 'b2',
             'g1', 'g2', 'g3',
-        ], $arrayProxy->merge($array, $bytemap, $generator())->exportArray());
+        ], \iterator_to_array($arrayProxy->merge($array, $bytemap, $generator())));
         self::assertSame($values, $arrayProxy->exportArray());
     }
 

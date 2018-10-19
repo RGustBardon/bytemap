@@ -229,17 +229,17 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
-    public function merge(iterable ...$iterables): ArrayProxyInterface
+    public function merge(iterable ...$iterables): \Generator
     {
-        $clone = clone $this;
+        $clone = clone $this->bytemap;
+        yield from $clone;
+        $index = \count($clone) - 1;
 
         foreach ($iterables as $iterable) {
             foreach ($iterable as $value) {
-                $clone->bytemap[] = $value;
+                yield ++$index => $value;
             }
         }
-
-        return $clone;
     }
 
     public function natCaseSort(): void

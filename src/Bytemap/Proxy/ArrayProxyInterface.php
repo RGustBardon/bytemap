@@ -46,7 +46,7 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function map(?callable $callback, iterable ...$arguments): \Generator;
 
-    public function merge(iterable ...$iterables): self;
+    public function merge(iterable ...$iterables): \Generator;
 
     public function natCaseSort(): void;
 
