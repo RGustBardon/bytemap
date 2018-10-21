@@ -101,10 +101,21 @@ interface ArrayProxyInterface extends ProxyInterface
 
     public function walk(callable $callback, $userdata = null): void;
 
+    /**
+     * `array_combine` (creates a bytemap by using one iterable for keys and another for its values).
+     *
+     * @param string   $defaultItem the default item of the underlying bytemap
+     * @param iterable $keys        keys to be used.
+     *                              They need not be consecutive. All the missing keys between 0
+     *                              and the maximum key will be assigned the default value.
+     * @param iterable $values      values to be used
+     *
+     * @return self the combined bytemap
+     */
     public static function combine(string $defaultItem, iterable $keys, iterable $values): self;
 
     /**
-     * `array_fill` (fill an array with values).
+     * `array_fill` (fills a bytemap with values).
      *
      * @param string  $defaultItem the default item of the underlying bytemap
      * @param int     $startIndex  the first index of the value used for filling
@@ -114,6 +125,13 @@ interface ArrayProxyInterface extends ProxyInterface
      */
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): self;
 
+    /**
+     * `array_fill_keys` (fills a bytemap with values, specifying keys).
+     *
+     * @param string   $defaultItem the default item of the underlying bytemap
+     * @param iterable $keys        values that will be used as keys
+     * @param string   $value       value to use for filling
+     */
     public static function fillKeys(string $defaultItem, iterable $keys, ?string $value = null);
 
     // PCRE API
