@@ -146,7 +146,24 @@ interface ArrayProxyInterface extends ProxyInterface
     public function pregReplaceCallbackArray(iterable $patternsAndCallbacks, int $limit = -1, ?int &$count = 0): \Generator;
 
     // String API
+
+    /**
+     * `implode` (joins bytemap items with a string).
+     *
+     * @param string $glue a string that is to be inserted between the items
+     *
+     * @return string a representation of all the bytemap items in the same order,
+     *                with the glue string between each item
+     */
     public function implode(string $glue): string;
 
+    /**
+     * `join` (an alias of `implode`, joins bytemap items with a string).
+     *
+     * @param string $glue a string that is to be inserted between the items
+     *
+     * @return string a representation of all the bytemap items in the same order,
+     *                with the glue string between each item
+     */
     public function join(string $glue): string;
 }
