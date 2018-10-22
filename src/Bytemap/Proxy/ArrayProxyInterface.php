@@ -35,11 +35,11 @@ interface ArrayProxyInterface extends ProxyInterface
 
     /**
      * @param string   $defaultItem
-     * @param iterable $iterms
+     * @param iterable $items
      *
      * @return self
      */
-    public static function import(string $defaultItem, iterable $iterms): self;
+    public static function import(string $defaultItem, iterable $items): self;
 
     // Array API
 
