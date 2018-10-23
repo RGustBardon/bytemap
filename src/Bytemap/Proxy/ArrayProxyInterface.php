@@ -80,43 +80,46 @@ interface ArrayProxyInterface extends ProxyInterface
     public function filter(?callable $callback = null, int $flag = 0): \Generator;
 
     /**
-     * `\in_array`.
+     * `\in_array` (checks if an item exists in the bytemap).
      *
-     * @param string $needle
+     * @param string $needle the value to look for
      *
-     * @return bool
+     * @return bool `true` if the needle is found, `false` otherwise
      */
     public function inArray(string $needle): bool;
 
     /**
-     * `\array_key_exists`.
+     * `\array_key_exists` (checks if an offset exists in the bytemap).
      *
-     * @param int $key
+     * @param int $key the offset to look for
      *
-     * @return bool
+     * @return bool `true` if the offset is found, `false` otherwise
      */
     public function keyExists(int $key): bool;
 
     /**
-     * `\array_key_first`.
+     * `\array_key_first` (returns the first offset of the bytemap).
      *
-     * @return null|int
+     * @return null|int `null` if the bytemap is empty, `0` otherwise
      */
     public function keyFirst(): ?int;
 
     /**
-     * `\array_key_last`.
+     * `\array_key_last` (returns the last offset of the bytemap).
      *
-     * @return null|int
+     * @return null|int `null` if the bytemap is empty, the last offset otherwise
      */
     public function keyLast(): ?int;
 
     /**
-     * `\array_keys`.
+     * `\array_keys` (returns either all the offsets of the bytemap or their subset).
      *
-     * @param string $searchValue
+     * @param null|string $searchValue the item to look for.
+     *                                 `null` if all the offsets are to be returned
      *
-     * @return \Generator
+     * @return \Generator if a search value has been specified, only the offsets whose
+     *                    items are stricly equal to that value are generated (sorted ascending),
+     *                    otherwise all the offsets are generated (sorted ascending)
      */
     public function keys(?string $searchValue = null): \Generator;
 
@@ -140,12 +143,16 @@ interface ArrayProxyInterface extends ProxyInterface
     public function merge(iterable ...$iterables): \Generator;
 
     /**
-     * `\natcasesort`.
+     * `\natcasesort` (sorts the bytemap in natural order, ignoring the case).
+     *
+     * @see https://github.com/sourcefrog/natsort The description of the algorithm.
      */
     public function natCaseSort(): void;
 
     /**
-     * `\natsort`.
+     * `\natsort` (sorts the bytemap in natural order, case-sensitively).
+     *
+     * @see https://github.com/sourcefrog/natsort The description of the algorithm.
      */
     public function natSort(): void;
 
@@ -160,18 +167,19 @@ interface ArrayProxyInterface extends ProxyInterface
     public function pad(int $size, string $value): \Generator;
 
     /**
-     * `\array_pop`.
+     * `\array_pop` (pops an item off the end of the bytemap).
      *
-     * @return null|string
+     * @return null|string `null` if the bytemap has already been empty,
+     *                     the removed item otherwise
      */
     public function pop(): ?string;
 
     /**
-     * `\array_push`.
+     * `\array_push` (pushes one or more items onto the end of the bytemap).
      *
-     * @param string ...$values
+     * @param string ...$values The items to be pushed.
      *
-     * @return int
+     * @return int the new number of the items in the bytemap
      */
     public function push(string ...$values): int;
 
@@ -243,7 +251,7 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\sizeof` (an alias of `\count`).
      *
-     * @return int
+     * @return int the number of items in the bytemap
      */
     public function sizeOf(): int;
 
