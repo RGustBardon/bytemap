@@ -61,19 +61,21 @@ interface ArrayProxyInterface extends ProxyInterface
     public function countValues(): array;
 
     /**
-     * `\array_diff`.
+     * `\array_diff` (generates the items which are missing from all of the iterables).
      *
-     * @param iterable ...$iterables
+     * @param iterable ...$iterables iterables of items that must not appear in the result
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are the items that are found in the bytemap
+     *                    but not in any of the iterables and whose keys are the offsets of those
+     *                    items
      */
     public function diff(iterable ...$iterables): \Generator;
 
     /**
      * `\array_filter`.
      *
-     * @param callable $callback
-     * @param int      $flag
+     * @param null|callable $callback
+     * @param int           $flag
      *
      * @return \Generator
      */
@@ -212,11 +214,14 @@ interface ArrayProxyInterface extends ProxyInterface
     public function replace(iterable ...$iterables): self;
 
     /**
-     * `\array_reverse`.
+     * `\array_reverse` (generates the items in reverse order).
      *
-     * @param bool $preserveKeys
+     * @param bool $preserveKeys `true` if the offsets are to be preserved,
+     *                           `false` otherwise
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are the items of the bytemap in the reverse
+     *                    order and whose keys are either the corresponding offsets or
+     *                    a sequence of consecutive natural numbers starting from 0
      */
     public function reverse(bool $preserveKeys = false): \Generator;
 
@@ -237,14 +242,17 @@ interface ArrayProxyInterface extends ProxyInterface
     public function search(string $needle);
 
     /**
-     * `\array_shift`.
+     * `\array_shift` (shifts an element off the beginning of the bytemap).
      *
-     * @return null|string
+     * @return null|string `null` if the bytemap has already been empty,
+     *                     the removed item otherwise
      */
     public function shift(): ?string;
 
     /**
-     * `\shuffle`.
+     * `\shuffle` (randomizes the orders of bytemap items).
+     *
+     * Uses a pseudorandom number generator (`\mt_rand`).
      */
     public function shuffle(): void;
 
@@ -258,9 +266,9 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_slice`.
      *
-     * @param int  $offset
-     * @param int  $length
-     * @param bool $preserveKeys
+     * @param int      $offset
+     * @param null|int $length
+     * @param bool     $preserveKeys
      *
      * @return \Generator
      */
@@ -276,9 +284,9 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_splice`.
      *
-     * @param int   $offset
-     * @param int   $length
-     * @param mixed $replacement
+     * @param int      $offset
+     * @param null|int $length
+     * @param mixed    $replacement
      *
      * @return self
      */
@@ -303,25 +311,36 @@ interface ArrayProxyInterface extends ProxyInterface
     public function unique(int $sortFlags = \SORT_STRING): \Generator;
 
     /**
-     * `\array_unshift`.
+     * `\array_unshift` (prepends items to the beginning of the bytemap).
      *
-     * @param string ...$values
+     * @param string ...$values the items to prepend
      *
-     * @return int
+     * @return int the new number of items in the bytemap
      */
     public function unshift(string ...$values): int;
 
     /**
-     * `\usort`.
+     * `\usort` (sorts the bytemap by comparing items using a user-defined function).
      *
-     * @param callable $valueCompareFunc
+     * Sorting is not stable.
+     *
+     * @param callable $valueCompareFunc a function whose parameters are two strings (the items
+     *                                   being compared) and whose return value will be cast to
+     *                                   an integer and interpreted as follows: negative integers
+     *                                   indicate that the first element should appear before the
+     *                                   second one, positive integers indicate that the first
+     *                                   element should appear after the second one, and 0
+     *                                   indicates that neither of these cases applies
      */
     public function uSort(callable $valueCompareFunc): void;
 
     /**
-     * `\array_values`.
+     * `\array_values` (generates all the items of the bytemap).
      *
-     * @return \Generator
+     * Using this generator is equivalent to iterating over the bytemap directly.
+     *
+     * @return \Generator A generator whose values are bytemap items and whose keys are the offsets
+     *                    of those items. Keys are generated in the ascending order.
      */
     public function values(): \Generator;
 
@@ -360,9 +379,10 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_fill_keys` (fills a bytemap with values, specifying keys).
      *
-     * @param string   $defaultItem the default item of the underlying bytemap
-     * @param iterable $keys        values that will be used as keys
-     * @param string   $value       value to use for filling
+     * @param string      $defaultItem the default item of the underlying bytemap
+     * @param iterable    $keys        values that will be used as keys
+     * @param null|string $value       value to use for filling
+     *                                 `null` means that the default item will be used
      */
     public static function fillKeys(string $defaultItem, iterable $keys, ?string $value = null): self;
 
@@ -374,7 +394,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param iterable|string $pattern
      * @param iterable|string $replacement
      * @param int             $limit
-     * @param int             $count
+     * @param null|int        $count
      *
      * @return \Generator
      */
@@ -397,7 +417,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param iterable|string $pattern
      * @param iterable|string $replacement
      * @param int             $limit
-     * @param int             $count
+     * @param null|int        $count
      *
      * @return \Generator
      */
@@ -409,7 +429,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param iterable|string $pattern
      * @param callable        $callback
      * @param int             $limit
-     * @param int             $count
+     * @param null|int        $count
      *
      * @return \Generator
      */
@@ -420,7 +440,7 @@ interface ArrayProxyInterface extends ProxyInterface
      *
      * @param iterable $patternsAndCallbacks
      * @param int      $limit
-     * @param int      $count
+     * @param null|int $count
      *
      * @return \Generator
      */

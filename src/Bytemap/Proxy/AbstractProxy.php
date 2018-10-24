@@ -214,7 +214,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
         if ($itemCount > 1) {
             foreach ($bytemap as $item) {
                 if (isset($pivot)) {
-                    if ($comparator($item, $pivot) < 0) {
+                    if ((int) $comparator($item, $pivot) < 0) {
                         $left[] = $item;
                     } else {
                         $right[] = $item;
