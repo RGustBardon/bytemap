@@ -698,6 +698,11 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 [['a1', 'a2'], ['b1', 'b2', 'b3'], [4 => 'c1']],
                 ['cd', 'xy', 'ef', 'ef', 'c1'],
             ],
+            [
+                ['cd', 'xy', 'ef', 'ef'],
+                [[7 => 'c2', 4 => 'c1'], [9 => 'c4', 6 => 'c3']],
+                ['cd', 'xy', 'ef', 'ef', 'c1', 'ab', 'ab', 'c2', 'ab', 'c4'],
+            ],
         ] as [$items, $iterables, $expected]) {
             yield [$items, $iterables, $expected];
         }

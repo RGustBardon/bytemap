@@ -460,9 +460,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
                 if ($key >= $itemCount) {
                     $clone->bytemap[$key] = $value;
-                    $itemCount = $key + 1;
                 }
             }
+            $itemCount = \count($clone->bytemap);
         }
 
         return $clone;
