@@ -20,24 +20,32 @@ interface ArrayProxyInterface extends ProxyInterface
     // Bytemap encapsulation
 
     /**
-     * @param BytemapInterface $bytemap
+     * Instantiates a proxy to a certain bytemap.
      *
-     * @return self
+     * @param BytemapInterface $bytemap a bytemap that the proxy is to act for
+     *
+     * @return self a proxy to the bytemap
      */
     public static function wrap(BytemapInterface $bytemap): self;
 
     // Array conversion
 
     /**
-     * @return string[]
+     * Returns an array corresponding to the underyling bytemap.
+     *
+     * @return string[] an array whose keys are the indicies of a bytemap and whose values are
+     *                  their corresponding items
      */
     public function exportArray(): array;
 
     /**
-     * @param string   $defaultItem
-     * @param iterable $items
+     * Instantiates a bytemap and a proxy to it.
      *
-     * @return self
+     * @param string   $defaultItem the default item of the underyling bytemap that is to be
+     *                              constructed
+     * @param iterable $items       the items that are to be inserted into the bytemap
+     *
+     * @return self a proxy to a bytemap that has been constructed based on the arguments
      */
     public static function import(string $defaultItem, iterable $items): self;
 
