@@ -52,19 +52,22 @@ interface ArrayProxyInterface extends ProxyInterface
     // Array API
 
     /**
-     * `\array_chunk`.
+     * `\array_chunk` (split the bytemap into chunks).
      *
-     * @param int  $size
-     * @param bool $preserveKeys
+     * @param int  $size         the number of items in each chunk
+     * @param bool $preserveKeys `true` if the indices in the array of generated values should
+     *                           correspond to the offsets of bytemap items, `false` otherwise
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are arrays representing consecutive chunks of
+     *                    the bytemap
      */
     public function chunk(int $size, bool $preserveKeys = false): \Generator;
 
     /**
-     * `\array_count_values`.
+     * `\array_count_values` (counts the frequency of each item of the bytemap).
      *
-     * @return int[]
+     * @return int[] an array whose keys are the items of the bytemap and whose values are the
+     *               number of times each item appears in the bytemap
      */
     public function countValues(): array;
 
@@ -80,12 +83,19 @@ interface ArrayProxyInterface extends ProxyInterface
     public function diff(iterable ...$iterables): \Generator;
 
     /**
-     * `\array_filter`.
+     * `\array_filter` (filters the items of the bytemap using a callback).
      *
-     * @param null|callable $callback
-     * @param int           $flag
+     * @param null|callable $callback `null` if only the items other than `'0'` are to preserved,
+     *                                a callback to determine which items are to be preserved
+     *                                otherwise (if the callback returns `true`, the item is going
+     *                                to be preserved)
+     * @param int           $flag     `0` if only the item is to be passed to the callback,
+     *                                `\ARRAY_FILTER_USE_KEY` if only the offset is to be passed to
+     *                                the callback, `\ARRAY_FILTER_USE_BOTH` if both the item and
+     *                                the offset are to be passed to the callback (in that order)
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are the items that pass the filter and whose
+     *                    keys are their corresponding offsets
      */
     public function filter(?callable $callback = null, int $flag = 0): \Generator;
 
@@ -134,12 +144,20 @@ interface ArrayProxyInterface extends ProxyInterface
     public function keys(?string $searchValue = null): \Generator;
 
     /**
-     * `\array_map`.
+     * `\array_map` (generates the result of applying a callback to each item of the bytemap).
      *
-     * @param null|callable $callback
-     * @param iterable      ...$arguments
+     * @param null|callable $callback     `null` if the items are to be generated without any
+     *                                    modification, a callback to be applied to the item
+     *                                    and the corresponding arguments otherwise
+     * @param iterable      ...$arguments optional arguments that are iterated synchronously
+     *                                    with the bytemap and whose corresponding values are
+     *                                    passed to the callback
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are either the items of the bytemap (if no
+     *                    optional arguments are passed and the callback is `null`), or arrays
+     *                    with the values obtained during each iteration (if optional arguments
+     *                    are passed and the callback is `null`), or the results of applying
+     *                    the callback to the values obtained during each iteration
      */
     public function map(?callable $callback, iterable ...$arguments): \Generator;
 
