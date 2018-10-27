@@ -187,12 +187,18 @@ interface ArrayProxyInterface extends ProxyInterface
     public function natSort(): void;
 
     /**
-     * `\array_pad`.
+     * `\array_pad` (generates a certain value repeatedly and all the items of the bytemap).
      *
-     * @param int    $size
-     * @param string $value
+     * @param int    $size  the number of values to generate (if positive, additional values will
+     *                      be generated after the items of the bytemap, otherwise they will come
+     *                      first; if the absolute value is less than the current number of items
+     *                      in the bytemap, all of the items of the bytemap will be generated
+     *                      nonetheless)
+     * @param string $value the value to repeatedly generate in addition to all the items of the
+     *                      bytemap
      *
-     * @return \Generator
+     * @return \Generator the items of the bytemap, all of which, as a sequence, are either
+     *                    preceded or followed by a repeated string
      */
     public function pad(int $size, string $value): \Generator;
 
