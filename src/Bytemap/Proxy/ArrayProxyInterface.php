@@ -162,11 +162,13 @@ interface ArrayProxyInterface extends ProxyInterface
     public function map(?callable $callback, iterable ...$arguments): \Generator;
 
     /**
-     * `\array_merge`.
+     * `\array_merge` (generates the items of the bytemap followed by the values of iterables).
      *
-     * @param iterable ...$iterables
+     * @param iterable ...$iterables iterables whose values will be generated after the items
+     *                               of the bytemap
      *
-     * @return \Generator
+     * @return \Generator consecutive items of the bytemap followed by the values found in
+     *                    the iterables
      */
     public function merge(iterable ...$iterables): \Generator;
 
