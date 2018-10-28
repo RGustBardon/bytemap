@@ -120,16 +120,16 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_key_first` (returns the first offset of the bytemap).
      *
-     * @return null|int `null` if the bytemap is empty, `0` otherwise
+     * @return int `0`
      */
-    public function keyFirst(): ?int;
+    public function keyFirst(): int;
 
     /**
      * `\array_key_last` (returns the last offset of the bytemap).
      *
-     * @return null|int `null` if the bytemap is empty, the last offset otherwise
+     * @return int the last offset
      */
-    public function keyLast(): ?int;
+    public function keyLast(): int;
 
     /**
      * `\array_keys` (returns either all the offsets of the bytemap or their subset).
@@ -205,10 +205,9 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_pop` (pops an item off the end of the bytemap).
      *
-     * @return null|string `null` if the bytemap has already been empty,
-     *                     the removed item otherwise
+     * @return string the removed item
      */
-    public function pop(): ?string;
+    public function pop(): string;
 
     /**
      * `\array_push` (pushes one or more items onto the end of the bytemap).
@@ -220,11 +219,12 @@ interface ArrayProxyInterface extends ProxyInterface
     public function push(string ...$values): int;
 
     /**
-     * `\array_rand`.
+     * `\array_rand` (picks one or more random offsets of the bytemap).
      *
-     * @param int $num
+     * @param int $num the number of offsets to pick
      *
-     * @return null|array|string
+     * @return int|int[] a single offset if `$num` is equal to 1, an array of random offsets
+     *                   otherwise
      */
     public function rand(int $num = 1);
 
@@ -278,10 +278,9 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_shift` (shifts an element off the beginning of the bytemap).
      *
-     * @return null|string `null` if the bytemap has already been empty,
-     *                     the removed item otherwise
+     * @return string the removed item
      */
-    public function shift(): ?string;
+    public function shift(): string;
 
     /**
      * `\shuffle` (randomizes the orders of bytemap items).

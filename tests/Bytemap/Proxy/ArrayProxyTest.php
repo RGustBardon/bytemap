@@ -198,15 +198,29 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertFalse($arrayProxy->keyExists(4));
     }
 
+    /**
+     * @expectedException \UnderflowException
+     */
+    public function testKeyFirstEmptyBytemap(): void
+    {
+        self::instantiate()->keyFirst();
+    }
+
     public function testKeyFirst(): void
     {
-        self::assertNull(self::instantiate()->keyFirst());
         self::assertSame(0, self::instantiate('cd', 'xy', 'ef', 'ef')->keyFirst());
+    }
+
+    /**
+     * @expectedException \UnderflowException
+     */
+    public function testKeyLastEmptyBytemap(): void
+    {
+        self::instantiate()->keyLast();
     }
 
     public function testKeyLast(): void
     {
-        self::assertNull(self::instantiate()->keyLast());
         self::assertSame(3, self::instantiate('cd', 'xy', 'ef', 'ef')->keyLast());
     }
 
@@ -371,11 +385,16 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($values, $arrayProxy->exportArray());
     }
 
+    /**
+     * @expectedException \UnderflowException
+     */
+    public function testPopEmptyBytemap(): void
+    {
+        self::instantiate()->pop();
+    }
+
     public function testPop(): void
     {
-        $arrayProxy = self::instantiate();
-        self::assertNull($arrayProxy->pop());
-
         $arrayProxy = self::instantiate('ef', 'cd', 'xy');
         self::assertSame('xy', $arrayProxy->pop());
         self::assertSame(['ef', 'cd'], $arrayProxy->exportArray());
@@ -419,7 +438,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public function testRand(): void
     {
-        $arrayProxy = new ArrayProxy('cd', ...\array_fill_keys(\range(0, 999), 'ab'));
+        $arrayProxy = new ArrayProxy('cd', ...\array_fill(0, 1000, 'ab'));
 
         $singles = [$arrayProxy->rand(), $arrayProxy->rand(), $arrayProxy->rand()];
         self::assertTrue(\count(\array_unique($singles)) > 1);
@@ -435,7 +454,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
         self::assertNotSame($singles, $batch);
 
-        self::assertSame(\range(0, 999), $arrayProxy->rand(\count($arrayProxy)));
+        self::assertSame(\range(0, \count($arrayProxy) - 1), $arrayProxy->rand(\count($arrayProxy)));
     }
 
     public function testReduce(): void
@@ -560,11 +579,16 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(2, $arrayProxy->search('ef'));
     }
 
+    /**
+     * @expectedException \UnderflowException
+     */
+    public function testShiftEmptyBytemap(): void
+    {
+        self::instantiate()->shift();
+    }
+
     public function testShift(): void
     {
-        $arrayProxy = self::instantiate();
-        self::assertNull($arrayProxy->shift());
-
         $arrayProxy = self::instantiate('ef', 'cd', 'xy');
         self::assertSame('ef', $arrayProxy->shift());
         self::assertSame(['cd', 'xy'], $arrayProxy->exportArray());

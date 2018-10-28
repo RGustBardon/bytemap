@@ -154,16 +154,23 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $key >= 0 && $key < \count($this->bytemap);
     }
 
-    public function keyFirst(): ?int
+    public function keyFirst(): int
     {
-        return \count($this->bytemap) > 0 ? 0 : null;
+        if (\count($this->bytemap) > 0) {
+            return 0;
+        }
+
+        throw new \UnderflowException('Iterable is empty');
     }
 
-    public function keyLast(): ?int
+    public function keyLast(): int
     {
         $itemCount = \count($this->bytemap);
+        if ($itemCount > 0) {
+            return $itemCount - 1;
+        }
 
-        return $itemCount > 0 ? $itemCount - 1 : null;
+        throw new \UnderflowException('Iterable is empty');
     }
 
     public function keys(?string $searchValue = null): \Generator
@@ -287,7 +294,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
-    public function pop(): ?string
+    public function pop(): string
     {
         $itemCount = \count($this->bytemap);
         if ($itemCount > 0) {
@@ -297,7 +304,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             return $item;
         }
 
-        return null;
+        throw new \UnderflowException('Iterable is empty');
     }
 
     public function push(string ...$values): int
@@ -377,7 +384,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return \array_keys(\iterator_to_array($this->bytemap->find([$needle], true, 1)))[0] ?? false;
     }
 
-    public function shift(): ?string
+    public function shift(): string
     {
         if (\count($this->bytemap) > 0) {
             $item = $this->bytemap[0];
@@ -386,7 +393,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             return $item;
         }
 
-        return null;
+        throw new \UnderflowException('Iterable is empty');
     }
 
     public function shuffle(): void
