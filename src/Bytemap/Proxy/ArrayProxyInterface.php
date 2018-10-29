@@ -58,6 +58,8 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param bool $preserveKeys `true` if the indices in the array of generated values should
      *                           correspond to the offsets of bytemap items, `false` otherwise
      *
+     * @throws \OutOfRangeException if the size parameter is not positive
+     *
      * @return \Generator a generator whose values are arrays representing consecutive chunks of
      *                    the bytemap
      */
@@ -120,12 +122,16 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_key_first` (returns the first offset of the bytemap).
      *
+     * @throws \UnderflowException if the bytemap contains no items
+     *
      * @return int `0`
      */
     public function keyFirst(): int;
 
     /**
      * `\array_key_last` (returns the last offset of the bytemap).
+     *
+     * @throws \UnderflowException if the bytemap contains no items
      *
      * @return int the last offset
      */
@@ -153,6 +159,9 @@ interface ArrayProxyInterface extends ProxyInterface
      *                                    with the bytemap and whose corresponding values are
      *                                    passed to the callback
      *
+     * @throws \InvalidArgumentException if any of the provided iterables is neither an array,
+     *                                   nor an `\Iterator`, nor an `\IteratorAggregate`
+     *
      * @return \Generator a generator whose values are either the items of the bytemap (if no
      *                    optional arguments are passed and the callback is `null`), or arrays
      *                    with the values obtained during each iteration (if optional arguments
@@ -176,6 +185,8 @@ interface ArrayProxyInterface extends ProxyInterface
      * `\natcasesort` (sorts the bytemap in natural order, ignoring the case).
      *
      * @see https://github.com/sourcefrog/natsort The description of the algorithm.
+     *
+     * @throws \RuntimeException if the `\strnatcasecmp` function is not available
      */
     public function natCaseSort(): void;
 
@@ -183,6 +194,8 @@ interface ArrayProxyInterface extends ProxyInterface
      * `\natsort` (sorts the bytemap in natural order, case-sensitively).
      *
      * @see https://github.com/sourcefrog/natsort The description of the algorithm.
+     *
+     * @throws \RuntimeException if the `\strnatcasecmp` function is not available
      */
     public function natSort(): void;
 
@@ -205,6 +218,8 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_pop` (pops an item off the end of the bytemap).
      *
+     * @throws \UnderflowException if the bytemap contains no items
+     *
      * @return string the removed item
      */
     public function pop(): string;
@@ -222,6 +237,10 @@ interface ArrayProxyInterface extends ProxyInterface
      * `\array_rand` (picks one or more random offsets of the bytemap).
      *
      * @param int $num the number of offsets to pick
+     *
+     * @throws \UnderflowException  if the bytemap contains no items
+     * @throws \OutOfRangeException if `$num` is less than 1 or greater than the number of items
+     *                              in the bytemap
      *
      * @return int|int[] a single offset if `$num` is equal to 1, an array of random offsets
      *                   otherwise
@@ -278,6 +297,8 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_shift` (shifts an element off the beginning of the bytemap).
      *
+     * @throws \UnderflowException if the bytemap contains no items
+     *
      * @return string the removed item
      */
     public function shift(): string;
@@ -329,6 +350,11 @@ interface ArrayProxyInterface extends ProxyInterface
      * The equivalent of the array `+` operator.
      *
      * @param iterable ...$iterables
+     *
+     * @throws \TypeError           if any of the provided iterables contains an element whose
+     *                              key is not an integer
+     * @throws \OutOfRangeException if any of the provided iterables contains an element whose
+     *                              index is negative
      *
      * @return self
      */
@@ -382,6 +408,8 @@ interface ArrayProxyInterface extends ProxyInterface
      *
      * @param callable $callback
      * @param mixed    $userdata
+     *
+     * @throws \ArgumentCountError if the callback expects more arguments than it actually gets
      */
     public function walk(callable $callback, $userdata = null): void;
 
@@ -393,6 +421,9 @@ interface ArrayProxyInterface extends ProxyInterface
      *                              They need not be consecutive. All the missing keys between 0
      *                              and the maximum key will be assigned the default value.
      * @param iterable $values      values to be used
+     *
+     * @throws \UnderflowException if `$keys` and `$values` do not contain the same number of
+     *                             elements
      *
      * @return self the combined bytemap
      */
@@ -406,6 +437,9 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param int         $num         number of elements to insert
      * @param null|string $value       value to use for filling.
      *                                 `null` means that the default item will be used
+     *
+     * @throws \OutOfRangeException if `$startIndex` is negative
+     * @throws \OutOfRangeException if `$num` is negative
      */
     public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): self;
 
