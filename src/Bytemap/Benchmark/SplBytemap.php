@@ -146,7 +146,7 @@ final class SplBytemap extends AbstractBytemap
                     $this->itemCount = $itemCount;
                     $this->delete($itemCountBeforeResizing);
                     if (\is_string($item)) {
-                        throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+                        throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
                     }
 
                     throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
@@ -158,7 +158,7 @@ final class SplBytemap extends AbstractBytemap
                 foreach ($items as $item) {
                     $this[] = $item;
                 }
-            } catch (\TypeError | \LengthException $e) {
+            } catch (\TypeError | \DomainException $e) {
                 $this->delete($itemCountBeforeResizing);
 
                 throw $e;
@@ -388,7 +388,7 @@ final class SplBytemap extends AbstractBytemap
                     throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
                 }
                 if (\strlen($item) !== $bytesPerItem) {
-                    throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
+                    throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
                 }
             }
         }

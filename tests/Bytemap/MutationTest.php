@@ -100,9 +100,9 @@ final class MutationTest extends AbstractTestOfBytemap
 
         try {
             $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstItemOffset);
-        } catch (\LengthException $e) {
+        } catch (\DomainException $e) {
         }
-        self::assertTrue(isset($e), 'Failed asserting that exception of type "\\LengthException" is thrown.');
+        self::assertTrue(isset($e), 'Failed asserting that exception of type "\\DomainException" is thrown.');
         self::assertSequence($expectedSequence, $bytemap);
     }
 

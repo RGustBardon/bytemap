@@ -41,7 +41,7 @@ abstract class AbstractBytemap implements BytemapInterface
     public function __construct(string $defaultItem)
     {
         if ('' === $defaultItem) {
-            throw new \LengthException(self::EXCEPTION_PREFIX.'The default item cannot be an empty string');
+            throw new \DomainException(self::EXCEPTION_PREFIX.'The default item cannot be an empty string');
         }
 
         $this->defaultItem = $defaultItem;
@@ -283,7 +283,7 @@ abstract class AbstractBytemap implements BytemapInterface
             throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item must be of type string, '.\gettype($this->defaultItem).' given)');
         }
         if ('' === $this->defaultItem) {
-            throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item cannot be an empty string)');
+            throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item cannot be an empty string)');
         }
     }
 
@@ -390,7 +390,7 @@ abstract class AbstractBytemap implements BytemapInterface
             throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
         }
 
-        throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+        throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
     }
 
     protected static function validateMapAndGetMaxKey($map, string $defaultItem): array

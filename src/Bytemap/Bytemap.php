@@ -131,7 +131,7 @@ class Bytemap extends AbstractBytemap
             if (\is_string($item) && \strlen($item) === $bytesPerItem) {
                 $substring .= $item;
             } elseif (\is_string($item)) {
-                throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+                throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
             } else {
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
             }
@@ -341,7 +341,7 @@ class Bytemap extends AbstractBytemap
         if (0 !== \strlen($this->map) % \strlen($this->defaultItem)) {
             $reason = 'Failed to unserialize (the length of the internal string, '.\strlen($this->map).', is not a multiple of the length of the default item, '.\strlen($this->defaultItem).')';
 
-            throw new \LengthException(self::EXCEPTION_PREFIX.$reason);
+            throw new \DomainException(self::EXCEPTION_PREFIX.$reason);
         }
     }
 

@@ -28,7 +28,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     /**
      * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider
-     * @expectedException \LengthException
+     * @expectedException \DomainException
      */
     public function testConstructorEmptyString(string $impl): void
     {
@@ -228,7 +228,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
      * @covers \Bytemap\Bytemap::offsetSet
      * @dataProvider invalidLengthProvider
-     * @expectedException \LengthException
+     * @expectedException \DomainException
      */
     public function testSetInvalidLength(string $impl, string $defaultItem, string $invalidItem): void
     {
@@ -456,7 +456,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
             ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":52:{a:3:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
             ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":40:{a:2:{i:0;i:100;i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
-            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":41:{a:2:{i:0;s:0:"";i:1;a:1:{i:1;s:3:"bar";}}}', \LengthException::class, 'cannot be an empty string'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":41:{a:2:{i:0;s:0:"";i:1;a:1:{i:1;s:3:"bar";}}}', \DomainException::class, 'cannot be an empty string'],
 
             ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be of type array'],
 
@@ -464,7 +464,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
             ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":45:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:-1;s:3:"bar";}}}', \OutOfRangeException::class, 'negative index'],
 
             ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":39:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
-            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":43:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+            ['C:30:"Bytemap\\Benchmark\\ArrayBytemap":43:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:2:"ba";}}}', \DomainException::class, 'value must be exactly'],
 
             // DsBytemap
             ['C:27:"Bytemap\\Benchmark\\DsBytemap":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'an array of two elements'],
@@ -479,12 +479,12 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
             ['C:28:"Bytemap\\Benchmark\\SplBytemap":77:{a:3:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
             ['C:28:"Bytemap\\Benchmark\\SplBytemap":65:{a:2:{i:0;i:100;i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
-            ['C:28:"Bytemap\\Benchmark\\SplBytemap":66:{a:2:{i:0;s:0:"";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \LengthException::class, 'cannot be an empty string'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":66:{a:2:{i:0;s:0:"";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:3:"bar";}}}', \DomainException::class, 'cannot be an empty string'],
 
             ['C:28:"Bytemap\\Benchmark\\SplBytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"foo";}}', \TypeError::class, 'must be an SplFixedArray'],
             ['C:28:"Bytemap\\Benchmark\\SplBytemap":65:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}}}', \TypeError::class, 'must be an SplFixedArray'],
             ['C:28:"Bytemap\\Benchmark\\SplBytemap":64:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
-            ['C:28:"Bytemap\\Benchmark\\SplBytemap":68:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+            ['C:28:"Bytemap\\Benchmark\\SplBytemap":68:{a:2:{i:0;s:3:"foo";i:1;O:13:"SplFixedArray":2:{i:0;N;i:1;s:2:"ba";}}}', \DomainException::class, 'value must be exactly'],
 
             // C:15:"Bytemap\\Bytemap":37:{a:2:{i:0;s:3:"foo";i:1;s:6:"foobar";}}
             ['C:15:"Bytemap\\Bytemap":37:{a:2:{i:0;s:2:"foo";i:1;s:6:"foobar";}}', \UnexpectedValueException::class, 'error at offset'],
@@ -493,10 +493,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
             ['C:15:"Bytemap\\Bytemap":45:{a:3:{i:0;s:3:"foo";i:1;s:6:"foobar";i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
             ['C:15:"Bytemap\\Bytemap":33:{a:2:{i:0;i:100;i:1;s:6:"foobar";}}', \TypeError::class, 'must be of type string'],
-            ['C:15:"Bytemap\\Bytemap":34:{a:2:{i:0;s:0:"";i:1;s:6:"foobar";}}', \LengthException::class, 'cannot be an empty string'],
+            ['C:15:"Bytemap\\Bytemap":34:{a:2:{i:0;s:0:"";i:1;s:6:"foobar";}}', \DomainException::class, 'cannot be an empty string'],
 
             ['C:15:"Bytemap\\Bytemap":44:{a:2:{i:0;s:3:"foo";i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
-            ['C:15:"Bytemap\\Bytemap":36:{a:2:{i:0;s:3:"foo";i:1;s:5:"fooba";}}', \LengthException::class, 'not a multiple'],
+            ['C:15:"Bytemap\\Bytemap":36:{a:2:{i:0;s:3:"foo";i:1;s:5:"fooba";}}', \DomainException::class, 'not a multiple'],
         ];
 
         if (\extension_loaded('ds')) {
@@ -507,10 +507,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 ['C:27:"Bytemap\\Benchmark\\DsBytemap":73:{a:3:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":20:{s:3:"foo";s:3:"bar";}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
                 ['C:27:"Bytemap\\Benchmark\\DsBytemap":60:{a:2:{i:0;i:100;i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":61:{a:2:{i:0;s:0:"";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \LengthException::class, 'cannot be an empty string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":61:{a:2:{i:0;s:0:"";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \DomainException::class, 'cannot be an empty string'],
 
                 ['C:27:"Bytemap\\Benchmark\\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";i:1;i:42;}}}', \TypeError::class, 'must be of type string'],
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";s:2:"ba";}}}', \LengthException::class, 'value must be exactly'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":64:{a:2:{i:0;s:3:"foo";i:1;C:9:"Ds\\Vector":19:{s:3:"foo";s:2:"ba";}}}', \DomainException::class, 'value must be exactly'],
             ];
         } else {
             yield from [
@@ -520,10 +520,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 ['C:27:"Bytemap\\Benchmark\\DsBytemap":141:{a:3:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}i:2;b:1;}}', \UnexpectedValueException::class, 'an array of two elements'],
 
                 ['C:27:"Bytemap\\Benchmark\\DsBytemap":129:{a:2:{i:0;i:100;i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \TypeError::class, 'must be of type string'],
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":130:{a:2:{i:0;s:0:"";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \LengthException::class, 'cannot be an empty string'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":130:{a:2:{i:0;s:0:"";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \DomainException::class, 'cannot be an empty string'],
 
                 ['C:27:"Bytemap\\Benchmark\\DsBytemap":128:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;i:42;}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \TypeError::class, 'must be of type string'],
-                ['C:27:"Bytemap\\Benchmark\\DsBytemap":132:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:2:"ba";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \LengthException::class, 'value must be exactly'],
+                ['C:27:"Bytemap\\Benchmark\\DsBytemap":132:{a:2:{i:0;s:3:"foo";i:1;O:9:"Ds\\Vector":2:{s:16:"'."\x0".'Ds\\Vector'."\x0".'array";a:2:{i:0;s:3:"foo";i:1;s:2:"ba";}s:19:"'."\x0".'Ds\\Vector'."\x0".'capacity";i:8;}}}', \DomainException::class, 'value must be exactly'],
             ];
         }
     }

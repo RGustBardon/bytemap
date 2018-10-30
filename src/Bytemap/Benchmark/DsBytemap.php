@@ -361,7 +361,7 @@ final class DsBytemap extends AbstractBytemap
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
             }
             if (\strlen($item) !== $bytesPerItem) {
-                throw new \LengthException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
+                throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
             }
         }
     }
@@ -384,7 +384,7 @@ final class DsBytemap extends AbstractBytemap
             if (\strlen($item) !== $bytesPerItem) {
                 $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
 
-                throw new \LengthException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+                throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
             }
         }
     }
