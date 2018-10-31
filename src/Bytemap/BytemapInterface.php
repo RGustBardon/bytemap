@@ -14,7 +14,24 @@ declare(strict_types=1);
 namespace Bytemap;
 
 /**
- * A vector of strings of the same length.
+ * A vector of values which belong to the same well-defined data domain.
+ *
+ * In addition to the exceptions thrown by the documented methods,
+ * the following exceptions may be thrown:
+ * - `\ErrorException` (when referring to undefined properties)
+ *   thrown by `__isset`, `__get`, `__set`, `__unset`;
+ * - `\TypeError` (when attempting to use a value other than an integer as an index)
+ *   thrown by `offsetGet`, `offsetSet`;
+ * - `\OutOfRangeException` (when attempting to use a negative integer as an index)
+ *   thrown by `offsetGet`, `offsetSet`;
+ * - `\TypeError` (when the type of a value is not the one of the data domain)
+ *   thrown by `offsetSet`, `unserialize`;
+ * - `\DomainException` (when a value lies outside of the data domain despite its type)
+ *   thrown by `offsetSet`, `unserialize`;
+ * - `\UnexpectedValueException` (when it is not possible to unserialize a value)
+ *   thrown by `unserialize`;
+ * - `\UnexpectedValueException` (when an unserialized value has an unexpected structure)
+ *   thrown by `unserialize`.
  *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
@@ -51,6 +68,8 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *                             bytemap (if `$howMany` is positive) or from the last item of the
      *                             bytemap (if `$howMany` is negative)
      *
+     * @throws \UnexpectedValueException if any pattern fails to compile
+     *
      * @return \Generator items found (including their keys)
      */
     public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
@@ -63,6 +82,10 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * @param iterable $items           The items to be inserted. Keys are ignored.
      * @param int      $firstItemOffset the offset that the first newly inserted item is going to have.
      *                                  If negative, `-1` represents the last item, `-2` the item preceding it, etc
+     *
+     * @throws \TypeError       if any item that is to be inserted is not of the expected type
+     * @throws \DomainException if any item found in the JSON stream is of the expected type,
+     *                          but does not belong to the data domain of the bytemap
      */
     public function insert(iterable $items, int $firstItemOffset = -1): void;
 
@@ -83,6 +106,10 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * The stream is not closed afterwards.
      *
      * @param resource $stream the stream to write a JSON representation of the bytemap to
+     *
+     * @throws \TypeError                if the argument is not an open resource
+     * @throws \InvalidArgumentException if the argument is an open resource that is not a stream
+     * @throws \RuntimeException         if an error occurs when the stream is written to
      */
     public function streamJson($stream): void;
 
@@ -94,6 +121,17 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *
      * @param resource $jsonStream  a stream with JSON data
      * @param string   $defaultItem the default item of the resulting bytemap
+     *
+     * @throws \TypeError                if the argument is not an open resource
+     * @throws \InvalidArgumentException if the argument is an open resource that is not a stream
+     * @throws \RuntimeException         if the stream cannot be read
+     * @throws \UnexpectedValueException if the stream cannot be parsed as JSON
+     * @throws \UnexpectedValueException if the parsed JSON stream has unexpected structure
+     * @throws \TypeError                if any offset found in the JSON stream is not an integer
+     * @throws \OutOfRangeException      if any integer offset found in the JSON stream is negative
+     * @throws \TypeError                if any item found in the JSON stream is not of the expected type
+     * @throws \DomainException          if any item found in the JSON stream is of the expected type,
+     *                                   but does not belong to the data domain of the bytemap
      *
      * @return self a bytemap corresponding to the JSON data
      */
