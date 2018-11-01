@@ -34,39 +34,39 @@ final class SplBytemap extends AbstractBytemap
     }
 
     // `ArrayAccess`
-    public function offsetGet($offset): string
+    public function offsetGet($index): string
     {
-        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
-            return $this->map[$offset] ?? $this->defaultItem;
+        if (\is_int($index) && $index >= 0 && $index < $this->itemCount) {
+            return $this->map[$index] ?? $this->defaultItem;
         }
 
-        self::throwOnOffsetGet($offset);
+        self::throwOnOffsetGet($index);
     }
 
-    public function offsetSet($offset, $item): void
+    public function offsetSet($index, $item): void
     {
-        if (null === $offset) {  // `$bytemap[] = $item`
-            $offset = $this->itemCount;
+        if (null === $index) {  // `$bytemap[] = $item`
+            $index = $this->itemCount;
         }
 
-        if (\is_int($offset) && $offset >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
-            $unassignedCount = $offset - $this->itemCount;
+        if (\is_int($index) && $index >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
+            $unassignedCount = $index - $this->itemCount;
             if ($unassignedCount >= 0) {
                 $this->map->setSize($this->itemCount + $unassignedCount + 1);
                 $this->itemCount += $unassignedCount + 1;
             }
-            $this->map[$offset] = $item;
+            $this->map[$index] = $item;
         } else {
-            self::throwOnOffsetSet($offset, $item, $this->bytesPerItem);
+            self::throwOnOffsetSet($index, $item, $this->bytesPerItem);
         }
     }
 
-    public function offsetUnset($offset): void
+    public function offsetUnset($index): void
     {
         $itemCount = $this->itemCount;
-        if (\is_int($offset) && $offset >= 0 && $offset < $itemCount) {
+        if (\is_int($index) && $index >= 0 && $index < $itemCount) {
             // Shift all the subsequent items left by one.
-            for ($i = $offset + 1; $i < $itemCount; ++$i) {
+            for ($i = $index + 1; $i < $itemCount; ++$i) {
                 $this->map[$i - 1] = $this->map[$i];
             }
 
@@ -107,29 +107,29 @@ final class SplBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public function insert(iterable $items, int $firstItemOffset = -1): void
+    public function insert(iterable $items, int $firstItemIndex = -1): void
     {
-        $originalFirstItemOffset = $firstItemOffset;
+        $originalFirstItemIndex = $firstItemIndex;
         $itemCountBeforeResizing = $this->itemCount;
 
-        // Resize the bytemap if the positive first item offset is greater than the item count.
-        if ($firstItemOffset > $this->itemCount) {
-            $this[$firstItemOffset - 1] = $this->defaultItem;
+        // Resize the bytemap if the positive first item index is greater than the item count.
+        if ($firstItemIndex > $this->itemCount) {
+            $this[$firstItemIndex - 1] = $this->defaultItem;
         }
 
         // Allocate the memory.
-        $newSize = $this->calculateNewSize($items, $firstItemOffset);
+        $newSize = $this->calculateNewSize($items, $firstItemIndex);
         if (null !== $newSize) {
             $this->map->setSize($newSize);
         }
 
-        // Calculate the positive offset corresponding to the negative one.
-        if ($firstItemOffset < 0) {
-            $firstItemOffset += $this->itemCount;
+        // Calculate the positive index corresponding to the negative one.
+        if ($firstItemIndex < 0) {
+            $firstItemIndex += $this->itemCount;
 
-            // Keep the offsets within the bounds.
-            if ($firstItemOffset < 0) {
-                $firstItemOffset = 0;
+            // Keep the indices within the bounds.
+            if ($firstItemIndex < 0) {
+                $firstItemIndex = 0;
             }
         }
 
@@ -165,21 +165,21 @@ final class SplBytemap extends AbstractBytemap
             }
         }
 
-        // Resize the bytemap if the negative first item offset is greater than the new item count.
-        if (-$originalFirstItemOffset > $this->itemCount) {
-            $lastItemOffset = -$originalFirstItemOffset - ($this->itemCount > $originalItemCount ? 1 : 2);
-            if ($lastItemOffset >= $this->itemCount) {
-                $this[$lastItemOffset] = $this->defaultItem;
+        // Resize the bytemap if the negative first item index is greater than the new item count.
+        if (-$originalFirstItemIndex > $this->itemCount) {
+            $lastItemIndex = -$originalFirstItemIndex - ($this->itemCount > $originalItemCount ? 1 : 2);
+            if ($lastItemIndex >= $this->itemCount) {
+                $this[$lastItemIndex] = $this->defaultItem;
             }
         }
 
         // The juggling algorithm.
-        $n = $this->itemCount - $firstItemOffset;
+        $n = $this->itemCount - $firstItemIndex;
         $shift = $n - $this->itemCount + $originalItemCount;
         $gcd = self::calculateGreatestCommonDivisor($n, $shift);
 
         for ($i = 0; $i < $gcd; ++$i) {
-            $tmp = $this->map[$firstItemOffset + $i];
+            $tmp = $this->map[$firstItemIndex + $i];
             $j = $i;
             while (true) {
                 $k = $j + $shift;
@@ -189,10 +189,10 @@ final class SplBytemap extends AbstractBytemap
                 if ($k === $i) {
                     break;
                 }
-                $this->map[$firstItemOffset + $j] = $this->map[$firstItemOffset + $k];
+                $this->map[$firstItemIndex + $j] = $this->map[$firstItemIndex + $k];
                 $j = $k;
             }
-            $this->map[$firstItemOffset + $j] = $tmp;
+            $this->map[$firstItemIndex + $j] = $tmp;
         }
     }
 
@@ -251,13 +251,13 @@ final class SplBytemap extends AbstractBytemap
         $this->map = new \SplFixedArray(0);
     }
 
-    protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeIndex(int $firstItemIndex, int $howMany, int $itemCount): void
     {
-        // Keep the offsets within the bounds.
-        $howMany = \min($howMany, $itemCount - $firstItemOffset);
+        // Keep the indices within the bounds.
+        $howMany = \min($howMany, $itemCount - $firstItemIndex);
 
         // Shift all the subsequent items left by the number of items deleted.
-        for ($i = $firstItemOffset + $howMany; $i < $itemCount; ++$i) {
+        for ($i = $firstItemIndex + $howMany; $i < $itemCount; ++$i) {
             $this->map[$i - $howMany] = $this->map[$i];
         }
 

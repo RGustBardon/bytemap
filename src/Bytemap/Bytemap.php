@@ -28,37 +28,37 @@ class Bytemap extends AbstractBytemap
     private $singleByte;
 
     // `ArrayAccess`
-    public function offsetGet($offset): string
+    public function offsetGet($index): string
     {
-        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
+        if (\is_int($index) && $index >= 0 && $index < $this->itemCount) {
             if ($this->singleByte) {
-                return $this->map[$offset];
+                return $this->map[$index];
             }
 
-            return \substr($this->map, $offset * $this->bytesPerItem, $this->bytesPerItem);
+            return \substr($this->map, $index * $this->bytesPerItem, $this->bytesPerItem);
         }
 
-        self::throwOnOffsetGet($offset);
+        self::throwOnOffsetGet($index);
     }
 
-    public function offsetSet($offset, $item): void
+    public function offsetSet($index, $item): void
     {
-        if (null === $offset) {  // `$bytemap[] = $item`
-            $offset = $this->itemCount;
+        if (null === $index) {  // `$bytemap[] = $item`
+            $index = $this->itemCount;
         }
 
-        if (\is_int($offset) && $offset >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
-            $unassignedCount = $offset - $this->itemCount;
+        if (\is_int($index) && $index >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
+            $unassignedCount = $index - $this->itemCount;
             $bytesPerItem = $this->bytesPerItem;
             if ($unassignedCount < 0) {
                 // Case 1. Overwrite an existing item.
                 if ($this->singleByte) {
-                    $this->map[$offset] = $item;
+                    $this->map[$index] = $item;
                 } else {
                     $itemIndex = 0;
-                    $offset *= $bytesPerItem;
+                    $index *= $bytesPerItem;
                     do {
-                        $this->map[$offset++] = $item[$itemIndex++];
+                        $this->map[$index++] = $item[$itemIndex++];
                     } while ($itemIndex < $bytesPerItem);
                 }
             } elseif (0 === $unassignedCount) {
@@ -73,16 +73,16 @@ class Bytemap extends AbstractBytemap
                 $this->bytesInTotal = $this->itemCount * $bytesPerItem;
             }
         } else {
-            self::throwOnOffsetSet($offset, $item, $this->bytesPerItem);
+            self::throwOnOffsetSet($index, $item, $this->bytesPerItem);
         }
     }
 
-    public function offsetUnset($offset): void
+    public function offsetUnset($index): void
     {
-        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
+        if (\is_int($index) && $index >= 0 && $index < $this->itemCount) {
             --$this->itemCount;
             $this->bytesInTotal -= $this->bytesPerItem;
-            $this->map = \substr_replace($this->map, '', $offset * $this->bytesPerItem, $this->bytesPerItem);
+            $this->map = \substr_replace($this->map, '', $index * $this->bytesPerItem, $this->bytesPerItem);
         }
     }
 
@@ -97,8 +97,8 @@ class Bytemap extends AbstractBytemap
             }
         } else {
             $bytesPerItem = $this->bytesPerItem;
-            for ($i = 0, $offset = 0; $i < $itemCount; ++$i, $offset += $bytesPerItem) {
-                yield $i => \substr($map, $offset, $bytesPerItem);
+            for ($i = 0, $index = 0; $i < $itemCount; ++$i, $index += $bytesPerItem) {
+                yield $i => \substr($map, $index, $bytesPerItem);
             }
         }
     }
@@ -122,7 +122,7 @@ class Bytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public function insert(iterable $items, int $firstItemOffset = -1): void
+    public function insert(iterable $items, int $firstItemIndex = -1): void
     {
         $substring = '';
 
@@ -137,33 +137,33 @@ class Bytemap extends AbstractBytemap
             }
         }
 
-        if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
+        if (-1 === $firstItemIndex || $firstItemIndex > $this->itemCount - 1) {
             // Insert the items.
-            $padLength = \strlen($substring) + \max(0, $firstItemOffset - $this->itemCount) * $this->bytesPerItem;
+            $padLength = \strlen($substring) + \max(0, $firstItemIndex - $this->itemCount) * $this->bytesPerItem;
             $this->map .= \str_pad($substring, $padLength, $this->defaultItem, \STR_PAD_LEFT);
         } else {
-            $originalFirstItemOffset = $firstItemOffset;
-            // Calculate the positive offset corresponding to the negative one.
-            if ($firstItemOffset < 0) {
-                $firstItemOffset += $this->itemCount;
+            $originalFirstItemIndex = $firstItemIndex;
+            // Calculate the positive index corresponding to the negative one.
+            if ($firstItemIndex < 0) {
+                $firstItemIndex += $this->itemCount;
 
-                // Keep the offsets within the bounds.
-                if ($firstItemOffset < 0) {
-                    $firstItemOffset = 0;
+                // Keep the indices within the bounds.
+                if ($firstItemIndex < 0) {
+                    $firstItemIndex = 0;
                 }
             }
 
-            // Resize the bytemap if the negative first item offset is greater than the new item count.
+            // Resize the bytemap if the negative first item index is greater than the new item count.
             $insertedItemCount = (int) (\strlen($substring) / $this->bytesPerItem);
             $newItemCount = $this->itemCount + $insertedItemCount;
-            if (-$originalFirstItemOffset > $newItemCount) {
-                $overflow = -$originalFirstItemOffset - $newItemCount - ($insertedItemCount > 0 ? 0 : 1);
+            if (-$originalFirstItemIndex > $newItemCount) {
+                $overflow = -$originalFirstItemIndex - $newItemCount - ($insertedItemCount > 0 ? 0 : 1);
                 $padLength = ($overflow + $insertedItemCount) * $this->bytesPerItem;
                 $substring = \str_pad($substring, $padLength, $this->defaultItem, \STR_PAD_RIGHT);
             }
 
             // Insert the items.
-            $this->map = \substr_replace($this->map, $substring, $firstItemOffset * $this->bytesPerItem, 0);
+            $this->map = \substr_replace($this->map, $substring, $firstItemIndex * $this->bytesPerItem, 0);
         }
 
         $this->deriveProperties();
@@ -178,26 +178,26 @@ class Bytemap extends AbstractBytemap
 
         $buffer = '[';
         $map = $this->map;
-        $offset = 0;
+        $index = 0;
         $penultimate = $this->bytesInTotal - $bytesPerItem;
         if ($this->singleByte) {
-            for (; $offset < $penultimate; ++$offset) {
-                $buffer .= \json_encode($map[$offset]).',';
+            for (; $index < $penultimate; ++$index) {
+                $buffer .= \json_encode($map[$index]).',';
                 if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
                     self::stream($stream, $buffer);
                     $buffer = '';
                 }
             }
         } else {
-            for (; $offset < $penultimate; $offset += $bytesPerItem) {
-                $buffer .= \json_encode(\substr($map, $offset, $bytesPerItem)).',';
+            for (; $index < $penultimate; $index += $bytesPerItem) {
+                $buffer .= \json_encode(\substr($map, $index, $bytesPerItem)).',';
                 if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
                     self::stream($stream, $buffer);
                     $buffer = '';
                 }
             }
         }
-        $buffer .= ($this->itemCount > 0 ? \json_encode(\substr($map, $offset)) : '').']';
+        $buffer .= ($this->itemCount > 0 ? \json_encode(\substr($map, $index)) : '').']';
         self::stream($stream, $buffer);
     }
 
@@ -244,13 +244,13 @@ class Bytemap extends AbstractBytemap
         $this->map = '';
     }
 
-    protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeIndex(int $firstItemIndex, int $howMany, int $itemCount): void
     {
-        $maximumRange = $itemCount - $firstItemOffset;
+        $maximumRange = $itemCount - $firstItemIndex;
         if ($howMany >= $maximumRange) {
-            $this->map = \substr($this->map, 0, $firstItemOffset * $this->bytesPerItem);
+            $this->map = \substr($this->map, 0, $firstItemIndex * $this->bytesPerItem);
         } else {
-            $this->map = \substr_replace($this->map, '', $firstItemOffset * $this->bytesPerItem, $howMany * $this->bytesPerItem);
+            $this->map = \substr_replace($this->map, '', $firstItemIndex * $this->bytesPerItem, $howMany * $this->bytesPerItem);
         }
 
         $this->deriveProperties();
@@ -292,8 +292,8 @@ class Bytemap extends AbstractBytemap
         $itemCount = $this->itemCount;
         $map = $this->map;
         if ($howManyToReturn > 0) {
-            for ($i = $howManyToSkip, $offset = $howManyToSkip * $bytesPerItem; $i < $itemCount; ++$i, $offset += $bytesPerItem) {
-                if (!($whitelist xor $lookup[$item = \substr($map, $offset, $bytesPerItem)] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
+            for ($i = $howManyToSkip, $index = $howManyToSkip * $bytesPerItem; $i < $itemCount; ++$i, $index += $bytesPerItem) {
+                if (!($whitelist xor $lookup[$item = \substr($map, $index, $bytesPerItem)] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
                     yield $i => $item;
                     if (0 === --$howManyToReturn) {
                         return;
@@ -311,8 +311,8 @@ class Bytemap extends AbstractBytemap
             }
         } else {
             $i = $this->itemCount - 1 - $howManyToSkip;
-            for ($offset = $i * $bytesPerItem; $i >= 0; --$i, $offset -= $bytesPerItem) {
-                if (!($whitelist xor $lookup[$item = \substr($map, $offset, $bytesPerItem)] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
+            for ($index = $i * $bytesPerItem; $i >= 0; --$i, $index -= $bytesPerItem) {
+                if (!($whitelist xor $lookup[$item = \substr($map, $index, $bytesPerItem)] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
                     yield $i => $item;
                     if (0 === ++$howManyToReturn) {
                         return;

@@ -43,24 +43,24 @@ abstract class AbstractProxy implements ArrayProxyInterface
     }
 
     // `ArrayAccess`
-    public function offsetExists($offset): bool
+    public function offsetExists($index): bool
     {
-        return isset($this->bytemap[$offset]);
+        return isset($this->bytemap[$index]);
     }
 
-    public function offsetGet($offset): string
+    public function offsetGet($index): string
     {
-        return $this->bytemap[$offset];
+        return $this->bytemap[$index];
     }
 
-    public function offsetSet($offset, $item): void
+    public function offsetSet($index, $item): void
     {
-        $this->bytemap[$offset] = $item;
+        $this->bytemap[$index] = $item;
     }
 
-    public function offsetUnset($offset): void
+    public function offsetUnset($index): void
     {
-        unset($this->bytemap[$offset]);
+        unset($this->bytemap[$index]);
     }
 
     // `Countable`

@@ -75,30 +75,30 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
     public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
 
     /**
-     * Inserts items at a certain offset.
+     * Inserts items at a certain index.
      *
      * Subsequent bytemap items are shifted right by the number of items inserted.
      *
-     * @param iterable $items           The items to be inserted. Keys are ignored.
-     * @param int      $firstItemOffset the offset that the first newly inserted item is going to have.
-     *                                  If negative, `-1` represents the last item, `-2` the item preceding it, etc
+     * @param iterable $items          The items to be inserted. Keys are ignored.
+     * @param int      $firstItemIndex the index that the first newly inserted item is going to have.
+     *                                 If negative, `-1` represents the last item, `-2` the item preceding it, etc
      *
      * @throws \TypeError       if any item that is to be inserted is not of the expected type
      * @throws \DomainException if any item found in the JSON stream is of the expected type,
      *                          but does not belong to the data domain of the bytemap
      */
-    public function insert(iterable $items, int $firstItemOffset = -1): void;
+    public function insert(iterable $items, int $firstItemIndex = -1): void;
 
     /**
      * Delete a certain number of items.
      *
      * Subsequent bytemap items are shifted left by the number of items deleted.
      *
-     * @param int $firstItemOffset the offset of the first item that is to be deleted.
-     *                             If negative, `-1` represents the last item, `-2` the item preceding it, etc
-     * @param int $howMany         the number of items to be deleted from the bytemap
+     * @param int $firstItemIndex the index of the first item that is to be deleted.
+     *                            If negative, `-1` represents the last item, `-2` the item preceding it, etc
+     * @param int $howMany        the number of items to be deleted from the bytemap
      */
-    public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void;
+    public function delete(int $firstItemIndex = -1, int $howMany = \PHP_INT_MAX): void;
 
     /**
      * Writes a JSON representation of the bytemap to a stream.
@@ -127,8 +127,8 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * @throws \RuntimeException         if the stream cannot be read
      * @throws \UnexpectedValueException if the stream cannot be parsed as JSON
      * @throws \UnexpectedValueException if the parsed JSON stream has unexpected structure
-     * @throws \TypeError                if any offset found in the JSON stream is not an integer
-     * @throws \OutOfRangeException      if any integer offset found in the JSON stream is negative
+     * @throws \TypeError                if any index found in the JSON stream is not an integer
+     * @throws \OutOfRangeException      if any integer index found in the JSON stream is negative
      * @throws \TypeError                if any item found in the JSON stream is not of the expected type
      * @throws \DomainException          if any item found in the JSON stream is of the expected type,
      *                                   but does not belong to the data domain of the bytemap

@@ -102,9 +102,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             }
         }
 
-        foreach ($this->bytemap as $offset => $value) {
+        foreach ($this->bytemap as $index => $value) {
             if (!isset($blacklist[$value])) {
-                yield $offset => $value;
+                yield $index => $value;
             }
         }
     }
@@ -125,17 +125,17 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
                     break;
                 case \ARRAY_FILTER_USE_BOTH:
-                    foreach ($this->bytemap as $offset => $item) {
-                        if ($callback($item, $offset)) {
-                            yield $offset => $item;
+                    foreach ($this->bytemap as $index => $item) {
+                        if ($callback($item, $index)) {
+                            yield $index => $item;
                         }
                     }
 
                     break;
                 default:
-                    foreach ($this->bytemap as $offset => $item) {
+                    foreach ($this->bytemap as $index => $item) {
                         if ($callback($item)) {
-                            yield $offset => $item;
+                            yield $index => $item;
                         }
                     }
 
@@ -288,8 +288,8 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 yield $i => $value;
             }
 
-            foreach ($clone as $offset => $bytemapValue) {
-                yield $offset + $i => $bytemapValue;
+            foreach ($clone as $index => $bytemapValue) {
+                yield $index + $i => $bytemapValue;
             }
         }
     }
@@ -415,14 +415,14 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return \count($this->bytemap);
     }
 
-    public function slice(int $offset, ?int $length = null, bool $preserveKeys = false): \Generator
+    public function slice(int $index, ?int $length = null, bool $preserveKeys = false): \Generator
     {
         $itemCount = \count($this->bytemap);
-        [$offset, $length] = self::calculateOffsetAndLength($itemCount, $offset, $length);
+        [$index, $length] = self::calculateIndexAndLength($itemCount, $index, $length);
 
-        $sliceOffset = $preserveKeys ? $offset : 0;
-        for ($i = $offset, $end = $offset + $length; $i < $end; ++$i, ++$sliceOffset) {
-            yield $sliceOffset => $this->bytemap[$i];
+        $sliceIndex = $preserveKeys ? $index : 0;
+        for ($i = $index, $end = $index + $length; $i < $end; ++$i, ++$sliceIndex) {
+            yield $sliceIndex => $this->bytemap[$i];
         }
     }
 
@@ -431,22 +431,22 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         self::sortBytemapByItem($this->bytemap, self::getComparator($sortFlags));
     }
 
-    public function splice(int $offset, ?int $length = null, $replacement = []): ArrayProxyInterface
+    public function splice(int $index, ?int $length = null, $replacement = []): ArrayProxyInterface
     {
         $itemCount = \count($this->bytemap);
 
-        [$offset, $length] = self::calculateOffsetAndLength($itemCount, $offset, $length);
+        [$index, $length] = self::calculateIndexAndLength($itemCount, $index, $length);
         if (!\is_iterable($replacement)) {
             $replacement = (array) $replacement;
         }
 
         $extracted = $this->createEmptyBytemap();
-        for ($i = $offset, $end = $offset + $length; $i < $end; ++$i) {
+        for ($i = $index, $end = $index + $length; $i < $end; ++$i) {
             $extracted[] = $this->bytemap[$i];
         }
 
-        $this->bytemap->insert($replacement, $offset);
-        $this->bytemap->delete((int) $offset + \count($this->bytemap) - $itemCount, $length);
+        $this->bytemap->insert($replacement, $index);
+        $this->bytemap->delete((int) $index + \count($this->bytemap) - $itemCount, $length);
 
         return self::wrap($extracted);
     }
@@ -565,21 +565,21 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
 
         if (3 === $passedToCallback) {
-            foreach ($this->bytemap as $originalOffset => $originalItem) {
-                $offset = $originalOffset;
+            foreach ($this->bytemap as $originalIndex => $originalItem) {
+                $index = $originalIndex;
                 $item = $originalItem;
-                $callback($item, $offset, $userdata);
+                $callback($item, $index, $userdata);
                 if ($originalItem !== $item) {
-                    $this->bytemap[$originalOffset] = $item;
+                    $this->bytemap[$originalIndex] = $item;
                 }
             }
         } else {
-            foreach ($this->bytemap as $originalOffset => $originalItem) {
-                $offset = $originalOffset;
+            foreach ($this->bytemap as $originalIndex => $originalItem) {
+                $index = $originalIndex;
                 $item = $originalItem;
-                $callback($item, $offset);
+                $callback($item, $index);
                 if ($originalItem !== $item) {
-                    $this->bytemap[$originalOffset] = $item;
+                    $this->bytemap[$originalIndex] = $item;
                 }
             }
         }
@@ -590,17 +590,17 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $arrayProxy = new self($defaultItem);
         $bytemap = new Bytemap($defaultItem);
         $bytemap->insert($values);
-        $offset = 0;
+        $index = 0;
 
         try {
             foreach ($keys as $key) {
-                $arrayProxy->bytemap[$key] = $bytemap[$offset];
-                ++$offset;
+                $arrayProxy->bytemap[$key] = $bytemap[$index];
+                ++$index;
             }
         } catch (\OutOfRangeException $e) {
         }
 
-        if (isset($e) || \count($bytemap) !== $offset) {
+        if (isset($e) || \count($bytemap) !== $index) {
             throw new \UnderflowException('Both parameters should have an equal number of elements');
         }
 
@@ -652,10 +652,10 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function pregFilter($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator
     {
         $count = 0;
-        foreach ($this->bytemap->grep(\is_iterable($pattern) ? $pattern : [$pattern]) as $offset => $item) {
+        foreach ($this->bytemap->grep(\is_iterable($pattern) ? $pattern : [$pattern]) as $index => $item) {
             $item = \preg_replace($pattern, $replacement, $item, $limit, $countInIteration);
             $count += $countInIteration;
-            yield $offset => $item;
+            yield $index => $item;
         }
     }
 
@@ -667,16 +667,16 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function pregReplace($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator
     {
         $clone = clone $this->bytemap;
-        $lastOffset = 0;
-        foreach ($this->pregFilter($pattern, $replacement, $limit, $count) as $offset => $item) {
-            for (; $lastOffset < $offset; ++$lastOffset) {
-                yield $lastOffset => $clone[$lastOffset];
+        $lastIndex = 0;
+        foreach ($this->pregFilter($pattern, $replacement, $limit, $count) as $index => $item) {
+            for (; $lastIndex < $index; ++$lastIndex) {
+                yield $lastIndex => $clone[$lastIndex];
             }
-            $lastOffset = $offset + 1;
-            yield $offset => $item;
+            $lastIndex = $index + 1;
+            yield $index => $item;
         }
-        for ($itemCount = \count($clone); $lastOffset < $itemCount; ++$lastOffset) {
-            yield $lastOffset => $clone[$lastOffset];
+        for ($itemCount = \count($clone); $lastIndex < $itemCount; ++$lastIndex) {
+            yield $lastIndex => $clone[$lastIndex];
         }
     }
 
@@ -697,18 +697,18 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
 
         $clone = clone $this->bytemap;
-        $lastOffset = 0;
-        foreach ($clone->grep(\is_iterable($pattern) ? $pattern : [$pattern]) as $offset => $item) {
-            for (; $lastOffset < $offset; ++$lastOffset) {
-                yield $lastOffset => $clone[$lastOffset];
+        $lastIndex = 0;
+        foreach ($clone->grep(\is_iterable($pattern) ? $pattern : [$pattern]) as $index => $item) {
+            for (; $lastIndex < $index; ++$lastIndex) {
+                yield $lastIndex => $clone[$lastIndex];
             }
-            $lastOffset = $offset + 1;
+            $lastIndex = $index + 1;
             $item = \preg_replace_callback($pattern, $callback, $item, $limit, $countInIteration);
             $count += $countInIteration;
-            yield $offset => $item;
+            yield $index => $item;
         }
-        for ($itemCount = \count($clone); $lastOffset < $itemCount; ++$lastOffset) {
-            yield $lastOffset => $clone[$lastOffset];
+        for ($itemCount = \count($clone); $lastIndex < $itemCount; ++$lastIndex) {
+            yield $lastIndex => $clone[$lastIndex];
         }
     }
 
@@ -732,18 +732,18 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
 
         $clone = clone $this->bytemap;
-        $lastOffset = 0;
-        foreach ($clone->grep(\array_keys($patternsAndCallbacks)) as $offset => $item) {
-            for (; $lastOffset < $offset; ++$lastOffset) {
-                yield $lastOffset => $clone[$lastOffset];
+        $lastIndex = 0;
+        foreach ($clone->grep(\array_keys($patternsAndCallbacks)) as $index => $item) {
+            for (; $lastIndex < $index; ++$lastIndex) {
+                yield $lastIndex => $clone[$lastIndex];
             }
-            $lastOffset = $offset + 1;
+            $lastIndex = $index + 1;
             $item = \preg_replace_callback_array($patternsAndCallbacks, $item, $limit, $countInIteration);
             $count += $countInIteration;
-            yield $offset => $item;
+            yield $index => $item;
         }
-        for ($itemCount = \count($clone); $lastOffset < $itemCount; ++$lastOffset) {
-            yield $lastOffset => $clone[$lastOffset];
+        for ($itemCount = \count($clone); $lastIndex < $itemCount; ++$lastIndex) {
+            yield $lastIndex => $clone[$lastIndex];
         }
     }
 
@@ -763,20 +763,20 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $this->implode($glue);
     }
 
-    protected static function calculateOffsetAndLength(int $itemCount, int $offset, ?int $length): array
+    protected static function calculateIndexAndLength(int $itemCount, int $index, ?int $length): array
     {
-        if ($offset < 0) {
-            $offset += $itemCount;
+        if ($index < 0) {
+            $index += $itemCount;
         }
-        $offset = \max(0, \min($itemCount - 1, $offset));
+        $index = \max(0, \min($itemCount - 1, $index));
 
         if (null === $length) {
             $length = $itemCount;
         } elseif ($length < 0) {
-            $length += $itemCount - $offset;
+            $length += $itemCount - $index;
         }
-        $length = \min($length, $itemCount - $offset);
+        $length = \min($length, $itemCount - $index);
 
-        return [$offset, $length];
+        return [$index, $length];
     }
 }

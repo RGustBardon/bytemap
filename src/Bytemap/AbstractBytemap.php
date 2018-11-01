@@ -72,9 +72,9 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // `ArrayAccess`
-    final public function offsetExists($offset): bool
+    final public function offsetExists($index): bool
     {
-        return \is_int($offset) && $offset >= 0 && $offset < $this->itemCount;
+        return \is_int($index) && $index >= 0 && $index < $this->itemCount;
     }
 
     // `Countable`
@@ -196,7 +196,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    final public function delete(int $firstItemOffset = -1, int $howMany = \PHP_INT_MAX): void
+    final public function delete(int $firstItemIndex = -1, int $howMany = \PHP_INT_MAX): void
     {
         $itemCount = $this->itemCount;
 
@@ -205,13 +205,13 @@ abstract class AbstractBytemap implements BytemapInterface
             return;
         }
 
-        // Calculate the positive offset corresponding to the negative one.
-        if ($firstItemOffset < 0) {
-            $firstItemOffset += $itemCount;
+        // Calculate the positive index corresponding to the negative one.
+        if ($firstItemIndex < 0) {
+            $firstItemIndex += $itemCount;
         }
 
         // Delete the items.
-        $this->deleteWithNonNegativeOffset(\max(0, $firstItemOffset), $howMany, $itemCount);
+        $this->deleteWithNonNegativeIndex(\max(0, $firstItemIndex), $howMany, $itemCount);
     }
 
     // `AbstractBytemap`
@@ -232,9 +232,9 @@ abstract class AbstractBytemap implements BytemapInterface
         return $startAfter > 0 ? \max(0, $this->itemCount - $startAfter) : null;
     }
 
-    final protected function calculateNewSize(iterable $additionalItems, int $firstItemOffset = -1): ?int
+    final protected function calculateNewSize(iterable $additionalItems, int $firstItemIndex = -1): ?int
     {
-        // Assume that no gap exists between the tail of the bytemap and `$firstItemOffset`.
+        // Assume that no gap exists between the tail of the bytemap and `$firstItemIndex`.
 
         if (\is_array($additionalItems) || $additionalItems instanceof \Countable) {
             return $this->itemCount + \count($additionalItems);
@@ -248,17 +248,17 @@ abstract class AbstractBytemap implements BytemapInterface
         $this->bytesPerItem = \strlen($this->defaultItem);
     }
 
-    final protected function throwOnOffsetGet($offset): void
+    final protected function throwOnOffsetGet($index): void
     {
-        if (!\is_int($offset)) {
-            throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type int, '.\gettype($offset).' given');
+        if (!\is_int($index)) {
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type int, '.\gettype($index).' given');
         }
 
         if (0 === $this->itemCount) {
-            throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'The container is empty, so index '.$offset.' does not exist');
+            throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'The container is empty, so index '.$index.' does not exist');
         }
 
-        throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Index out of range: '.$offset.', expected 0 <= x <= '.($this->itemCount - 1));
+        throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Index out of range: '.$index.', expected 0 <= x <= '.($this->itemCount - 1));
     }
 
     protected function unserializeAndValidate(string $serialized): void
@@ -376,14 +376,14 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    protected static function throwOnOffsetSet($offset, $item, int $bytesPerItem): void
+    protected static function throwOnOffsetSet($index, $item, int $bytesPerItem): void
     {
-        if (!\is_int($offset)) {
-            throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type integer, '.\gettype($offset).' given');
+        if (!\is_int($index)) {
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type integer, '.\gettype($index).' given');
         }
 
-        if ($offset < 0) {
-            throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Negative index: '.$offset);
+        if ($index < 0) {
+            throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Negative index: '.$index);
         }
 
         if (!\is_string($item)) {
@@ -419,7 +419,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     abstract protected function createEmptyMap(): void;
 
-    abstract protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void;
+    abstract protected function deleteWithNonNegativeIndex(int $firstItemIndex, int $howMany, int $itemCount): void;
 
     abstract protected function findArrayItems(
         array $items,

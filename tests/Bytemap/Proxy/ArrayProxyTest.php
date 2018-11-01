@@ -627,18 +627,18 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], 1, 1, false, ['xy']],
             [['cd', 'xy', 'ef', 'ef'], 1, -1, false, ['xy', 'ef']],
             [['cd', 'xy', 'ef', 'ef'], 1, -1, true, [1 => 'xy', 'ef']],
-        ] as [$items, $offset, $length, $preserveKeys, $expected]) {
-            yield [$items, $offset, $length, $preserveKeys, $expected];
+        ] as [$items, $index, $length, $preserveKeys, $expected]) {
+            yield [$items, $index, $length, $preserveKeys, $expected];
         }
     }
 
     /**
      * @dataProvider sliceProvider
      */
-    public function testSlice(array $items, int $offset, ?int $length, bool $preserveKeys, array $expected): void
+    public function testSlice(array $items, int $index, ?int $length, bool $preserveKeys, array $expected): void
     {
         $arrayProxy = self::instantiate(...$items);
-        self::assertSame($expected, \iterator_to_array($arrayProxy->slice($offset, $length, $preserveKeys)));
+        self::assertSame($expected, \iterator_to_array($arrayProxy->slice($index, $length, $preserveKeys)));
         self::assertSame($items, $arrayProxy->exportArray());
     }
 
@@ -668,8 +668,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], 1, -1, ['rs', 'tu'], ['xy', 'ef'], ['cd', 'rs', 'tu', 'ef']],
             [['cd', 'xy', 'ef', 'ef'], 0, null, ['rs', 'tu'], ['cd', 'xy', 'ef', 'ef'], ['rs', 'tu']],
             [['cd', 'xy', 'ef', 'ef'], -1, null, 'rs', ['ef'], ['cd', 'xy', 'ef', 'rs']],
-        ] as [$items, $offset, $length, $replacement, $expectedSlice, $expectedMutation]) {
-            yield [$items, $offset, $length, $replacement, $expectedSlice, $expectedMutation];
+        ] as [$items, $index, $length, $replacement, $expectedSlice, $expectedMutation]) {
+            yield [$items, $index, $length, $replacement, $expectedSlice, $expectedMutation];
         }
     }
 
@@ -680,14 +680,14 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      */
     public function testSplice(
         array $items,
-        int $offset,
+        int $index,
         ?int $length,
         $replacement,
         array $expectedSlice,
         array $expectedMutation
     ): void {
         $arrayProxy = self::instantiate(...$items);
-        self::assertSame($expectedSlice, $arrayProxy->splice($offset, $length, $replacement)->exportArray());
+        self::assertSame($expectedSlice, $arrayProxy->splice($index, $length, $replacement)->exportArray());
         self::assertSame($expectedMutation, $arrayProxy->exportArray());
     }
 
@@ -815,29 +815,29 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      */
     public function testWalkTooFewArguments(): void
     {
-        self::instantiate()->walk(function ($item, $offset, $foo) {
+        self::instantiate()->walk(function ($item, $index, $foo) {
         });
     }
 
-    public static function walkMethod(&$item, $offset, string $userdata = null): void
+    public static function walkMethod(&$item, $index, string $userdata = null): void
     {
-        $item = \gettype($userdata)[0].$offset;
+        $item = \gettype($userdata)[0].$index;
     }
 
     public static function walkProvider(): \Generator
     {
         foreach ([
-            [['cd', 'xy', 'ef', 'ef'], function ($item, $offset) {
+            [['cd', 'xy', 'ef', 'ef'], function ($item, $index) {
                 $item = 'ab';
             }, self::WALK_NO_USERDATA, ['cd', 'xy', 'ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset) {
-                $item = \sprintf('%02d', $offset);
+            [['cd', 'xy', 'ef', 'ef'], function (&$item, $index) {
+                $item = \sprintf('%02d', $index);
             }, self::WALK_NO_USERDATA, ['00', '01', '02', '03']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset, string $userdata) {
-                $item = \gettype($userdata)[0].$offset;
+            [['cd', 'xy', 'ef', 'ef'], function (&$item, $index, string $userdata) {
+                $item = \gettype($userdata)[0].$index;
             }, 'foo', ['s0', 's1', 's2', 's3']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$item, $offset, string $userdata = null) {
-                $item = \gettype($userdata)[0].$offset;
+            [['cd', 'xy', 'ef', 'ef'], function (&$item, $index, string $userdata = null) {
+                $item = \gettype($userdata)[0].$index;
             }, null, ['N0', 'N1', 'N2', 'N3']],
             [['cd', 'xy', 'ef', 'ef'], self::class.'::walkMethod', null, ['N0', 'N1', 'N2', 'N3']],
             [['cd', 'xy', 'ef', 'ef'], __NAMESPACE__.'\\transform', null, ['N0', 'N1', 'N2', 'N3']],
@@ -1224,7 +1224,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     }
 }
 
-function transform(&$item, $offset, string $userdata = null): void
+function transform(&$item, $index, string $userdata = null): void
 {
-    $item = \gettype($userdata)[0].$offset;
+    $item = \gettype($userdata)[0].$index;
 }

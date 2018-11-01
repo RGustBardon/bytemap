@@ -56,7 +56,7 @@ interface ArrayProxyInterface extends ProxyInterface
      *
      * @param int  $size         the number of items in each chunk
      * @param bool $preserveKeys `true` if the indices in the array of generated values should
-     *                           correspond to the offsets of bytemap items, `false` otherwise
+     *                           correspond to the indices of bytemap items, `false` otherwise
      *
      * @throws \OutOfRangeException if the size parameter is not positive
      *
@@ -79,7 +79,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param iterable ...$iterables iterables of items that must not appear in the result
      *
      * @return \Generator a generator whose values are the items that are found in the bytemap
-     *                    but not in any of the iterables and whose keys are the offsets of those
+     *                    but not in any of the iterables and whose keys are the indices of those
      *                    items
      */
     public function diff(iterable ...$iterables): \Generator;
@@ -92,12 +92,12 @@ interface ArrayProxyInterface extends ProxyInterface
      *                                otherwise (if the callback returns `true`, the item is going
      *                                to be preserved)
      * @param int           $flag     `0` if only the item is to be passed to the callback,
-     *                                `\ARRAY_FILTER_USE_KEY` if only the offset is to be passed to
+     *                                `\ARRAY_FILTER_USE_KEY` if only the index is to be passed to
      *                                the callback, `\ARRAY_FILTER_USE_BOTH` if both the item and
-     *                                the offset are to be passed to the callback (in that order)
+     *                                the index are to be passed to the callback (in that order)
      *
      * @return \Generator a generator whose values are the items that pass the filter and whose
-     *                    keys are their corresponding offsets
+     *                    keys are their corresponding indices
      */
     public function filter(?callable $callback = null, int $flag = 0): \Generator;
 
@@ -111,16 +111,16 @@ interface ArrayProxyInterface extends ProxyInterface
     public function inArray(string $needle): bool;
 
     /**
-     * `\array_key_exists` (checks if an offset exists in the bytemap).
+     * `\array_key_exists` (checks if an index exists in the bytemap).
      *
-     * @param int $key the offset to look for
+     * @param int $key the index to look for
      *
-     * @return bool `true` if the offset is found, `false` otherwise
+     * @return bool `true` if the index is found, `false` otherwise
      */
     public function keyExists(int $key): bool;
 
     /**
-     * `\array_key_first` (returns the first offset of the bytemap).
+     * `\array_key_first` (returns the first index of the bytemap).
      *
      * @throws \UnderflowException if the bytemap contains no items
      *
@@ -129,23 +129,23 @@ interface ArrayProxyInterface extends ProxyInterface
     public function keyFirst(): int;
 
     /**
-     * `\array_key_last` (returns the last offset of the bytemap).
+     * `\array_key_last` (returns the last index of the bytemap).
      *
      * @throws \UnderflowException if the bytemap contains no items
      *
-     * @return int the last offset
+     * @return int the last index
      */
     public function keyLast(): int;
 
     /**
-     * `\array_keys` (returns either all the offsets of the bytemap or their subset).
+     * `\array_keys` (returns either all the indices of the bytemap or their subset).
      *
      * @param null|string $searchValue the item to look for.
-     *                                 `null` if all the offsets are to be returned
+     *                                 `null` if all the indices are to be returned
      *
-     * @return \Generator if a search value has been specified, only the offsets whose
+     * @return \Generator if a search value has been specified, only the indices whose
      *                    items are stricly equal to that value are generated (sorted ascending),
-     *                    otherwise all the offsets are generated (sorted ascending)
+     *                    otherwise all the indices are generated (sorted ascending)
      */
     public function keys(?string $searchValue = null): \Generator;
 
@@ -234,15 +234,15 @@ interface ArrayProxyInterface extends ProxyInterface
     public function push(string ...$values): int;
 
     /**
-     * `\array_rand` (picks one or more random offsets of the bytemap).
+     * `\array_rand` (picks one or more random indices of the bytemap).
      *
-     * @param int $num the number of offsets to pick
+     * @param int $num the number of indices to pick
      *
      * @throws \UnderflowException  if the bytemap contains no items
      * @throws \OutOfRangeException if `$num` is less than 1 or greater than the number of items
      *                              in the bytemap
      *
-     * @return int|int[] a single offset if `$num` is equal to 1, an array of random offsets
+     * @return int|int[] a single index if `$num` is equal to 1, an array of random indices
      *                   otherwise
      */
     public function rand(int $num = 1);
@@ -269,11 +269,11 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_reverse` (generates the items in reverse order).
      *
-     * @param bool $preserveKeys `true` if the offsets are to be preserved,
+     * @param bool $preserveKeys `true` if the indices are to be preserved,
      *                           `false` otherwise
      *
      * @return \Generator a generator whose values are the items of the bytemap in the reverse
-     *                    order and whose keys are either the corresponding offsets or
+     *                    order and whose keys are either the corresponding indices or
      *                    a sequence of consecutive natural numbers starting from 0
      */
     public function reverse(bool $preserveKeys = false): \Generator;
@@ -320,13 +320,13 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_slice`.
      *
-     * @param int      $offset
+     * @param int      $index
      * @param null|int $length
      * @param bool     $preserveKeys
      *
      * @return \Generator
      */
-    public function slice(int $offset, ?int $length = null, bool $preserveKeys = false): \Generator;
+    public function slice(int $index, ?int $length = null, bool $preserveKeys = false): \Generator;
 
     /**
      * `\sort`.
@@ -338,13 +338,13 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_splice`.
      *
-     * @param int      $offset
+     * @param int      $index
      * @param null|int $length
      * @param mixed    $replacement
      *
      * @return self
      */
-    public function splice(int $offset, ?int $length = null, $replacement = []): self;
+    public function splice(int $index, ?int $length = null, $replacement = []): self;
 
     /**
      * The equivalent of the array `+` operator.
@@ -398,7 +398,7 @@ interface ArrayProxyInterface extends ProxyInterface
      *
      * Using this generator is equivalent to iterating over the bytemap directly.
      *
-     * @return \Generator A generator whose values are bytemap items and whose keys are the offsets
+     * @return \Generator A generator whose values are bytemap items and whose keys are the indices
      *                    of those items. Keys are generated in the ascending order.
      */
     public function values(): \Generator;
@@ -474,7 +474,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param int    $flags   if set to `PREG_GREP_INVERT`, returns the items that do NOT match
      *                        the given pattern
      *
-     * @return \Generator the items indexed using the offsets from the bytemap
+     * @return \Generator the items indexed using the indices from the bytemap
      */
     public function pregGrep(string $pattern, int $flags = 0): \Generator;
 

@@ -75,14 +75,14 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         unset((self::instantiate($impl, 'a'))->undefinedProperty);
     }
 
-    public static function nullOffsetProvider(): \Generator
+    public static function nullIndexProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $items]) {
             yield [$impl, $items, null];
         }
     }
 
-    public static function invalidOffsetTypeProvider(): \Generator
+    public static function invalidIndexTypeProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $items]) {
             foreach ([
@@ -99,51 +99,51 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 \fopen('php://memory', 'rb'),
                 function (): int { return 0; },
                 function (): \Generator { yield 0; },
-            ] as $offset) {
-                yield [$impl, $items, $offset];
+            ] as $index) {
+                yield [$impl, $items, $index];
             }
         }
     }
 
     /**
      * @covers \Bytemap\AbstractBytemap::offsetExists
-     * @dataProvider nullOffsetProvider
-     * @dataProvider invalidOffsetTypeProvider
+     * @dataProvider nullIndexProvider
+     * @dataProvider invalidIndexTypeProvider
      *
-     * @param mixed $offset
+     * @param mixed $index
      */
-    public function testExistsInvalidType(string $impl, array $items, $offset): void
+    public function testExistsInvalidType(string $impl, array $items, $index): void
     {
-        self::assertFalse(isset(self::instantiate($impl, $items[0])[$offset]));
+        self::assertFalse(isset(self::instantiate($impl, $items[0])[$index]));
     }
 
-    public static function negativeOffsetProvider(): \Generator
+    public static function negativeIndexProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $items]) {
             yield [$impl, $items, 0, -1];
         }
     }
 
-    public static function outOfRangeOffsetProvider(): \Generator
+    public static function outOfRangeIndexProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $items]) {
             foreach ([
                 [0, 0],
                 [1, 1],
-            ] as [$itemCount, $offset]) {
-                yield [$impl, $items, $itemCount, $offset];
+            ] as [$itemCount, $index]) {
+                yield [$impl, $items, $itemCount, $index];
             }
         }
     }
 
     /**
      * @covers \Bytemap\AbstractBytemap::offsetExists
-     * @dataProvider negativeOffsetProvider
-     * @dataProvider outOfRangeOffsetProvider
+     * @dataProvider negativeIndexProvider
+     * @dataProvider outOfRangeIndexProvider
      */
-    public function testExistsOutOfRange(string $impl, array $items, int $itemCount, int $offset): void
+    public function testExistsOutOfRange(string $impl, array $items, int $itemCount, int $index): void
     {
-        self::assertFalse(isset(self::instantiateWithSize($impl, $items, $itemCount)[$offset]));
+        self::assertFalse(isset(self::instantiateWithSize($impl, $items, $itemCount)[$index]));
     }
 
     /**
@@ -151,15 +151,15 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\DsBytemap::offsetGet
      * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
      * @covers \Bytemap\Bytemap::offsetGet
-     * @dataProvider nullOffsetProvider
-     * @dataProvider invalidOffsetTypeProvider
+     * @dataProvider nullIndexProvider
+     * @dataProvider invalidIndexTypeProvider
      * @expectedException \TypeError
      *
-     * @param mixed $offset
+     * @param mixed $index
      */
-    public function testGetInvalidType(string $impl, array $items, $offset): void
+    public function testGetInvalidType(string $impl, array $items, $index): void
     {
-        self::instantiate($impl, $items[0])[$offset];
+        self::instantiate($impl, $items[0])[$index];
     }
 
     /**
@@ -167,13 +167,13 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\DsBytemap::offsetGet
      * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
      * @covers \Bytemap\Bytemap::offsetGet
-     * @dataProvider negativeOffsetProvider
-     * @dataProvider outOfRangeOffsetProvider
+     * @dataProvider negativeIndexProvider
+     * @dataProvider outOfRangeIndexProvider
      * @expectedException \OutOfRangeException
      */
-    public function testGetOutOfRange(string $impl, array $items, int $itemCount, int $offset): void
+    public function testGetOutOfRange(string $impl, array $items, int $itemCount, int $index): void
     {
-        self::instantiateWithSize($impl, $items, $itemCount)[$offset];
+        self::instantiateWithSize($impl, $items, $itemCount)[$index];
     }
 
     /**
@@ -181,15 +181,15 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
      * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
      * @covers \Bytemap\Bytemap::offsetSet
-     * @dataProvider invalidOffsetTypeProvider
+     * @dataProvider invalidIndexTypeProvider
      * @expectedException \TypeError
      *
-     * @param mixed $offset
+     * @param mixed $index
      */
-    public function testSetInvalidOffsetType(string $impl, array $items, $offset): void
+    public function testSetInvalidIndexType(string $impl, array $items, $index): void
     {
         $bytemap = self::instantiate($impl, $items[0]);
-        $bytemap[$offset] = $items[0];
+        $bytemap[$index] = $items[0];
     }
 
     /**
@@ -197,13 +197,13 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
      * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
      * @covers \Bytemap\Bytemap::offsetSet
-     * @dataProvider negativeOffsetProvider
+     * @dataProvider negativeIndexProvider
      * @expectedException \OutOfRangeException
      */
-    public function testSetNegativeOffset(string $impl, array $items, int $itemCount, int $offset): void
+    public function testSetNegativeIndex(string $impl, array $items, int $itemCount, int $index): void
     {
         $bytemap = self::instantiateWithSize($impl, $items, $itemCount);
-        $bytemap[$offset] = $items[0];
+        $bytemap[$index] = $items[0];
     }
 
     /**
@@ -241,16 +241,16 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
      * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
      * @covers \Bytemap\Bytemap::offsetUnset
-     * @dataProvider nullOffsetProvider
-     * @dataProvider invalidOffsetTypeProvider
+     * @dataProvider nullIndexProvider
+     * @dataProvider invalidIndexTypeProvider
      * @doesNotPerformAssertions
      *
-     * @param mixed $offset
+     * @param mixed $index
      */
-    public function testUnsetInvalidType(string $impl, array $items, $offset): void
+    public function testUnsetInvalidType(string $impl, array $items, $index): void
     {
         $bytemap = self::instantiate($impl, $items[0]);
-        unset($bytemap[$offset]);
+        unset($bytemap[$index]);
     }
 
     /**
@@ -258,14 +258,14 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\DsBytemap::offsetUnset
      * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
      * @covers \Bytemap\Bytemap::offsetUnset
-     * @dataProvider negativeOffsetProvider
-     * @dataProvider outOfRangeOffsetProvider
+     * @dataProvider negativeIndexProvider
+     * @dataProvider outOfRangeIndexProvider
      * @doesNotPerformAssertions
      */
-    public function testUnsetOutOfRange(string $impl, array $items, int $itemCount, int $offset): void
+    public function testUnsetOutOfRange(string $impl, array $items, int $itemCount, int $index): void
     {
         $bytemap = self::instantiateWithSize($impl, $items, $itemCount);
-        unset($bytemap[$offset]);
+        unset($bytemap[$index]);
     }
 
     /**

@@ -138,9 +138,9 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $bytemap = $this->instantiate("\x00");
                 $itemCount = 0;
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $offset = $itemCount + \mt_rand(1, 100);
-                    $bytemap[$offset] = "\x01";
-                    $itemCount = $offset + 1;
+                    $index = $itemCount + \mt_rand(1, 100);
+                    $bytemap[$index] = "\x01";
+                    $itemCount = $index + 1;
                 }
                 $this->takeSnapshot(\sprintf('After expanding a single-byte bytemap %d times', $iterations), true);
                 unset($bytemap);
@@ -149,9 +149,9 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $bytemap = $this->instantiate("\x00\x00\x00\x00");
                 $itemCount = 0;
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $offset = $itemCount + \mt_rand(1, 100);
-                    $bytemap[$offset] = "\x01\x02\x03\x04";
-                    $itemCount = $offset + 1;
+                    $index = $itemCount + \mt_rand(1, 100);
+                    $bytemap[$index] = "\x01\x02\x03\x04";
+                    $itemCount = $index + 1;
                 }
                 $this->takeSnapshot(\sprintf('After expanding a four-byte bytemap %d times', $iterations), true);
 

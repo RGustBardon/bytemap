@@ -34,26 +34,26 @@ final class DsBytemap extends AbstractBytemap
     }
 
     // `ArrayAccess`
-    public function offsetGet($offset): string
+    public function offsetGet($index): string
     {
-        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
-            return $this->map[$offset];
+        if (\is_int($index) && $index >= 0 && $index < $this->itemCount) {
+            return $this->map[$index];
         }
 
-        self::throwOnOffsetGet($offset);
+        self::throwOnOffsetGet($index);
     }
 
-    public function offsetSet($offset, $item): void
+    public function offsetSet($index, $item): void
     {
-        if (null === $offset) {  // `$bytemap[] = $item`
-            $offset = $this->itemCount;
+        if (null === $index) {  // `$bytemap[] = $item`
+            $index = $this->itemCount;
         }
 
-        if (\is_int($offset) && $offset >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
-            $unassignedCount = $offset - $this->itemCount;
+        if (\is_int($index) && $index >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
+            $unassignedCount = $index - $this->itemCount;
             if ($unassignedCount < 0) {
                 // Case 1. Overwrite an existing item.
-                $this->map[$offset] = $item;
+                $this->map[$index] = $item;
             } elseif (0 === $unassignedCount) {
                 // Case 2. Append an item right after the last one.
                 $this->map[] = $item;
@@ -68,15 +68,15 @@ final class DsBytemap extends AbstractBytemap
                 $this->itemCount += $unassignedCount + 1;
             }
         } else {
-            self::throwOnOffsetSet($offset, $item, $this->bytesPerItem);
+            self::throwOnOffsetSet($index, $item, $this->bytesPerItem);
         }
     }
 
-    public function offsetUnset($offset): void
+    public function offsetUnset($index): void
     {
-        if (\is_int($offset) && $offset >= 0 && $offset < $this->itemCount) {
+        if (\is_int($index) && $index >= 0 && $index < $this->itemCount) {
             --$this->itemCount;
-            unset($this->map[$offset]);
+            unset($this->map[$index]);
         }
     }
 
@@ -93,51 +93,51 @@ final class DsBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public function insert(iterable $items, int $firstItemOffset = -1): void
+    public function insert(iterable $items, int $firstItemIndex = -1): void
     {
         $originalItemCount = $this->itemCount;
 
-        // Resize the bytemap if the positive first item offset is greater than the item count.
-        if ($firstItemOffset > $this->itemCount) {
-            $this[$firstItemOffset - 1] = $this->defaultItem;
+        // Resize the bytemap if the positive first item index is greater than the item count.
+        if ($firstItemIndex > $this->itemCount) {
+            $this[$firstItemIndex - 1] = $this->defaultItem;
         }
 
         // Allocate the memory.
-        $newSize = $this->calculateNewSize($items, $firstItemOffset);
+        $newSize = $this->calculateNewSize($items, $firstItemIndex);
         if (null !== $newSize) {
             $this->map->allocate($newSize);
         }
 
-        if (-1 === $firstItemOffset || $firstItemOffset > $this->itemCount - 1) {
-            $firstItemOffsetToCheck = $this->itemCount;
+        if (-1 === $firstItemIndex || $firstItemIndex > $this->itemCount - 1) {
+            $firstItemIndexToCheck = $this->itemCount;
 
             // Append the items.
             $this->map->push(...$items);
 
             $this->itemCount = \count($this->map);
-            $this->validateInsertedItems($firstItemOffsetToCheck, $this->itemCount - $firstItemOffsetToCheck, $originalItemCount, $this->itemCount - $originalItemCount);
+            $this->validateInsertedItems($firstItemIndexToCheck, $this->itemCount - $firstItemIndexToCheck, $originalItemCount, $this->itemCount - $originalItemCount);
         } else {
-            $originalFirstItemOffset = $firstItemOffset;
-            // Calculate the positive offset corresponding to the negative one.
-            if ($firstItemOffset < 0) {
-                $firstItemOffset += $this->itemCount;
+            $originalFirstItemIndex = $firstItemIndex;
+            // Calculate the positive index corresponding to the negative one.
+            if ($firstItemIndex < 0) {
+                $firstItemIndex += $this->itemCount;
 
-                // Keep the offsets within the bounds.
-                if ($firstItemOffset < 0) {
-                    $firstItemOffset = 0;
+                // Keep the indices within the bounds.
+                if ($firstItemIndex < 0) {
+                    $firstItemIndex = 0;
                 }
             }
 
             // Insert the items.
             $itemCount = \count($this->map);
-            $this->map->insert($firstItemOffset, ...$items);
+            $this->map->insert($firstItemIndex, ...$items);
             $insertedItemCount = \count($this->map) - $itemCount;
             $this->itemCount += $insertedItemCount;
-            $this->validateInsertedItems($firstItemOffset, $insertedItemCount, $firstItemOffset, $insertedItemCount);
+            $this->validateInsertedItems($firstItemIndex, $insertedItemCount, $firstItemIndex, $insertedItemCount);
 
-            // Resize the bytemap if the negative first item offset is greater than the new item count.
-            if (-$originalFirstItemOffset > $this->itemCount) {
-                $overflow = -$originalFirstItemOffset - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
+            // Resize the bytemap if the negative first item index is greater than the new item count.
+            if (-$originalFirstItemIndex > $this->itemCount) {
+                $overflow = -$originalFirstItemIndex - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
                 if ($overflow > 0) {
                     $this->map->insert($insertedItemCount, ...(function () use ($overflow): \Generator {
                         do {
@@ -228,9 +228,9 @@ final class DsBytemap extends AbstractBytemap
         $this->map = new \Ds\Vector();
     }
 
-    protected function deleteWithNonNegativeOffset(int $firstItemOffset, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeIndex(int $firstItemIndex, int $howMany, int $itemCount): void
     {
-        $maximumRange = $itemCount - $firstItemOffset;
+        $maximumRange = $itemCount - $firstItemIndex;
         if ($howMany >= $maximumRange) {
             $this->itemCount -= $maximumRange;
             while (--$maximumRange >= 0) {
@@ -238,7 +238,7 @@ final class DsBytemap extends AbstractBytemap
             }
         } else {
             $this->itemCount -= $howMany;
-            $this->map = $this->map->slice(0, $firstItemOffset)->merge($this->map->slice($firstItemOffset + $howMany));
+            $this->map = $this->map->slice(0, $firstItemIndex)->merge($this->map->slice($firstItemIndex + $howMany));
         }
     }
 
@@ -368,21 +368,21 @@ final class DsBytemap extends AbstractBytemap
 
     // `DsBytemap`
     protected function validateInsertedItems(
-        int $firstItemOffsetToCheck,
+        int $firstItemIndexToCheck,
         int $howManyToCheck,
-        int $firstItemOffsetToRollBack,
+        int $firstItemIndexToRollBack,
         int $howManyToRollBack
         ): void {
         $bytesPerItem = $this->bytesPerItem;
-        $lastItemOffsetToCheck = $firstItemOffsetToCheck + $howManyToCheck;
-        for ($offset = $firstItemOffsetToCheck; $offset < $lastItemOffsetToCheck; ++$offset) {
-            if (!\is_string($item = $this->map[$offset])) {
-                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
+        $lastItemIndexToCheck = $firstItemIndexToCheck + $howManyToCheck;
+        for ($index = $firstItemIndexToCheck; $index < $lastItemIndexToCheck; ++$index) {
+            if (!\is_string($item = $this->map[$index])) {
+                $this->delete($firstItemIndexToRollBack, $howManyToRollBack);
 
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
             }
             if (\strlen($item) !== $bytesPerItem) {
-                $this->delete($firstItemOffsetToRollBack, $howManyToRollBack);
+                $this->delete($firstItemIndexToRollBack, $howManyToRollBack);
 
                 throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
             }
