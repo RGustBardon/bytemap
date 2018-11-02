@@ -18,9 +18,9 @@ use Bytemap\BytemapInterface;
 
 class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 {
-    public function __construct(string $defaultElement, string ...$values)
+    public function __construct(string $defaultValue, string ...$values)
     {
-        $this->bytemap = new Bytemap($defaultElement);
+        $this->bytemap = new Bytemap($defaultValue);
         $this->bytemap->insert($values);
     }
 
@@ -48,9 +48,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     /**
      * @param string[] $elements
      */
-    public static function import(string $defaultElement, iterable $elements): ArrayProxyInterface
+    public static function import(string $defaultValue, iterable $elements): ArrayProxyInterface
     {
-        return new self($defaultElement, ...$elements);
+        return new self($defaultValue, ...$elements);
     }
 
     // `ArrayProxyInterface`: Array API
@@ -585,10 +585,10 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
-    public static function combine(string $defaultElement, iterable $keys, iterable $values): ArrayProxyInterface
+    public static function combine(string $defaultValue, iterable $keys, iterable $values): ArrayProxyInterface
     {
-        $arrayProxy = new self($defaultElement);
-        $bytemap = new Bytemap($defaultElement);
+        $arrayProxy = new self($defaultValue);
+        $bytemap = new Bytemap($defaultValue);
         $bytemap->insert($values);
         $index = 0;
 
@@ -607,7 +607,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $arrayProxy;
     }
 
-    public static function fill(string $defaultElement, int $startIndex, int $num, ?string $value = null): ArrayProxyInterface
+    public static function fill(string $defaultValue, int $startIndex, int $num, ?string $value = null): ArrayProxyInterface
     {
         if ($startIndex < 0) {
             throw new \OutOfRangeException('Start index can\'t be negative');
@@ -618,10 +618,10 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
 
         if (null === $value) {
-            $value = $defaultElement;
+            $value = $defaultValue;
         }
 
-        $arrayProxy = new self($defaultElement);
+        $arrayProxy = new self($defaultValue);
         $arrayProxy->bytemap->insert((function () use ($num, $value): \Generator {
             for ($i = 0; $i < $num; ++$i) {
                 yield $value;
@@ -631,13 +631,13 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return $arrayProxy;
     }
 
-    public static function fillKeys(string $defaultElement, iterable $keys, ?string $value = null): ArrayProxyInterface
+    public static function fillKeys(string $defaultValue, iterable $keys, ?string $value = null): ArrayProxyInterface
     {
         if (null === $value) {
-            $value = $defaultElement;
+            $value = $defaultValue;
         }
 
-        $arrayProxy = new self($defaultElement);
+        $arrayProxy = new self($defaultValue);
         if (\is_array($keys)) {
             $arrayProxy[\max($keys)] = $value;
         }

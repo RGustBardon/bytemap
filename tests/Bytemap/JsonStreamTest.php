@@ -218,7 +218,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         array $sequence,
         int $jsonEncodingOptions,
         BytemapInterface $instance,
-        $defaultElement,
+        $defaultValue,
         bool $useStreamingParser
         ): void {
         $json = \json_encode($sequence, $jsonEncodingOptions);
@@ -230,12 +230,12 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         } else {
             $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
         }
-        $bytemap = $instance::parseJsonStream($jsonStream, $defaultElement);
+        $bytemap = $instance::parseJsonStream($jsonStream, $defaultValue);
 
         self::assertSame('resource', \gettype($jsonStream));
         self::assertNotSame($instance, $bytemap);
         self::assertSequence($expectedSequence, $bytemap);
-        self::assertDefaultElement($defaultElement, $bytemap, \str_repeat("\xff", \strlen($defaultElement)));
+        self::assertDefaultValue($defaultValue, $bytemap, \str_repeat("\xff", \strlen($defaultValue)));
     }
 
     private static function getClosedStream()

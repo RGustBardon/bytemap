@@ -30,7 +30,7 @@ abstract class AbstractBytemap implements BytemapInterface
     protected const UNSERIALIZED_CLASSES = false;
 
     /** @var string */
-    protected $defaultElement;
+    protected $defaultValue;
     /** @var int */
     protected $bytesPerElement;
 
@@ -38,13 +38,13 @@ abstract class AbstractBytemap implements BytemapInterface
     protected $elementCount = 0;
     protected $map;
 
-    public function __construct(string $defaultElement)
+    public function __construct(string $defaultValue)
     {
-        if ('' === $defaultElement) {
-            throw new \DomainException(self::EXCEPTION_PREFIX.'The default element cannot be an empty string');
+        if ('' === $defaultValue) {
+            throw new \DomainException(self::EXCEPTION_PREFIX.'The default value cannot be an empty string');
         }
 
-        $this->defaultElement = $defaultElement;
+        $this->defaultValue = $defaultValue;
         $this->createEmptyMap();
 
         $this->deriveProperties();
@@ -86,7 +86,7 @@ abstract class AbstractBytemap implements BytemapInterface
     // `Serializable`
     public function serialize(): string
     {
-        return \serialize([$this->defaultElement, $this->map]);
+        return \serialize([$this->defaultValue, $this->map]);
     }
 
     public function unserialize($serialized)
@@ -113,7 +113,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         if (null === $elements) {
-            $needles = [$this->defaultElement => true];
+            $needles = [$this->defaultValue => true];
             $whitelist = !$whitelist;
         } else {
             $needles = [];
@@ -154,7 +154,7 @@ abstract class AbstractBytemap implements BytemapInterface
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
             $errorMessage = $errstr;
         });
-        if (null === \preg_filter($patterns, '', $this->defaultElement)) {
+        if (null === \preg_filter($patterns, '', $this->defaultValue)) {
             $pregLastError = \preg_last_error();
             if (\PREG_NO_ERROR !== $pregLastError) {
                 $constants = \get_defined_constants(true)['pcre'];
@@ -245,7 +245,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     protected function deriveProperties(): void
     {
-        $this->bytesPerElement = \strlen($this->defaultElement);
+        $this->bytesPerElement = \strlen($this->defaultValue);
     }
 
     final protected function throwOnOffsetGet($index): void
@@ -277,13 +277,13 @@ abstract class AbstractBytemap implements BytemapInterface
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize (expected an array of two elements)');
         }
 
-        [$this->defaultElement, $this->map] = $result;
+        [$this->defaultValue, $this->map] = $result;
 
-        if (!\is_string($this->defaultElement)) {
-            throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the default element must be of type string, '.\gettype($this->defaultElement).' given)');
+        if (!\is_string($this->defaultValue)) {
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the default value must be of type string, '.\gettype($this->defaultValue).' given)');
         }
-        if ('' === $this->defaultElement) {
-            throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default element cannot be an empty string)');
+        if ('' === $this->defaultValue) {
+            throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default value cannot be an empty string)');
         }
     }
 
@@ -393,7 +393,7 @@ abstract class AbstractBytemap implements BytemapInterface
         throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerElement.' bytes, '.\strlen($element).' given');
     }
 
-    protected static function validateMapAndGetMaxKey($map, string $defaultElement): array
+    protected static function validateMapAndGetMaxKey($map, string $defaultValue): array
     {
         if (!\is_array($map)) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Invalid JSON (expected an array or an object, '.\gettype($map).' given)');
@@ -401,7 +401,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
         $sorted = true;
         $maxKey = -1;
-        $bytesPerElement = \strlen($defaultElement);
+        $bytesPerElement = \strlen($defaultValue);
         foreach ($map as $key => $element) {
             if (\is_int($key) && $key >= 0 && \is_string($element) && \strlen($element) === $bytesPerElement) {
                 if ($maxKey < $key) {

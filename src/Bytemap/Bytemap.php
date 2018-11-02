@@ -67,8 +67,8 @@ class Bytemap extends AbstractBytemap
                 ++$this->elementCount;
                 $this->bytesInTotal += $bytesPerElement;
             } else {
-                // Case 3. Append to a gap after the last element. Fill the gap with default elements.
-                $this->map .= \str_repeat($this->defaultElement, $unassignedCount).$element;
+                // Case 3. Append to a gap after the last element. Fill the gap with default values.
+                $this->map .= \str_repeat($this->defaultValue, $unassignedCount).$element;
                 $this->elementCount += $unassignedCount + 1;
                 $this->bytesInTotal = $this->elementCount * $bytesPerElement;
             }
@@ -140,7 +140,7 @@ class Bytemap extends AbstractBytemap
         if (-1 === $firstIndex || $firstIndex > $this->elementCount - 1) {
             // Insert the elements.
             $padLength = \strlen($substring) + \max(0, $firstIndex - $this->elementCount) * $this->bytesPerElement;
-            $this->map .= \str_pad($substring, $padLength, $this->defaultElement, \STR_PAD_LEFT);
+            $this->map .= \str_pad($substring, $padLength, $this->defaultValue, \STR_PAD_LEFT);
         } else {
             $originalFirstIndex = $firstIndex;
             // Calculate the positive index corresponding to the negative one.
@@ -159,7 +159,7 @@ class Bytemap extends AbstractBytemap
             if (-$originalFirstIndex > $newElementCount) {
                 $overflow = -$originalFirstIndex - $newElementCount - ($insertedElementCount > 0 ? 0 : 1);
                 $padLength = ($overflow + $insertedElementCount) * $this->bytesPerElement;
-                $substring = \str_pad($substring, $padLength, $this->defaultElement, \STR_PAD_RIGHT);
+                $substring = \str_pad($substring, $padLength, $this->defaultValue, \STR_PAD_RIGHT);
             }
 
             // Insert the elements.
@@ -173,7 +173,7 @@ class Bytemap extends AbstractBytemap
     {
         self::ensureStream($stream);
 
-        $defaultElement = $this->defaultElement;
+        $defaultValue = $this->defaultValue;
         $bytesPerElement = $this->bytesPerElement;
 
         $buffer = '[';
@@ -201,11 +201,11 @@ class Bytemap extends AbstractBytemap
         self::stream($stream, $buffer);
     }
 
-    public static function parseJsonStream($jsonStream, $defaultElement): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultValue): BytemapInterface
     {
         self::ensureStream($jsonStream);
 
-        $bytemap = new self($defaultElement);
+        $bytemap = new self($defaultValue);
         if (self::hasStreamingParser()) {
             $listener = new BytemapListener(static function (string $value, ?int $key) use ($bytemap) {
                 if (null === $key) {
@@ -217,7 +217,7 @@ class Bytemap extends AbstractBytemap
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
-            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultElement);
+            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultValue);
             $size = \count($map);
             if ($size > 0) {
                 if ($maxKey + 1 === $size) {
@@ -338,8 +338,8 @@ class Bytemap extends AbstractBytemap
 
             throw new \TypeError(self::EXCEPTION_PREFIX.$reason);
         }
-        if (0 !== \strlen($this->map) % \strlen($this->defaultElement)) {
-            $reason = 'Failed to unserialize (the length of the internal string, '.\strlen($this->map).', is not a multiple of the length of the default element, '.\strlen($this->defaultElement).')';
+        if (0 !== \strlen($this->map) % \strlen($this->defaultValue)) {
+            $reason = 'Failed to unserialize (the length of the internal string, '.\strlen($this->map).', is not a multiple of the length of the default value, '.\strlen($this->defaultValue).')';
 
             throw new \DomainException(self::EXCEPTION_PREFIX.$reason);
         }

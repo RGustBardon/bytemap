@@ -85,8 +85,8 @@ abstract class AbstractTestOfBytemap extends TestCase
                 ['ab', 'abc'],
                 ['ab', 'ab '],
                 ['ab', ' ab'],
-            ] as [$defaultElement, $invalidElement]) {
-                yield [$impl, $defaultElement, $invalidElement];
+            ] as [$defaultValue, $invalidElement]) {
+                yield [$impl, $defaultValue, $invalidElement];
             }
         }
     }
@@ -114,20 +114,20 @@ abstract class AbstractTestOfBytemap extends TestCase
     }
 
     /**
-     * Ensure that the information on the default element is preserved when cloning and serializing.
+     * Ensure that the information on the default value is preserved when cloning and serializing.
      *
-     * @param bool|int|string $defaultElement
+     * @param bool|int|string $defaultValue
      * @param bool|int|string $newElement
      */
-    protected static function assertDefaultElement($defaultElement, BytemapInterface $bytemap, $newElement): void
+    protected static function assertDefaultValue($defaultValue, BytemapInterface $bytemap, $newElement): void
     {
-        $indexOfDefaultElement = \count($bytemap);
-        $indexOfNewElement = $indexOfDefaultElement + 1;
+        $indexOfDefaultValue = \count($bytemap);
+        $indexOfNewElement = $indexOfDefaultValue + 1;
         $bytemap[$indexOfNewElement] = $newElement;
-        self::assertSame($defaultElement, $bytemap[$indexOfDefaultElement]);
+        self::assertSame($defaultValue, $bytemap[$indexOfDefaultValue]);
         self::assertSame($newElement, $bytemap[$indexOfNewElement]);
         unset($bytemap[$indexOfNewElement]);
-        unset($bytemap[$indexOfDefaultElement]);
+        unset($bytemap[$indexOfDefaultValue]);
     }
 
     protected static function assertSequence(array $sequence, BytemapInterface $bytemap): void

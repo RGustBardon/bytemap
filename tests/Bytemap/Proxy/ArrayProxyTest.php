@@ -504,7 +504,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public static function sortProvider(): \Generator
     {
-        $defaultElement = "\x0\x0\x0";
+        $defaultValue = "\x0\x0\x0";
         $elements = ['12 ', '100', "\u{d6} ", 'PPP', 'ooo'];
 
         foreach ([
@@ -514,7 +514,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             \SORT_STRING | \SORT_FLAG_CASE => ['100', '12 ', 'ooo', 'PPP', "\u{d6} "],
         ] as $sortFlags => $expected) {
             yield [
-                $defaultElement,
+                $defaultValue,
                 $elements,
                 function (self $that) use ($sortFlags): int {
                     return $sortFlags;
@@ -534,7 +534,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             };
         }
 
-        yield [$defaultElement, $elements, $sortFlagsClosure, ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']];
+        yield [$defaultValue, $elements, $sortFlagsClosure, ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']];
 
         $sortFlagsClosure = function (self $that): void {
             $that->markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatcmp');
@@ -546,7 +546,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             };
         }
 
-        yield [$defaultElement, $elements, $sortFlagsClosure, ['12 ', '100', 'PPP', 'ooo', "\u{d6} "]];
+        yield [$defaultValue, $elements, $sortFlagsClosure, ['12 ', '100', 'PPP', 'ooo', "\u{d6} "]];
 
         $sortFlagsClosure = function (self $that): void {
             $that->markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatbasecmp');
@@ -558,15 +558,15 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             };
         }
 
-        yield [$defaultElement, $elements, $sortFlagsClosure, ['12 ', '100', 'ooo', 'PPP', "\u{d6} "]];
+        yield [$defaultValue, $elements, $sortFlagsClosure, ['12 ', '100', 'ooo', 'PPP', "\u{d6} "]];
     }
 
     /**
      * @dataProvider sortProvider
      */
-    public function testRSort(string $defaultElement, array $elements, \Closure $sortFlagsClosure, array $expected): void
+    public function testRSort(string $defaultValue, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
-        $arrayProxy = new ArrayProxy($defaultElement, ...$elements);
+        $arrayProxy = new ArrayProxy($defaultValue, ...$elements);
         $arrayProxy->rSort($sortFlagsClosure($this));
         self::assertArrayMask(\array_reverse($expected), $arrayProxy->exportArray());
     }
@@ -645,9 +645,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     /**
      * @dataProvider sortProvider
      */
-    public function testSort(string $defaultElement, array $elements, \Closure $sortFlagsClosure, array $expected): void
+    public function testSort(string $defaultValue, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
-        $arrayProxy = new ArrayProxy($defaultElement, ...$elements);
+        $arrayProxy = new ArrayProxy($defaultValue, ...$elements);
         $arrayProxy->sort($sortFlagsClosure($this));
         self::assertArrayMask($expected, $arrayProxy->exportArray());
     }
@@ -744,7 +744,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public static function uniqueProvider(): \Generator
     {
-        $defaultElement = "\x0\x0\x0";
+        $defaultValue = "\x0\x0\x0";
         $elements = ['100', '1e2', "\u{2010}", "\u{2011}"];
 
         foreach ([
@@ -753,7 +753,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             \SORT_STRING => ['100', '1e2', "\u{2010}", "\u{2011}"],
         ] as $sortFlags => $expected) {
             yield [
-                $defaultElement,
+                $defaultValue,
                 $elements,
                 function (self $that) use ($sortFlags): int {
                     return $sortFlags;
@@ -773,15 +773,15 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             };
         }
 
-        yield [$defaultElement, $elements, $sortFlagsClosure, ['100', '1e2', "\u{2010}"]];
+        yield [$defaultValue, $elements, $sortFlagsClosure, ['100', '1e2', "\u{2010}"]];
     }
 
     /**
      * @dataProvider uniqueProvider
      */
-    public function testUnique(string $defaultElement, array $elements, \Closure $sortFlagsClosure, array $expected): void
+    public function testUnique(string $defaultValue, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
-        $arrayProxy = new ArrayProxy($defaultElement, ...$elements);
+        $arrayProxy = new ArrayProxy($defaultValue, ...$elements);
         self::assertSame($expected, \iterator_to_array($arrayProxy->unique($sortFlagsClosure($this))));
         self::assertSame($elements, $arrayProxy->exportArray());
     }
@@ -906,15 +906,15 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         foreach ([
             ['cd', [1, 6, 3], null, ['cd', 'cd', 'cd', 'cd', 'cd', 'cd', 'cd']],
             ['cd', [1, 6, 3], 'ab', ['cd', 'ab', 'cd', 'ab', 'cd', 'cd', 'ab']],
-        ] as [$defaultElement, $keys, $value, $expected]) {
-            yield [$defaultElement, $keys, $value, $expected];
+        ] as [$defaultValue, $keys, $value, $expected]) {
+            yield [$defaultValue, $keys, $value, $expected];
         }
     }
 
     /**
      * @dataProvider fillKeysProvider
      */
-    public function testFillKeys(string $defaultElement, iterable $keys, ?string $value, array $expected): void
+    public function testFillKeys(string $defaultValue, iterable $keys, ?string $value, array $expected): void
     {
         $arrayProxy = self::instantiate()::fillKeys('cd', [1, 6, 3], null);
         self::assertSame(['cd', 'cd', 'cd', 'cd', 'cd', 'cd', 'cd'], $arrayProxy->exportArray());

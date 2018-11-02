@@ -230,9 +230,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider invalidLengthProvider
      * @expectedException \DomainException
      */
-    public function testSetInvalidLength(string $impl, string $defaultElement, string $invalidElement): void
+    public function testSetInvalidLength(string $impl, string $defaultValue, string $invalidElement): void
     {
-        $bytemap = self::instantiate($impl, $defaultElement);
+        $bytemap = self::instantiate($impl, $defaultValue);
         $bytemap[] = $invalidElement;
     }
 
@@ -377,8 +377,8 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertCount($size + 1, $bytemap);
         unset($bytemap[$size + 1]);
 
-        self::assertDefaultElement($elements[0], $clone, $elements[1]);
-        self::assertDefaultElement($elements[0], $bytemap, $elements[2]);
+        self::assertDefaultValue($elements[0], $clone, $elements[1]);
+        self::assertDefaultValue($elements[0], $bytemap, $elements[2]);
     }
 
     /**
@@ -564,8 +564,8 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         $copy = \unserialize(\serialize($bytemap), ['allowed_classes' => [$impl]]);
         self::assertNotSame($bytemap, $copy);
         self::assertSequence($sequence, $copy);
-        self::assertDefaultElement($elements[0], $copy, $elements[1]);
-        self::assertDefaultElement($elements[0], $bytemap, $elements[2]);
+        self::assertDefaultValue($elements[0], $copy, $elements[1]);
+        self::assertDefaultValue($elements[0], $bytemap, $elements[2]);
     }
 
     private static function assertNativeJson($expected, $actual): void

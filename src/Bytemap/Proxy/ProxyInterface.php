@@ -20,13 +20,13 @@ interface ProxyInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \
     /**
      * Instantiates a bytemap and a proxy to it.
      *
-     * @param string   $defaultElement the default element of the underyling bytemap that is to be
-     *                                 constructed
-     * @param iterable $elements       the elements that are to be inserted into the bytemap
+     * @param string   $defaultValue the default value of the underyling bytemap that is to be
+     *                               constructed
+     * @param iterable $elements     the elements that are to be inserted into the bytemap
      *
      * @return self a proxy to a bytemap that has been constructed based on the arguments
      */
-    public static function import(string $defaultElement, iterable $elements);
+    public static function import(string $defaultValue, iterable $elements);
 
     /**
      * Returns the bytemap the proxy has been acting for.

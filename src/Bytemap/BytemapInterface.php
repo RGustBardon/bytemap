@@ -119,8 +119,8 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * The keys must be natural numbers.
      * The decoded values must be strings of the same length.
      *
-     * @param resource $jsonStream     a stream with JSON data
-     * @param string   $defaultElement the default element of the resulting bytemap
+     * @param resource $jsonStream   a stream with JSON data
+     * @param string   $defaultValue the default value of the resulting bytemap
      *
      * @throws \TypeError                if `$jsonStream` is not an open resource
      * @throws \InvalidArgumentException if `$jsonStream` is an open resource that is not a stream
@@ -135,5 +135,5 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *
      * @return self a bytemap corresponding to the JSON data
      */
-    public static function parseJsonStream($jsonStream, $defaultElement): self;
+    public static function parseJsonStream($jsonStream, $defaultValue): self;
 }

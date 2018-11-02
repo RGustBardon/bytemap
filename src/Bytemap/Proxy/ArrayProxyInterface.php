@@ -41,13 +41,13 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * Instantiates a bytemap and a proxy to it.
      *
-     * @param string   $defaultElement the default element of the underyling bytemap that is to be
-     *                                 constructed
-     * @param iterable $elements       the elements that are to be inserted into the bytemap
+     * @param string   $defaultValue the default value of the underyling bytemap that is to be
+     *                               constructed
+     * @param iterable $elements     the elements that are to be inserted into the bytemap
      *
      * @return self a proxy to a bytemap that has been constructed based on the arguments
      */
-    public static function import(string $defaultElement, iterable $elements): self;
+    public static function import(string $defaultValue, iterable $elements): self;
 
     // Array API
 
@@ -416,42 +416,42 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_combine` (creates a bytemap by using one iterable for keys and another for its values).
      *
-     * @param string   $defaultElement the default element of the underlying bytemap
-     * @param iterable $keys           keys to be used.
-     *                                 They need not be consecutive. All the missing keys between 0
-     *                                 and the maximum key will be assigned the default value.
-     * @param iterable $values         values to be used
+     * @param string   $defaultValue the default value of the underlying bytemap
+     * @param iterable $keys         keys to be used.
+     *                               They need not be consecutive. All the missing keys between 0
+     *                               and the maximum key will be assigned the default value.
+     * @param iterable $values       values to be used
      *
      * @throws \UnderflowException if `$keys` and `$values` do not contain the same number of
      *                             elements
      *
      * @return self the combined bytemap
      */
-    public static function combine(string $defaultElement, iterable $keys, iterable $values): self;
+    public static function combine(string $defaultValue, iterable $keys, iterable $values): self;
 
     /**
      * `\array_fill` (fills a bytemap with values).
      *
-     * @param string      $defaultElement the default element of the underlying bytemap
-     * @param int         $startIndex     the first index of the value used for filling
-     * @param int         $num            number of elements to insert
-     * @param null|string $value          value to use for filling.
-     *                                    `null` means that the default element will be used
+     * @param string      $defaultValue the default value of the underlying bytemap
+     * @param int         $startIndex   the first index of the value used for filling
+     * @param int         $num          number of elements to insert
+     * @param null|string $value        value to use for filling.
+     *                                  `null` means that the default value will be used
      *
      * @throws \OutOfRangeException if `$startIndex` is negative
      * @throws \OutOfRangeException if `$num` is negative
      */
-    public static function fill(string $defaultElement, int $startIndex, int $num, ?string $value = null): self;
+    public static function fill(string $defaultValue, int $startIndex, int $num, ?string $value = null): self;
 
     /**
      * `\array_fill_keys` (fills a bytemap with values, specifying keys).
      *
-     * @param string      $defaultElement the default element of the underlying bytemap
-     * @param iterable    $keys           values that will be used as keys
-     * @param null|string $value          value to use for filling
-     *                                    `null` means that the default element will be used
+     * @param string      $defaultValue the default value of the underlying bytemap
+     * @param iterable    $keys         values that will be used as keys
+     * @param null|string $value        value to use for filling
+     *                                  `null` means that the default value will be used
      */
-    public static function fillKeys(string $defaultElement, iterable $keys, ?string $value = null): self;
+    public static function fillKeys(string $defaultValue, iterable $keys, ?string $value = null): self;
 
     // PCRE API
 

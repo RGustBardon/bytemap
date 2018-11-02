@@ -35,7 +35,7 @@ final class ArrayBytemap extends AbstractBytemap
     public function offsetGet($index): string
     {
         if (\is_int($index) && $index >= 0 && $index < $this->elementCount) {
-            return $this->map[$index] ?? $this->defaultElement;
+            return $this->map[$index] ?? $this->defaultValue;
         }
 
         self::throwOnOffsetGet($index);
@@ -66,10 +66,10 @@ final class ArrayBytemap extends AbstractBytemap
             } else {
                 $this->fillAndSort();
                 \array_splice($this->map, $index, 1);
-                $this->map = \array_diff($this->map, [$this->defaultElement]);
+                $this->map = \array_diff($this->map, [$this->defaultValue]);
                 --$this->elementCount;
                 if (!isset($this->map[$this->elementCount - 1])) {
-                    $this->map[$this->elementCount - 1] = $this->defaultElement;
+                    $this->map[$this->elementCount - 1] = $this->defaultValue;
                 }
             }
         }
@@ -79,8 +79,8 @@ final class ArrayBytemap extends AbstractBytemap
     public function getIterator(): \Traversable
     {
         return (static function (self $bytemap): \Generator {
-            for ($i = 0, $elementCount = $bytemap->elementCount, $defaultElement = $bytemap->defaultElement; $i < $elementCount; ++$i) {
-                yield $i => $bytemap->map[$i] ?? $defaultElement;
+            for ($i = 0, $elementCount = $bytemap->elementCount, $defaultValue = $bytemap->defaultValue; $i < $elementCount; ++$i) {
+                yield $i => $bytemap->map[$i] ?? $defaultValue;
             }
         })(clone $this);
     }
@@ -89,8 +89,8 @@ final class ArrayBytemap extends AbstractBytemap
     public function jsonSerialize(): array
     {
         $completeMap = [];
-        for ($i = 0, $elementCount = $this->elementCount, $defaultElement = $this->defaultElement; $i < $elementCount; ++$i) {
-            $completeMap[$i] = $this->map[$i] ?? $defaultElement;
+        for ($i = 0, $elementCount = $this->elementCount, $defaultValue = $this->defaultValue; $i < $elementCount; ++$i) {
+            $completeMap[$i] = $this->map[$i] ?? $defaultValue;
         }
 
         return $completeMap;
@@ -104,7 +104,7 @@ final class ArrayBytemap extends AbstractBytemap
 
             // Resize the bytemap if the positive first element index is greater than the element count.
             if ($firstIndex > $this->elementCount) {
-                $this[$firstIndex - 1] = $this->defaultElement;
+                $this[$firstIndex - 1] = $this->defaultValue;
             }
 
             // Append the elements.
@@ -141,7 +141,7 @@ final class ArrayBytemap extends AbstractBytemap
             if (-$originalFirstIndex > $this->elementCount) {
                 $overflow = -$originalFirstIndex - $this->elementCount - ($insertedElementCount > 0 ? 0 : 1);
                 if ($overflow > 0) {
-                    \array_splice($this->map, $insertedElementCount, 0, \array_fill(0, $overflow, $this->defaultElement));
+                    \array_splice($this->map, $insertedElementCount, 0, \array_fill(0, $overflow, $this->defaultValue));
                     $this->elementCount += $overflow;
                 }
             }
@@ -152,25 +152,25 @@ final class ArrayBytemap extends AbstractBytemap
     {
         self::ensureStream($stream);
 
-        $defaultElement = $this->defaultElement;
+        $defaultValue = $this->defaultValue;
 
         $buffer = '[';
         for ($i = 0, $penultimate = $this->elementCount - 1; $i < $penultimate; ++$i) {
-            $buffer .= \json_encode($this->map[$i] ?? $defaultElement).',';
+            $buffer .= \json_encode($this->map[$i] ?? $defaultValue).',';
             if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
                 self::stream($stream, $buffer);
                 $buffer = '';
             }
         }
-        $buffer .= ($this->elementCount > 0 ? \json_encode($this->map[$i] ?? $defaultElement) : '').']';
+        $buffer .= ($this->elementCount > 0 ? \json_encode($this->map[$i] ?? $defaultValue) : '').']';
         self::stream($stream, $buffer);
     }
 
-    public static function parseJsonStream($jsonStream, $defaultElement): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultValue): BytemapInterface
     {
         self::ensureStream($jsonStream);
 
-        $bytemap = new self($defaultElement);
+        $bytemap = new self($defaultValue);
         if (self::hasStreamingParser()) {
             $listener = new BytemapListener(static function (string $value, ?int $key) use ($bytemap) {
                 if (null === $key) {
@@ -182,7 +182,7 @@ final class ArrayBytemap extends AbstractBytemap
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $bytemap->map = self::parseJsonStreamNatively($jsonStream);
-            self::validateMapAndGetMaxKey($bytemap->map, $defaultElement);
+            self::validateMapAndGetMaxKey($bytemap->map, $defaultValue);
             $bytemap->deriveProperties();
         }
 
@@ -206,10 +206,10 @@ final class ArrayBytemap extends AbstractBytemap
         } else {
             $this->fillAndSort();
             \array_splice($this->map, $firstIndex, $howMany);
-            $this->map = \array_diff($this->map, [$this->defaultElement]);
+            $this->map = \array_diff($this->map, [$this->defaultValue]);
             $this->elementCount -= $howMany;
             if (!isset($this->map[$this->elementCount - 1])) {
-                $this->map[$this->elementCount - 1] = $this->defaultElement;
+                $this->map[$this->elementCount - 1] = $this->defaultValue;
             }
         }
     }
@@ -227,12 +227,12 @@ final class ArrayBytemap extends AbstractBytemap
         int $howManyToReturn,
         int $howManyToSkip
         ): \Generator {
-        $defaultElement = $this->defaultElement;
+        $defaultValue = $this->defaultValue;
         $map = $this->map;
         if ($howManyToReturn > 0) {
             if ($whitelist) {
                 for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
-                    if (isset($elements[$element = $map[$i] ?? $defaultElement])) {
+                    if (isset($elements[$element = $map[$i] ?? $defaultValue])) {
                         yield $i => $element;
                         if (0 === --$howManyToReturn) {
                             return;
@@ -241,7 +241,7 @@ final class ArrayBytemap extends AbstractBytemap
                 }
             } else {
                 for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
-                    if (!isset($elements[$element = $map[$i] ?? $defaultElement])) {
+                    if (!isset($elements[$element = $map[$i] ?? $defaultValue])) {
                         yield $i => $element;
                         if (0 === --$howManyToReturn) {
                             return;
@@ -251,7 +251,7 @@ final class ArrayBytemap extends AbstractBytemap
             }
         } elseif ($whitelist) {
             for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (isset($elements[$element = $map[$i] ?? $defaultElement])) {
+                if (isset($elements[$element = $map[$i] ?? $defaultValue])) {
                     yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
@@ -260,7 +260,7 @@ final class ArrayBytemap extends AbstractBytemap
             }
         } else {
             for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!isset($elements[$element = $map[$i] ?? $defaultElement])) {
+                if (!isset($elements[$element = $map[$i] ?? $defaultValue])) {
                     yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
@@ -282,11 +282,11 @@ final class ArrayBytemap extends AbstractBytemap
         $lookupSize = 0;
         $match = null;
 
-        $defaultElement = $this->defaultElement;
+        $defaultValue = $this->defaultValue;
         $map = $this->map;
         if ($howManyToReturn > 0) {
             for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
-                if (!($whitelist xor $lookup[$element = $map[$i] ?? $defaultElement] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                if (!($whitelist xor $lookup[$element = $map[$i] ?? $defaultValue] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
                     yield $i => $element;
                     if (0 === --$howManyToReturn) {
                         return;
@@ -304,7 +304,7 @@ final class ArrayBytemap extends AbstractBytemap
             }
         } else {
             for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!($whitelist xor $lookup[$element = $map[$i] ?? $defaultElement] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                if (!($whitelist xor $lookup[$element = $map[$i] ?? $defaultValue] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
                     yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
@@ -331,7 +331,7 @@ final class ArrayBytemap extends AbstractBytemap
             throw new \TypeError(self::EXCEPTION_PREFIX.$reason);
         }
 
-        $bytesPerElement = \strlen($this->defaultElement);
+        $bytesPerElement = \strlen($this->defaultValue);
         foreach ($this->map as $index => $element) {
             if (!\is_int($index)) {
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (index must be of type int, '.\gettype($index).' given)');
@@ -353,7 +353,7 @@ final class ArrayBytemap extends AbstractBytemap
     protected function fillAndSort(): void
     {
         if (\count($this->map) !== $this->elementCount) {
-            $this->map += \array_fill(0, $this->elementCount, $this->defaultElement);
+            $this->map += \array_fill(0, $this->elementCount, $this->defaultValue);
         }
         \ksort($this->map, \SORT_NUMERIC);
     }

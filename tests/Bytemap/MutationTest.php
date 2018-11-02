@@ -69,8 +69,8 @@ final class MutationTest extends AbstractTestOfBytemap
 
     public static function invalidLengthProvider(): \Generator
     {
-        foreach (parent::invalidLengthProvider() as [$impl, $defaultElement, $invalidElement]) {
-            yield from self::invalidElementGenerator($impl, \array_fill(0, 6, $defaultElement), $invalidElement);
+        foreach (parent::invalidLengthProvider() as [$impl, $defaultValue, $invalidElement]) {
+            yield from self::invalidElementGenerator($impl, \array_fill(0, 6, $defaultValue), $invalidElement);
         }
     }
 

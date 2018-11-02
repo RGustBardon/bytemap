@@ -59,10 +59,10 @@ final class DsBytemap extends AbstractBytemap
                 $this->map[] = $element;
                 ++$this->elementCount;
             } else {
-                // Case 3. Append to a gap after the last element. Fill the gap with default elements.
+                // Case 3. Append to a gap after the last element. Fill the gap with default values.
                 $this->map->allocate($this->elementCount + $unassignedCount + 1);
                 for ($i = 0; $i < $unassignedCount; ++$i) {
-                    $this->map[] = $this->defaultElement;
+                    $this->map[] = $this->defaultValue;
                 }
                 $this->map[] = $element;
                 $this->elementCount += $unassignedCount + 1;
@@ -99,7 +99,7 @@ final class DsBytemap extends AbstractBytemap
 
         // Resize the bytemap if the positive first element index is greater than the element count.
         if ($firstIndex > $this->elementCount) {
-            $this[$firstIndex - 1] = $this->defaultElement;
+            $this[$firstIndex - 1] = $this->defaultValue;
         }
 
         // Allocate the memory.
@@ -141,7 +141,7 @@ final class DsBytemap extends AbstractBytemap
                 if ($overflow > 0) {
                     $this->map->insert($insertedElementCount, ...(function () use ($overflow): \Generator {
                         do {
-                            yield $this->defaultElement;
+                            yield $this->defaultValue;
                         } while (--$overflow > 0);
                     })());
                 }
@@ -154,7 +154,7 @@ final class DsBytemap extends AbstractBytemap
     {
         self::ensureStream($stream);
 
-        $defaultElement = $this->defaultElement;
+        $defaultValue = $this->defaultValue;
 
         $buffer = '[';
         for ($i = 0, $penultimate = $this->elementCount - 1; $i < $penultimate; ++$i) {
@@ -164,15 +164,15 @@ final class DsBytemap extends AbstractBytemap
                 $buffer = '';
             }
         }
-        $buffer .= ($this->elementCount > 0 ? \json_encode($this->map[$i] ?? $defaultElement) : '').']';
+        $buffer .= ($this->elementCount > 0 ? \json_encode($this->map[$i] ?? $defaultValue) : '').']';
         self::stream($stream, $buffer);
     }
 
-    public static function parseJsonStream($jsonStream, $defaultElement): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultValue): BytemapInterface
     {
         self::ensureStream($jsonStream);
 
-        $bytemap = new self($defaultElement);
+        $bytemap = new self($defaultValue);
         if (self::hasStreamingParser()) {
             $maxKey = -1;
             $listener = new BytemapListener(function (string $value, ?int $key) use ($bytemap, &$maxKey) {
@@ -186,7 +186,7 @@ final class DsBytemap extends AbstractBytemap
                         if ($unassignedCount > 0) {
                             $bytemap->map->allocate($maxKey + 1);
                             for ($i = 0; $i < $unassignedCount; ++$i) {
-                                $bytemap[] = $bytemap->defaultElement;
+                                $bytemap[] = $bytemap->defaultValue;
                             }
                         }
                         $bytemap[] = $value;
@@ -197,7 +197,7 @@ final class DsBytemap extends AbstractBytemap
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
-            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultElement);
+            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultValue);
             $size = \count($map);
             if ($size > 0) {
                 $bytemap->map->allocate($maxKey + 1);
@@ -210,7 +210,7 @@ final class DsBytemap extends AbstractBytemap
                     $lastIndex = -1;
                     foreach ($map as $key => $value) {
                         for ($i = $lastIndex + 1; $i < $key; ++$i) {
-                            $bytemap[$i] = $defaultElement;
+                            $bytemap[$i] = $defaultValue;
                         }
                         $bytemap[$lastIndex = $key] = $value;
                     }
@@ -355,7 +355,7 @@ final class DsBytemap extends AbstractBytemap
             throw new \TypeError(self::EXCEPTION_PREFIX.$reason);
         }
 
-        $bytesPerElement = \strlen($this->defaultElement);
+        $bytesPerElement = \strlen($this->defaultValue);
         foreach ($this->map as $element) {
             if (!\is_string($element)) {
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($element).' given)');
