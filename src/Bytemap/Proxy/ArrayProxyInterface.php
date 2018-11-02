@@ -34,29 +34,29 @@ interface ArrayProxyInterface extends ProxyInterface
      * Returns an array corresponding to the underyling bytemap.
      *
      * @return string[] an array whose keys are the indicies of a bytemap and whose values are
-     *                  their corresponding items
+     *                  their corresponding elements
      */
     public function exportArray(): array;
 
     /**
      * Instantiates a bytemap and a proxy to it.
      *
-     * @param string   $defaultItem the default item of the underyling bytemap that is to be
-     *                              constructed
-     * @param iterable $items       the items that are to be inserted into the bytemap
+     * @param string   $defaultElement the default element of the underyling bytemap that is to be
+     *                                 constructed
+     * @param iterable $elements       the elements that are to be inserted into the bytemap
      *
      * @return self a proxy to a bytemap that has been constructed based on the arguments
      */
-    public static function import(string $defaultItem, iterable $items): self;
+    public static function import(string $defaultElement, iterable $elements): self;
 
     // Array API
 
     /**
      * `\array_chunk` (split the bytemap into chunks).
      *
-     * @param int  $size         the number of items in each chunk
+     * @param int  $size         the number of elements in each chunk
      * @param bool $preserveKeys `true` if the indices in the array of generated values should
-     *                           correspond to the indices of bytemap items, `false` otherwise
+     *                           correspond to the indices of bytemap elements, `false` otherwise
      *
      * @throws \OutOfRangeException if the size parameter is not positive
      *
@@ -66,43 +66,43 @@ interface ArrayProxyInterface extends ProxyInterface
     public function chunk(int $size, bool $preserveKeys = false): \Generator;
 
     /**
-     * `\array_count_values` (counts the frequency of each item of the bytemap).
+     * `\array_count_values` (counts the frequency of each element of the bytemap).
      *
-     * @return int[] an array whose keys are the items of the bytemap and whose values are the
-     *               number of times each item appears in the bytemap
+     * @return int[] an array whose keys are the elements of the bytemap and whose values are the
+     *               number of times each element appears in the bytemap
      */
     public function countValues(): array;
 
     /**
-     * `\array_diff` (generates the items which are missing from all of the iterables).
+     * `\array_diff` (generates the elements which are missing from all of the iterables).
      *
-     * @param iterable ...$iterables iterables of items that must not appear in the result
+     * @param iterable ...$iterables iterables of elements that must not appear in the result
      *
-     * @return \Generator a generator whose values are the items that are found in the bytemap
+     * @return \Generator a generator whose values are the elements that are found in the bytemap
      *                    but not in any of the iterables and whose keys are the indices of those
-     *                    items
+     *                    elements
      */
     public function diff(iterable ...$iterables): \Generator;
 
     /**
-     * `\array_filter` (filters the items of the bytemap using a callback).
+     * `\array_filter` (filters the elements of the bytemap using a callback).
      *
-     * @param null|callable $callback `null` if only the items other than `'0'` are to preserved,
-     *                                a callback to determine which items are to be preserved
-     *                                otherwise (if the callback returns `true`, the item is going
+     * @param null|callable $callback `null` if only the elements other than `'0'` are to preserved,
+     *                                a callback to determine which elements are to be preserved
+     *                                otherwise (if the callback returns `true`, the element is going
      *                                to be preserved)
-     * @param int           $flag     `0` if only the item is to be passed to the callback,
+     * @param int           $flag     `0` if only the element is to be passed to the callback,
      *                                `\ARRAY_FILTER_USE_KEY` if only the index is to be passed to
-     *                                the callback, `\ARRAY_FILTER_USE_BOTH` if both the item and
+     *                                the callback, `\ARRAY_FILTER_USE_BOTH` if both the element and
      *                                the index are to be passed to the callback (in that order)
      *
-     * @return \Generator a generator whose values are the items that pass the filter and whose
+     * @return \Generator a generator whose values are the elements that pass the filter and whose
      *                    keys are their corresponding indices
      */
     public function filter(?callable $callback = null, int $flag = 0): \Generator;
 
     /**
-     * `\in_array` (checks if an item exists in the bytemap).
+     * `\in_array` (checks if an element exists in the bytemap).
      *
      * @param string $needle the value to look for
      *
@@ -122,7 +122,7 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_key_first` (returns the first index of the bytemap).
      *
-     * @throws \UnderflowException if the bytemap contains no items
+     * @throws \UnderflowException if the bytemap contains no elements
      *
      * @return int `0`
      */
@@ -131,7 +131,7 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_key_last` (returns the last index of the bytemap).
      *
-     * @throws \UnderflowException if the bytemap contains no items
+     * @throws \UnderflowException if the bytemap contains no elements
      *
      * @return int the last index
      */
@@ -140,20 +140,20 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_keys` (returns either all the indices of the bytemap or their subset).
      *
-     * @param null|string $searchValue the item to look for.
+     * @param null|string $searchValue the element to look for.
      *                                 `null` if all the indices are to be returned
      *
      * @return \Generator if a search value has been specified, only the indices whose
-     *                    items are stricly equal to that value are generated (sorted ascending),
+     *                    elements are stricly equal to that value are generated (sorted ascending),
      *                    otherwise all the indices are generated (sorted ascending)
      */
     public function keys(?string $searchValue = null): \Generator;
 
     /**
-     * `\array_map` (generates the result of applying a callback to each item of the bytemap).
+     * `\array_map` (generates the result of applying a callback to each element of the bytemap).
      *
-     * @param null|callable $callback     `null` if the items are to be generated without any
-     *                                    modification, a callback to be applied to the item
+     * @param null|callable $callback     `null` if the elements are to be generated without any
+     *                                    modification, a callback to be applied to the element
      *                                    and the corresponding arguments otherwise
      * @param iterable      ...$arguments optional arguments that are iterated synchronously
      *                                    with the bytemap and whose corresponding values are
@@ -162,7 +162,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * @throws \InvalidArgumentException if any of the provided iterables is neither an array,
      *                                   nor an `\Iterator`, nor an `\IteratorAggregate`
      *
-     * @return \Generator a generator whose values are either the items of the bytemap (if no
+     * @return \Generator a generator whose values are either the elements of the bytemap (if no
      *                    optional arguments are passed and the callback is `null`), or arrays
      *                    with the values obtained during each iteration (if optional arguments
      *                    are passed and the callback is `null`), or the results of applying
@@ -171,12 +171,12 @@ interface ArrayProxyInterface extends ProxyInterface
     public function map(?callable $callback, iterable ...$arguments): \Generator;
 
     /**
-     * `\array_merge` (generates the items of the bytemap followed by the values of iterables).
+     * `\array_merge` (generates the elements of the bytemap followed by the values of iterables).
      *
-     * @param iterable ...$iterables iterables whose values will be generated after the items
+     * @param iterable ...$iterables iterables whose values will be generated after the elements
      *                               of the bytemap
      *
-     * @return \Generator consecutive items of the bytemap followed by the values found in
+     * @return \Generator consecutive elements of the bytemap followed by the values found in
      *                    the iterables
      */
     public function merge(iterable ...$iterables): \Generator;
@@ -200,36 +200,36 @@ interface ArrayProxyInterface extends ProxyInterface
     public function natSort(): void;
 
     /**
-     * `\array_pad` (generates a certain value repeatedly and all the items of the bytemap).
+     * `\array_pad` (generates a certain value repeatedly and all the elements of the bytemap).
      *
      * @param int    $size  the number of values to generate (if positive, additional values will
-     *                      be generated after the items of the bytemap, otherwise they will come
-     *                      first; if the absolute value is less than the current number of items
-     *                      in the bytemap, all of the items of the bytemap will be generated
+     *                      be generated after the elements of the bytemap, otherwise they will come
+     *                      first; if the absolute value is less than the current number of elements
+     *                      in the bytemap, all of the elements of the bytemap will be generated
      *                      nonetheless)
-     * @param string $value the value to repeatedly generate in addition to all the items of the
+     * @param string $value the value to repeatedly generate in addition to all the elements of the
      *                      bytemap
      *
-     * @return \Generator the items of the bytemap, all of which, as a sequence, are either
+     * @return \Generator the elements of the bytemap, all of which, as a sequence, are either
      *                    preceded or followed by a repeated string
      */
     public function pad(int $size, string $value): \Generator;
 
     /**
-     * `\array_pop` (pops an item off the end of the bytemap).
+     * `\array_pop` (pops an element off the end of the bytemap).
      *
-     * @throws \UnderflowException if the bytemap contains no items
+     * @throws \UnderflowException if the bytemap contains no elements
      *
-     * @return string the removed item
+     * @return string the removed element
      */
     public function pop(): string;
 
     /**
-     * `\array_push` (pushes one or more items onto the end of the bytemap).
+     * `\array_push` (pushes one or more elements onto the end of the bytemap).
      *
-     * @param string ...$values The items to be pushed.
+     * @param string ...$values The elements to be pushed.
      *
-     * @return int the new number of the items in the bytemap
+     * @return int the new number of the elements in the bytemap
      */
     public function push(string ...$values): int;
 
@@ -238,8 +238,8 @@ interface ArrayProxyInterface extends ProxyInterface
      *
      * @param int $num the number of indices to pick
      *
-     * @throws \UnderflowException  if the bytemap contains no items
-     * @throws \OutOfRangeException if `$num` is less than 1 or greater than the number of items
+     * @throws \UnderflowException  if the bytemap contains no elements
+     * @throws \OutOfRangeException if `$num` is less than 1 or greater than the number of elements
      *                              in the bytemap
      *
      * @return int|int[] a single index if `$num` is equal to 1, an array of random indices
@@ -267,12 +267,12 @@ interface ArrayProxyInterface extends ProxyInterface
     public function replace(iterable ...$iterables): self;
 
     /**
-     * `\array_reverse` (generates the items in reverse order).
+     * `\array_reverse` (generates the elements in reverse order).
      *
      * @param bool $preserveKeys `true` if the indices are to be preserved,
      *                           `false` otherwise
      *
-     * @return \Generator a generator whose values are the items of the bytemap in the reverse
+     * @return \Generator a generator whose values are the elements of the bytemap in the reverse
      *                    order and whose keys are either the corresponding indices or
      *                    a sequence of consecutive natural numbers starting from 0
      */
@@ -297,14 +297,14 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_shift` (shifts an element off the beginning of the bytemap).
      *
-     * @throws \UnderflowException if the bytemap contains no items
+     * @throws \UnderflowException if the bytemap contains no elements
      *
-     * @return string the removed item
+     * @return string the removed element
      */
     public function shift(): string;
 
     /**
-     * `\shuffle` (randomizes the orders of bytemap items).
+     * `\shuffle` (randomizes the orders of bytemap elements).
      *
      * Uses a pseudorandom number generator (`\mt_rand`).
      */
@@ -313,7 +313,7 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\sizeof` (an alias of `\count`).
      *
-     * @return int the number of items in the bytemap
+     * @return int the number of elements in the bytemap
      */
     public function sizeOf(): int;
 
@@ -370,20 +370,20 @@ interface ArrayProxyInterface extends ProxyInterface
     public function unique(int $sortFlags = \SORT_STRING): \Generator;
 
     /**
-     * `\array_unshift` (prepends items to the beginning of the bytemap).
+     * `\array_unshift` (prepends elements to the beginning of the bytemap).
      *
-     * @param string ...$values the items to prepend
+     * @param string ...$values the elements to prepend
      *
-     * @return int the new number of items in the bytemap
+     * @return int the new number of elements in the bytemap
      */
     public function unshift(string ...$values): int;
 
     /**
-     * `\usort` (sorts the bytemap by comparing items using a user-defined function).
+     * `\usort` (sorts the bytemap by comparing elements using a user-defined function).
      *
      * Sorting is not stable.
      *
-     * @param callable $valueCompareFunc a function whose parameters are two strings (the items
+     * @param callable $valueCompareFunc a function whose parameters are two strings (the elements
      *                                   being compared) and whose return value will be cast to
      *                                   an integer and interpreted as follows: negative integers
      *                                   indicate that the first element should appear before the
@@ -394,12 +394,12 @@ interface ArrayProxyInterface extends ProxyInterface
     public function uSort(callable $valueCompareFunc): void;
 
     /**
-     * `\array_values` (generates all the items of the bytemap).
+     * `\array_values` (generates all the elements of the bytemap).
      *
      * Using this generator is equivalent to iterating over the bytemap directly.
      *
-     * @return \Generator A generator whose values are bytemap items and whose keys are the indices
-     *                    of those items. Keys are generated in the ascending order.
+     * @return \Generator A generator whose values are bytemap elements and whose keys are the indices
+     *                    of those elements. Keys are generated in the ascending order.
      */
     public function values(): \Generator;
 
@@ -416,42 +416,42 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_combine` (creates a bytemap by using one iterable for keys and another for its values).
      *
-     * @param string   $defaultItem the default item of the underlying bytemap
-     * @param iterable $keys        keys to be used.
-     *                              They need not be consecutive. All the missing keys between 0
-     *                              and the maximum key will be assigned the default value.
-     * @param iterable $values      values to be used
+     * @param string   $defaultElement the default element of the underlying bytemap
+     * @param iterable $keys           keys to be used.
+     *                                 They need not be consecutive. All the missing keys between 0
+     *                                 and the maximum key will be assigned the default value.
+     * @param iterable $values         values to be used
      *
      * @throws \UnderflowException if `$keys` and `$values` do not contain the same number of
      *                             elements
      *
      * @return self the combined bytemap
      */
-    public static function combine(string $defaultItem, iterable $keys, iterable $values): self;
+    public static function combine(string $defaultElement, iterable $keys, iterable $values): self;
 
     /**
      * `\array_fill` (fills a bytemap with values).
      *
-     * @param string      $defaultItem the default item of the underlying bytemap
-     * @param int         $startIndex  the first index of the value used for filling
-     * @param int         $num         number of elements to insert
-     * @param null|string $value       value to use for filling.
-     *                                 `null` means that the default item will be used
+     * @param string      $defaultElement the default element of the underlying bytemap
+     * @param int         $startIndex     the first index of the value used for filling
+     * @param int         $num            number of elements to insert
+     * @param null|string $value          value to use for filling.
+     *                                    `null` means that the default element will be used
      *
      * @throws \OutOfRangeException if `$startIndex` is negative
      * @throws \OutOfRangeException if `$num` is negative
      */
-    public static function fill(string $defaultItem, int $startIndex, int $num, ?string $value = null): self;
+    public static function fill(string $defaultElement, int $startIndex, int $num, ?string $value = null): self;
 
     /**
      * `\array_fill_keys` (fills a bytemap with values, specifying keys).
      *
-     * @param string      $defaultItem the default item of the underlying bytemap
-     * @param iterable    $keys        values that will be used as keys
-     * @param null|string $value       value to use for filling
-     *                                 `null` means that the default item will be used
+     * @param string      $defaultElement the default element of the underlying bytemap
+     * @param iterable    $keys           values that will be used as keys
+     * @param null|string $value          value to use for filling
+     *                                    `null` means that the default element will be used
      */
-    public static function fillKeys(string $defaultItem, iterable $keys, ?string $value = null): self;
+    public static function fillKeys(string $defaultElement, iterable $keys, ?string $value = null): self;
 
     // PCRE API
 
@@ -468,13 +468,13 @@ interface ArrayProxyInterface extends ProxyInterface
     public function pregFilter($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator;
 
     /**
-     * `\preg_grep` (returns bytemap items that match the pattern).
+     * `\preg_grep` (returns bytemap elements that match the pattern).
      *
      * @param string $pattern the pattern to search for
-     * @param int    $flags   if set to `PREG_GREP_INVERT`, returns the items that do NOT match
+     * @param int    $flags   if set to `PREG_GREP_INVERT`, returns the elements that do NOT match
      *                        the given pattern
      *
-     * @return \Generator the items indexed using the indices from the bytemap
+     * @return \Generator the elements indexed using the indices from the bytemap
      */
     public function pregGrep(string $pattern, int $flags = 0): \Generator;
 
@@ -516,22 +516,22 @@ interface ArrayProxyInterface extends ProxyInterface
     // String API
 
     /**
-     * `\implode` (joins bytemap items with a string).
+     * `\implode` (joins bytemap elements with a string).
      *
-     * @param string $glue a string that is to be inserted between the items
+     * @param string $glue a string that is to be inserted between the elements
      *
-     * @return string a representation of all the bytemap items in the same order,
-     *                with the glue string between each item
+     * @return string a representation of all the bytemap elements in the same order,
+     *                with the glue string between each element
      */
     public function implode(string $glue): string;
 
     /**
-     * `\join` (an alias of `\implode`, joins bytemap items with a string).
+     * `\join` (an alias of `\implode`, joins bytemap elements with a string).
      *
-     * @param string $glue a string that is to be inserted between the items
+     * @param string $glue a string that is to be inserted between the elements
      *
-     * @return string a representation of all the bytemap items in the same order,
-     *                with the glue string between each item
+     * @return string a representation of all the bytemap elements in the same order,
+     *                with the glue string between each element
      */
     public function join(string $glue): string;
 }

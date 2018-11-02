@@ -119,10 +119,10 @@ final class JsonStreamTest extends AbstractTestOfBytemap
 
     public static function validJsonProvider(): \Generator
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
             foreach ([0, \JSON_FORCE_OBJECT] as $jsonEncodingOptions) {
                 foreach ([false, true] as $useStreamingParser) {
-                    yield [$impl, $items, $jsonEncodingOptions, $useStreamingParser];
+                    yield [$impl, $elements, $jsonEncodingOptions, $useStreamingParser];
                 }
             }
         }
@@ -136,29 +136,29 @@ final class JsonStreamTest extends AbstractTestOfBytemap
      * @covers \Bytemap\JsonListener\BytemapListener
      * @dataProvider validJsonProvider
      */
-    public function testParsing(string $impl, array $items, int $jsonEncodingOptions, bool $useStreamingParser): void
+    public function testParsing(string $impl, array $elements, int $jsonEncodingOptions, bool $useStreamingParser): void
     {
-        $bytemap = self::instantiate($impl, $items[1]);
+        $bytemap = self::instantiate($impl, $elements[1]);
 
-        self::assertStreamParsing([], [], $jsonEncodingOptions, $bytemap, $items[0], $useStreamingParser);
+        self::assertStreamParsing([], [], $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
 
-        $sequence = [$items[1], $items[2], $items[1], $items[0], $items[0]];
-        self::assertStreamParsing($sequence, $sequence, $jsonEncodingOptions, $bytemap, $items[0], $useStreamingParser);
+        $sequence = [$elements[1], $elements[2], $elements[1], $elements[0], $elements[0]];
+        self::assertStreamParsing($sequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
 
         $expectedSequence = $sequence;
-        $expectedSequence[3] = $items[0];
+        $expectedSequence[3] = $elements[0];
         unset($sequence[3]);
-        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $items[0], $useStreamingParser);
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
 
         $sequence = \array_reverse($sequence, true);
-        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $items[0], $useStreamingParser);
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
 
-        $expectedSequence = [$items[0], $items[1], $items[2]];
-        $sequence = [1 => $items[1], 0 => $items[0], 2 => $items[2]];
-        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $items[0], $useStreamingParser);
+        $expectedSequence = [$elements[0], $elements[1], $elements[2]];
+        $sequence = [1 => $elements[1], 0 => $elements[0], 2 => $elements[2]];
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
 
-        $sequence = [1 => $items[1], 2 => $items[2]];
-        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $items[0], $useStreamingParser);
+        $sequence = [1 => $elements[1], 2 => $elements[2]];
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
     }
 
     /**
@@ -195,21 +195,21 @@ final class JsonStreamTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Bytemap::streamJson
      * @dataProvider arrayAccessProvider
      */
-    public function testStreaming(string $impl, array $items): void
+    public function testStreaming(string $impl, array $elements): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
 
         self::assertStreamWriting([], $bytemap);
 
-        $sequence = [$items[1], $items[2], $items[1]];
-        self::pushItems($bytemap, ...$sequence);
-        $bytemap[4] = $items[0];
-        \array_push($sequence, $items[0], $items[0]);
+        $sequence = [$elements[1], $elements[2], $elements[1]];
+        self::pushElements($bytemap, ...$sequence);
+        $bytemap[4] = $elements[0];
+        \array_push($sequence, $elements[0], $elements[0]);
 
         self::assertStreamWriting($sequence, $bytemap);
 
         // The size of streamed JSON data should exceed `AbstractBytemap::STREAM_BUFFER_SIZE`.
-        $bytemap = self::instantiateWithSize($impl, $items, 32 * 1024);
+        $bytemap = self::instantiateWithSize($impl, $elements, 32 * 1024);
         self::assertStreamWriting(\iterator_to_array($bytemap->getIterator()), $bytemap);
     }
 
@@ -218,7 +218,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         array $sequence,
         int $jsonEncodingOptions,
         BytemapInterface $instance,
-        $defaultItem,
+        $defaultElement,
         bool $useStreamingParser
         ): void {
         $json = \json_encode($sequence, $jsonEncodingOptions);
@@ -230,12 +230,12 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         } else {
             $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
         }
-        $bytemap = $instance::parseJsonStream($jsonStream, $defaultItem);
+        $bytemap = $instance::parseJsonStream($jsonStream, $defaultElement);
 
         self::assertSame('resource', \gettype($jsonStream));
         self::assertNotSame($instance, $bytemap);
         self::assertSequence($expectedSequence, $bytemap);
-        self::assertDefaultItem($defaultItem, $bytemap, \str_repeat("\xff", \strlen($defaultItem)));
+        self::assertDefaultElement($defaultElement, $bytemap, \str_repeat("\xff", \strlen($defaultElement)));
     }
 
     private static function getClosedStream()

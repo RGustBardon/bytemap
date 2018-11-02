@@ -53,9 +53,9 @@ abstract class AbstractProxy implements ArrayProxyInterface
         return $this->bytemap[$index];
     }
 
-    public function offsetSet($index, $item): void
+    public function offsetSet($index, $element): void
     {
-        $this->bytemap[$index] = $item;
+        $this->bytemap[$index] = $element;
     }
 
     public function offsetUnset($index): void
@@ -116,11 +116,11 @@ abstract class AbstractProxy implements ArrayProxyInterface
     // `AbstractProxy`
     protected function createEmptyBytemap(): BytemapInterface
     {
-        $itemCount = \count($this->bytemap);
-        if ($itemCount > 0) {
-            $this->bytemap[$itemCount + 1] = $this->bytemap[0];
-            $clone = new Bytemap($this->bytemap[$itemCount]);
-            $this->bytemap->delete($itemCount);
+        $elementCount = \count($this->bytemap);
+        if ($elementCount > 0) {
+            $this->bytemap[$elementCount + 1] = $this->bytemap[0];
+            $clone = new Bytemap($this->bytemap[$elementCount]);
+            $this->bytemap->delete($elementCount);
 
             return $clone;
         }
@@ -207,17 +207,17 @@ abstract class AbstractProxy implements ArrayProxyInterface
         return '\\strcmp';
     }
 
-    protected static function sortBytemapByItem(BytemapInterface $bytemap, callable $comparator): BytemapInterface
+    protected static function sortBytemapByElement(BytemapInterface $bytemap, callable $comparator): BytemapInterface
     {
         // Quicksort.
-        $itemCount = \count($bytemap);
-        if ($itemCount > 1) {
-            foreach ($bytemap as $item) {
+        $elementCount = \count($bytemap);
+        if ($elementCount > 1) {
+            foreach ($bytemap as $element) {
                 if (isset($pivot)) {
-                    if ((int) $comparator($item, $pivot) < 0) {
-                        $left[] = $item;
+                    if ((int) $comparator($element, $pivot) < 0) {
+                        $left[] = $element;
                     } else {
-                        $right[] = $item;
+                        $right[] = $element;
                     }
                 } else {
                     $pivot = $bytemap[0];
@@ -228,13 +228,13 @@ abstract class AbstractProxy implements ArrayProxyInterface
 
             $bytemap->delete(0);
             if (isset($left) && $left instanceof BytemapInterface) {
-                $bytemap->insert(self::sortBytemapByItem($left, $comparator));
+                $bytemap->insert(self::sortBytemapByElement($left, $comparator));
             }
             if (isset($pivot)) {
                 $bytemap[] = $pivot;
             }
             if (isset($right) && $right instanceof BytemapInterface) {
-                $bytemap->insert(self::sortBytemapByItem($right, $comparator));
+                $bytemap->insert(self::sortBytemapByElement($right, $comparator));
             }
         }
 

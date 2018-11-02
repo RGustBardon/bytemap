@@ -122,19 +122,19 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], [['bb']], ['cd', 'xy', 'ef', 'ef']],
             [['cd', 'xy', 'ef', 'ef'], [['cd'], ['ef']], [1 => 'xy']],
             [['cd', 'xy', 'ef', 'ef'], [['ef', 'cd']], [1 => 'xy']],
-        ] as [$items, $iterables, $expected]) {
-            yield [$items, $iterables, $expected];
+        ] as [$elements, $iterables, $expected]) {
+            yield [$elements, $iterables, $expected];
         }
     }
 
     /**
      * @dataProvider diffProvider
      */
-    public function testDiff(array $items, array $iterables, array $expected): void
+    public function testDiff(array $elements, array $iterables, array $expected): void
     {
-        $arrayProxy = new ArrayProxy('ab', ...$items);
+        $arrayProxy = new ArrayProxy('ab', ...$elements);
         self::assertSame($expected, \iterator_to_array($arrayProxy->diff(...$iterables)));
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public static function filterProvider(): \Generator
@@ -144,8 +144,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [["\x00\x00", '00', '11', '22'], null, 0, ["\x00\x00", '00', '11', '22']],
             [
                 ['cd', 'xy', 'ef', 'ef', 'bb'],
-                function (string $item): bool {
-                    return 'ef' !== $item;
+                function (string $element): bool {
+                    return 'ef' !== $element;
                 },
                 0,
                 ['cd', 'xy', 4 => 'bb'],
@@ -160,25 +160,25 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ],
             [
                 ['cd', 'xy', 'ef', 'ef', 'bb'],
-                function (string $item, int $key): bool {
-                    return 'ef' !== $item && 1 !== $key;
+                function (string $element, int $key): bool {
+                    return 'ef' !== $element && 1 !== $key;
                 },
                 \ARRAY_FILTER_USE_BOTH,
                 ['cd', 4 => 'bb'],
             ],
-        ] as [$items, $callable, $flag, $expected]) {
-            yield [$items, $callable, $flag, $expected];
+        ] as [$elements, $callable, $flag, $expected]) {
+            yield [$elements, $callable, $flag, $expected];
         }
     }
 
     /**
      * @dataProvider filterProvider
      */
-    public function testFilter(array $items, ?callable $callback, int $flag, array $expected): void
+    public function testFilter(array $elements, ?callable $callback, int $flag, array $expected): void
     {
-        $arrayProxy = new ArrayProxy($items[0], ...$items);
+        $arrayProxy = new ArrayProxy($elements[0], ...$elements);
         self::assertSame($expected, \iterator_to_array($arrayProxy->filter($callback, $flag)));
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public function testInArray(): void
@@ -285,7 +285,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                     [],
                     ['CD', 'XY', 'EF', 'EF'],
                 ],
-            ] as [$items, $callback, $iterables, $expected]) {
+            ] as [$elements, $callback, $iterables, $expected]) {
                 switch ($iterableType) {
                     case \Iterator::class:
                         foreach ($iterables as $key => $iterable) {
@@ -317,7 +317,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                         break;
                 }
 
-                yield [$items, $callback, $iterables, $expected];
+                yield [$elements, $callback, $iterables, $expected];
             }
         }
     }
@@ -325,11 +325,11 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     /**
      * @dataProvider mapProvider
      */
-    public function testMap(array $items, ?callable $callback, array $iterables, array $expected): void
+    public function testMap(array $elements, ?callable $callback, array $iterables, array $expected): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expected, \iterator_to_array($arrayProxy->map($callback, ...$iterables)));
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public function testMerge(): void
@@ -478,19 +478,19 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 [['a1', 'a2'], ['b1', 'b2', 'b3'], [4 => 'c1']],
                 ['b1', 'b2', 'b3', 'ef', 'c1'],
             ],
-        ] as [$items, $iterables, $expected]) {
-            yield [$items, $iterables, $expected];
+        ] as [$elements, $iterables, $expected]) {
+            yield [$elements, $iterables, $expected];
         }
     }
 
     /**
      * @dataProvider replaceProvider
      */
-    public function testReplace(array $items, array $iterables, array $expected): void
+    public function testReplace(array $elements, array $iterables, array $expected): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expected, $arrayProxy->replace(...$iterables)->exportArray());
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public function testReverse(): void
@@ -504,8 +504,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public static function sortProvider(): \Generator
     {
-        $defaultItem = "\x0\x0\x0";
-        $items = ['12 ', '100', "\u{d6} ", 'PPP', 'ooo'];
+        $defaultElement = "\x0\x0\x0";
+        $elements = ['12 ', '100', "\u{d6} ", 'PPP', 'ooo'];
 
         foreach ([
             \SORT_REGULAR => ['100', '12 ', 'PPP', 'ooo', "\u{d6} "],
@@ -514,8 +514,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             \SORT_STRING | \SORT_FLAG_CASE => ['100', '12 ', 'ooo', 'PPP', "\u{d6} "],
         ] as $sortFlags => $expected) {
             yield [
-                $defaultItem,
-                $items,
+                $defaultElement,
+                $elements,
                 function (self $that) use ($sortFlags): int {
                     return $sortFlags;
                 },
@@ -534,7 +534,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             };
         }
 
-        yield [$defaultItem, $items, $sortFlagsClosure, ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']];
+        yield [$defaultElement, $elements, $sortFlagsClosure, ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']];
 
         $sortFlagsClosure = function (self $that): void {
             $that->markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatcmp');
@@ -546,7 +546,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             };
         }
 
-        yield [$defaultItem, $items, $sortFlagsClosure, ['12 ', '100', 'PPP', 'ooo', "\u{d6} "]];
+        yield [$defaultElement, $elements, $sortFlagsClosure, ['12 ', '100', 'PPP', 'ooo', "\u{d6} "]];
 
         $sortFlagsClosure = function (self $that): void {
             $that->markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatbasecmp');
@@ -558,15 +558,15 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             };
         }
 
-        yield [$defaultItem, $items, $sortFlagsClosure, ['12 ', '100', 'ooo', 'PPP', "\u{d6} "]];
+        yield [$defaultElement, $elements, $sortFlagsClosure, ['12 ', '100', 'ooo', 'PPP', "\u{d6} "]];
     }
 
     /**
      * @dataProvider sortProvider
      */
-    public function testRSort(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
+    public function testRSort(string $defaultElement, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
-        $arrayProxy = new ArrayProxy($defaultItem, ...$items);
+        $arrayProxy = new ArrayProxy($defaultElement, ...$elements);
         $arrayProxy->rSort($sortFlagsClosure($this));
         self::assertArrayMask(\array_reverse($expected), $arrayProxy->exportArray());
     }
@@ -597,8 +597,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public function testShuffle(): void
     {
         $arrayProxy = new ArrayProxy('cd');
-        for ($item = 'aa'; $item <= 'dv'; ++$item) {
-            $arrayProxy[] = $item;
+        for ($element = 'aa'; $element <= 'dv'; ++$element) {
+            $arrayProxy[] = $element;
         }
         $sorted = $arrayProxy->exportArray();
         $arrayProxy->shuffle();
@@ -627,27 +627,27 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], 1, 1, false, ['xy']],
             [['cd', 'xy', 'ef', 'ef'], 1, -1, false, ['xy', 'ef']],
             [['cd', 'xy', 'ef', 'ef'], 1, -1, true, [1 => 'xy', 'ef']],
-        ] as [$items, $index, $length, $preserveKeys, $expected]) {
-            yield [$items, $index, $length, $preserveKeys, $expected];
+        ] as [$elements, $index, $length, $preserveKeys, $expected]) {
+            yield [$elements, $index, $length, $preserveKeys, $expected];
         }
     }
 
     /**
      * @dataProvider sliceProvider
      */
-    public function testSlice(array $items, int $index, ?int $length, bool $preserveKeys, array $expected): void
+    public function testSlice(array $elements, int $index, ?int $length, bool $preserveKeys, array $expected): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expected, \iterator_to_array($arrayProxy->slice($index, $length, $preserveKeys)));
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     /**
      * @dataProvider sortProvider
      */
-    public function testSort(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
+    public function testSort(string $defaultElement, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
-        $arrayProxy = new ArrayProxy($defaultItem, ...$items);
+        $arrayProxy = new ArrayProxy($defaultElement, ...$elements);
         $arrayProxy->sort($sortFlagsClosure($this));
         self::assertArrayMask($expected, $arrayProxy->exportArray());
     }
@@ -668,8 +668,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], 1, -1, ['rs', 'tu'], ['xy', 'ef'], ['cd', 'rs', 'tu', 'ef']],
             [['cd', 'xy', 'ef', 'ef'], 0, null, ['rs', 'tu'], ['cd', 'xy', 'ef', 'ef'], ['rs', 'tu']],
             [['cd', 'xy', 'ef', 'ef'], -1, null, 'rs', ['ef'], ['cd', 'xy', 'ef', 'rs']],
-        ] as [$items, $index, $length, $replacement, $expectedSlice, $expectedMutation]) {
-            yield [$items, $index, $length, $replacement, $expectedSlice, $expectedMutation];
+        ] as [$elements, $index, $length, $replacement, $expectedSlice, $expectedMutation]) {
+            yield [$elements, $index, $length, $replacement, $expectedSlice, $expectedMutation];
         }
     }
 
@@ -679,14 +679,14 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      * @param mixed $replacement
      */
     public function testSplice(
-        array $items,
+        array $elements,
         int $index,
         ?int $length,
         $replacement,
         array $expectedSlice,
         array $expectedMutation
     ): void {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expectedSlice, $arrayProxy->splice($index, $length, $replacement)->exportArray());
         self::assertSame($expectedMutation, $arrayProxy->exportArray());
     }
@@ -727,25 +727,25 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 [[7 => 'c2', 4 => 'c1'], [9 => 'c4', 6 => 'c3']],
                 ['cd', 'xy', 'ef', 'ef', 'c1', 'ab', 'ab', 'c2', 'ab', 'c4'],
             ],
-        ] as [$items, $iterables, $expected]) {
-            yield [$items, $iterables, $expected];
+        ] as [$elements, $iterables, $expected]) {
+            yield [$elements, $iterables, $expected];
         }
     }
 
     /**
      * @dataProvider unionProvider
      */
-    public function testUnion(array $items, array $iterables, array $expected): void
+    public function testUnion(array $elements, array $iterables, array $expected): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expected, $arrayProxy->union(...$iterables)->exportArray());
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public static function uniqueProvider(): \Generator
     {
-        $defaultItem = "\x0\x0\x0";
-        $items = ['100', '1e2', "\u{2010}", "\u{2011}"];
+        $defaultElement = "\x0\x0\x0";
+        $elements = ['100', '1e2', "\u{2010}", "\u{2011}"];
 
         foreach ([
             \SORT_REGULAR => ['100', 2 => "\u{2010}", "\u{2011}"],
@@ -753,8 +753,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             \SORT_STRING => ['100', '1e2', "\u{2010}", "\u{2011}"],
         ] as $sortFlags => $expected) {
             yield [
-                $defaultItem,
-                $items,
+                $defaultElement,
+                $elements,
                 function (self $that) use ($sortFlags): int {
                     return $sortFlags;
                 },
@@ -773,17 +773,17 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             };
         }
 
-        yield [$defaultItem, $items, $sortFlagsClosure, ['100', '1e2', "\u{2010}"]];
+        yield [$defaultElement, $elements, $sortFlagsClosure, ['100', '1e2', "\u{2010}"]];
     }
 
     /**
      * @dataProvider uniqueProvider
      */
-    public function testUnique(string $defaultItem, array $items, \Closure $sortFlagsClosure, array $expected): void
+    public function testUnique(string $defaultElement, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
-        $arrayProxy = new ArrayProxy($defaultItem, ...$items);
+        $arrayProxy = new ArrayProxy($defaultElement, ...$elements);
         self::assertSame($expected, \iterator_to_array($arrayProxy->unique($sortFlagsClosure($this))));
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public function testUnshift(): void
@@ -815,34 +815,34 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      */
     public function testWalkTooFewArguments(): void
     {
-        self::instantiate()->walk(function ($item, $index, $foo) {
+        self::instantiate()->walk(function ($element, $index, $foo) {
         });
     }
 
-    public static function walkMethod(&$item, $index, string $userdata = null): void
+    public static function walkMethod(&$element, $index, string $userdata = null): void
     {
-        $item = \gettype($userdata)[0].$index;
+        $element = \gettype($userdata)[0].$index;
     }
 
     public static function walkProvider(): \Generator
     {
         foreach ([
-            [['cd', 'xy', 'ef', 'ef'], function ($item, $index) {
-                $item = 'ab';
+            [['cd', 'xy', 'ef', 'ef'], function ($element, $index) {
+                $element = 'ab';
             }, self::WALK_NO_USERDATA, ['cd', 'xy', 'ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$item, $index) {
-                $item = \sprintf('%02d', $index);
+            [['cd', 'xy', 'ef', 'ef'], function (&$element, $index) {
+                $element = \sprintf('%02d', $index);
             }, self::WALK_NO_USERDATA, ['00', '01', '02', '03']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$item, $index, string $userdata) {
-                $item = \gettype($userdata)[0].$index;
+            [['cd', 'xy', 'ef', 'ef'], function (&$element, $index, string $userdata) {
+                $element = \gettype($userdata)[0].$index;
             }, 'foo', ['s0', 's1', 's2', 's3']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$item, $index, string $userdata = null) {
-                $item = \gettype($userdata)[0].$index;
+            [['cd', 'xy', 'ef', 'ef'], function (&$element, $index, string $userdata = null) {
+                $element = \gettype($userdata)[0].$index;
             }, null, ['N0', 'N1', 'N2', 'N3']],
             [['cd', 'xy', 'ef', 'ef'], self::class.'::walkMethod', null, ['N0', 'N1', 'N2', 'N3']],
             [['cd', 'xy', 'ef', 'ef'], __NAMESPACE__.'\\transform', null, ['N0', 'N1', 'N2', 'N3']],
-        ] as [$items, $callback, $userdata, $expected]) {
-            yield [$items, $callback, $userdata, $expected];
+        ] as [$elements, $callback, $userdata, $expected]) {
+            yield [$elements, $callback, $userdata, $expected];
         }
     }
 
@@ -851,9 +851,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      *
      * @param mixed $userdata
      */
-    public function testWalk(array $items, callable $callback, $userdata, array $expected): void
+    public function testWalk(array $elements, callable $callback, $userdata, array $expected): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         if (self::WALK_NO_USERDATA === $userdata) {
             $arrayProxy->walk($callback);
         } else {
@@ -906,15 +906,15 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         foreach ([
             ['cd', [1, 6, 3], null, ['cd', 'cd', 'cd', 'cd', 'cd', 'cd', 'cd']],
             ['cd', [1, 6, 3], 'ab', ['cd', 'ab', 'cd', 'ab', 'cd', 'cd', 'ab']],
-        ] as [$defaultItem, $keys, $value, $expected]) {
-            yield [$defaultItem, $keys, $value, $expected];
+        ] as [$defaultElement, $keys, $value, $expected]) {
+            yield [$defaultElement, $keys, $value, $expected];
         }
     }
 
     /**
      * @dataProvider fillKeysProvider
      */
-    public function testFillKeys(string $defaultItem, iterable $keys, ?string $value, array $expected): void
+    public function testFillKeys(string $defaultElement, iterable $keys, ?string $value, array $expected): void
     {
         $arrayProxy = self::instantiate()::fillKeys('cd', [1, 6, 3], null);
         self::assertSame(['cd', 'cd', 'cd', 'cd', 'cd', 'cd', 'cd'], $arrayProxy->exportArray());
@@ -932,20 +932,20 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd'], ',', 'cd'],
             [['cd', 'xy', 'ef', 'ef'], '', 'cdxyefef'],
             [['cd', 'xy', 'ef', 'ef'], ',', 'cd,xy,ef,ef'],
-        ] as [$items, $glue, $expected]) {
-            yield [$items, $glue, $expected];
+        ] as [$elements, $glue, $expected]) {
+            yield [$elements, $glue, $expected];
         }
     }
 
     /**
      * @dataProvider implodeJoinProvider
      */
-    public function testImplodeJoin(array $items, string $glue, string $expected): void
+    public function testImplodeJoin(array $elements, string $glue, string $expected): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expected, $arrayProxy->implode($glue));
         self::assertSame($expected, $arrayProxy->join($glue));
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public static function pregFilterProvider(): \Generator
@@ -961,8 +961,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], ['i', 'j'], 2, ['jd'], 2],
             [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], [], 2, ['d'], 1],
             [['cd', 'xy', 'ef', 'ef'], '~(x)(y)~', '${2}${1}', 2, [1 => 'yx'], 1],
-        ] as [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount]) {
-            yield [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount];
+        ] as [$elements, $pattern, $replacement, $limit, $expectedResult, $expectedCount]) {
+            yield [$elements, $pattern, $replacement, $limit, $expectedResult, $expectedCount];
         }
     }
 
@@ -972,12 +972,12 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      * @param mixed $pattern
      * @param mixed $replacement
      */
-    public function testPregFilter(array $items, $pattern, $replacement, int $limit, array $expectedResult, int $expectedCount): void
+    public function testPregFilter(array $elements, $pattern, $replacement, int $limit, array $expectedResult, int $expectedCount): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expectedResult, \iterator_to_array($arrayProxy->pregFilter($pattern, $replacement, $limit, $count)));
         self::assertSame($expectedCount, $count);
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public static function pregGrepProvider(): \Generator
@@ -986,19 +986,19 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [[], '~ab~', 0, []],
             [['ab', 'cc', 'cd'], '~^c+~', 0, [1 => 'cc', 'cd']],
             [['ab', 'cc', 'cd'], '~^c+~', \PREG_GREP_INVERT, ['ab']],
-        ] as [$items, $pattern, $flags, $expected]) {
-            yield [$items, $pattern, $flags, $expected];
+        ] as [$elements, $pattern, $flags, $expected]) {
+            yield [$elements, $pattern, $flags, $expected];
         }
     }
 
     /**
      * @dataProvider pregGrepProvider
      */
-    public function testPregGrep(array $items, string $pattern, int $flags, array $expected): void
+    public function testPregGrep(array $elements, string $pattern, int $flags, array $expected): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expected, \iterator_to_array($arrayProxy->pregGrep($pattern, $flags)));
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public static function pregReplaceProvider(): \Generator
@@ -1014,8 +1014,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], ['i', 'j'], 2, ['jd', 'xy', 'ef', 'ef'], 2],
             [['cd', 'xy', 'ef', 'ef'], ['~c~', '~i~'], [], 2, ['d', 'xy', 'ef', 'ef'], 1],
             [['cd', 'xy', 'ef', 'ef'], '~(x)(y)~', '${2}${1}', 2, ['cd', 'yx', 'ef', 'ef'], 1],
-        ] as [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount]) {
-            yield [$items, $pattern, $replacement, $limit, $expectedResult, $expectedCount];
+        ] as [$elements, $pattern, $replacement, $limit, $expectedResult, $expectedCount]) {
+            yield [$elements, $pattern, $replacement, $limit, $expectedResult, $expectedCount];
         }
     }
 
@@ -1025,12 +1025,12 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      * @param mixed $pattern
      * @param mixed $replacement
      */
-    public function testPregReplace(array $items, $pattern, $replacement, int $limit, array $expectedResult, int $expectedCount): void
+    public function testPregReplace(array $elements, $pattern, $replacement, int $limit, array $expectedResult, int $expectedCount): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame($expectedResult, \iterator_to_array($arrayProxy->pregReplace($pattern, $replacement, $limit, $count)));
         self::assertSame($expectedCount, $count);
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public function pregReplaceCallbackProvider(): \Generator
@@ -1068,8 +1068,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 ['c,d', 'xy', 'e,f', 'e,f', 'zz'],
                 3,
             ],
-        ] as [$items, $pattern, $callback, $limit, $expectedResult, $expectedCount]) {
-            yield [$items, $pattern, $callback, $limit, $expectedResult, $expectedCount];
+        ] as [$elements, $pattern, $callback, $limit, $expectedResult, $expectedCount]) {
+            yield [$elements, $pattern, $callback, $limit, $expectedResult, $expectedCount];
         }
     }
 
@@ -1079,18 +1079,18 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      * @param mixed $pattern
      */
     public function testPregReplaceCallback(
-        array $items,
+        array $elements,
         $pattern,
         callable $callback,
         int $limit,
         array $expectedResult,
         int $expectedCount
     ): void {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         $result = $arrayProxy->pregReplaceCallback($pattern, $callback, $limit, $count);
         self::assertSame($expectedResult, \iterator_to_array($result));
         self::assertSame($expectedCount, $count);
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public function pregReplaceCallbackArrayProvider(): \Generator
@@ -1142,21 +1142,21 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 ['hid', 'xy', 'wf', 'wf', 'zz'],
                 4,
             ],
-        ] as [$items, $patternsAndCallbacks, $limit, $expectedResult, $expectedCount]) {
-            yield [$items, $patternsAndCallbacks, $limit, $expectedResult, $expectedCount];
+        ] as [$elements, $patternsAndCallbacks, $limit, $expectedResult, $expectedCount]) {
+            yield [$elements, $patternsAndCallbacks, $limit, $expectedResult, $expectedCount];
         }
     }
 
     /**
      * @dataProvider pregReplaceCallbackArrayProvider
      */
-    public function testPregReplaceCallbackArray(array $items, iterable $patternsAndCallbacks, int $limit, array $expectedResult, int $expectedCount): void
+    public function testPregReplaceCallbackArray(array $elements, iterable $patternsAndCallbacks, int $limit, array $expectedResult, int $expectedCount): void
     {
-        $arrayProxy = self::instantiate(...$items);
+        $arrayProxy = self::instantiate(...$elements);
         $result = $arrayProxy->pregReplaceCallbackArray($patternsAndCallbacks, $limit, $count);
         self::assertSame($expectedResult, \iterator_to_array($result));
         self::assertSame($expectedCount, $count);
-        self::assertSame($items, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     private static function assertArrayMask(array $arrayMask, array $array): void
@@ -1193,9 +1193,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             return $errorMessage;
         }
 
-        $items = ['12 ', '100', "\u{d6} ", 'PPP', 'ooo'];
-        \sort($items, \SORT_LOCALE_STRING);
-        if ($items !== ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']) {
+        $elements = ['12 ', '100', "\u{d6} ", 'PPP', 'ooo'];
+        \sort($elements, \SORT_LOCALE_STRING);
+        if ($elements !== ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']) {
             return 'This test requires \\strcoll to work as expected';
         }
 
@@ -1209,22 +1209,22 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             return $errorMessage;
         }
 
-        $items = ["\u{2010}", "\u{2011}"];
-        \sort($items, \SORT_LOCALE_STRING);
-        if ($items !== ["\u{2010}"]) {
+        $elements = ["\u{2010}", "\u{2011}"];
+        \sort($elements, \SORT_LOCALE_STRING);
+        if ($elements !== ["\u{2010}"]) {
             return 'This test requires a locale to collate U+2010 and U+2011 together';
         }
 
         return null;
     }
 
-    private static function instantiate(string ...$items): ArrayProxyInterface
+    private static function instantiate(string ...$elements): ArrayProxyInterface
     {
-        return new ArrayProxy('ab', ...$items);
+        return new ArrayProxy('ab', ...$elements);
     }
 }
 
-function transform(&$item, $index, string $userdata = null): void
+function transform(&$element, $index, string $userdata = null): void
 {
-    $item = \gettype($userdata)[0].$index;
+    $element = \gettype($userdata)[0].$index;
 }

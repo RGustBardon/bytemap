@@ -36,41 +36,41 @@ final class SplBytemap extends AbstractBytemap
     // `ArrayAccess`
     public function offsetGet($index): string
     {
-        if (\is_int($index) && $index >= 0 && $index < $this->itemCount) {
-            return $this->map[$index] ?? $this->defaultItem;
+        if (\is_int($index) && $index >= 0 && $index < $this->elementCount) {
+            return $this->map[$index] ?? $this->defaultElement;
         }
 
         self::throwOnOffsetGet($index);
     }
 
-    public function offsetSet($index, $item): void
+    public function offsetSet($index, $element): void
     {
-        if (null === $index) {  // `$bytemap[] = $item`
-            $index = $this->itemCount;
+        if (null === $index) {  // `$bytemap[] = $element`
+            $index = $this->elementCount;
         }
 
-        if (\is_int($index) && $index >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
-            $unassignedCount = $index - $this->itemCount;
+        if (\is_int($index) && $index >= 0 && \is_string($element) && \strlen($element) === $this->bytesPerElement) {
+            $unassignedCount = $index - $this->elementCount;
             if ($unassignedCount >= 0) {
-                $this->map->setSize($this->itemCount + $unassignedCount + 1);
-                $this->itemCount += $unassignedCount + 1;
+                $this->map->setSize($this->elementCount + $unassignedCount + 1);
+                $this->elementCount += $unassignedCount + 1;
             }
-            $this->map[$index] = $item;
+            $this->map[$index] = $element;
         } else {
-            self::throwOnOffsetSet($index, $item, $this->bytesPerItem);
+            self::throwOnOffsetSet($index, $element, $this->bytesPerElement);
         }
     }
 
     public function offsetUnset($index): void
     {
-        $itemCount = $this->itemCount;
-        if (\is_int($index) && $index >= 0 && $index < $itemCount) {
-            // Shift all the subsequent items left by one.
-            for ($i = $index + 1; $i < $itemCount; ++$i) {
+        $elementCount = $this->elementCount;
+        if (\is_int($index) && $index >= 0 && $index < $elementCount) {
+            // Shift all the subsequent elements left by one.
+            for ($i = $index + 1; $i < $elementCount; ++$i) {
                 $this->map[$i - 1] = $this->map[$i];
             }
 
-            $this->map->setSize(--$this->itemCount);
+            $this->map->setSize(--$this->elementCount);
         }
     }
 
@@ -78,8 +78,8 @@ final class SplBytemap extends AbstractBytemap
     public function getIterator(): \Traversable
     {
         return (static function (self $bytemap): \Generator {
-            for ($i = 0, $defaultItem = $bytemap->defaultItem, $itemCount = $bytemap->itemCount; $i < $itemCount; ++$i) {
-                yield $i => $bytemap->map[$i] ?? $defaultItem;
+            for ($i = 0, $defaultElement = $bytemap->defaultElement, $elementCount = $bytemap->elementCount; $i < $elementCount; ++$i) {
+                yield $i => $bytemap->map[$i] ?? $defaultElement;
             }
         })(clone $this);
     }
@@ -88,8 +88,8 @@ final class SplBytemap extends AbstractBytemap
     public function jsonSerialize(): array
     {
         $completeMap = [];
-        for ($i = 0, $defaultItem = $this->defaultItem, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-            $completeMap[$i] = $this->map[$i] ?? $defaultItem;
+        for ($i = 0, $defaultElement = $this->defaultElement, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
+            $completeMap[$i] = $this->map[$i] ?? $defaultElement;
         }
 
         return $completeMap;
@@ -102,30 +102,30 @@ final class SplBytemap extends AbstractBytemap
         if (\is_object($this->map) && $this->map instanceof \SplFixedArray) {
             $this->map->__wakeup();
         }
-        $this->validateUnserializedItems();
+        $this->validateUnserializedElements();
         $this->deriveProperties();
     }
 
     // `BytemapInterface`
-    public function insert(iterable $items, int $firstIndex = -1): void
+    public function insert(iterable $elements, int $firstIndex = -1): void
     {
         $originalFirstIndex = $firstIndex;
-        $itemCountBeforeResizing = $this->itemCount;
+        $elementCountBeforeResizing = $this->elementCount;
 
-        // Resize the bytemap if the positive first item index is greater than the item count.
-        if ($firstIndex > $this->itemCount) {
-            $this[$firstIndex - 1] = $this->defaultItem;
+        // Resize the bytemap if the positive first element index is greater than the element count.
+        if ($firstIndex > $this->elementCount) {
+            $this[$firstIndex - 1] = $this->defaultElement;
         }
 
         // Allocate the memory.
-        $newSize = $this->calculateNewSize($items, $firstIndex);
+        $newSize = $this->calculateNewSize($elements, $firstIndex);
         if (null !== $newSize) {
             $this->map->setSize($newSize);
         }
 
         // Calculate the positive index corresponding to the negative one.
         if ($firstIndex < 0) {
-            $firstIndex += $this->itemCount;
+            $firstIndex += $this->elementCount;
 
             // Keep the indices within the bounds.
             if ($firstIndex < 0) {
@@ -133,49 +133,49 @@ final class SplBytemap extends AbstractBytemap
             }
         }
 
-        // Append the items.
-        $originalItemCount = $this->itemCount;
+        // Append the elements.
+        $originalElementCount = $this->elementCount;
         if (isset($newSize)) {
-            $bytesPerItem = $this->bytesPerItem;
-            $itemCount = $originalItemCount;
-            foreach ($items as $item) {
-                if (\is_string($item) && \strlen($item) === $bytesPerItem) {
-                    $this->map[$itemCount] = $item;
-                    ++$itemCount;
+            $bytesPerElement = $this->bytesPerElement;
+            $elementCount = $originalElementCount;
+            foreach ($elements as $element) {
+                if (\is_string($element) && \strlen($element) === $bytesPerElement) {
+                    $this->map[$elementCount] = $element;
+                    ++$elementCount;
                 } else {
-                    $this->itemCount = $itemCount;
-                    $this->delete($itemCountBeforeResizing);
-                    if (\is_string($item)) {
-                        throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+                    $this->elementCount = $elementCount;
+                    $this->delete($elementCountBeforeResizing);
+                    if (\is_string($element)) {
+                        throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerElement.' bytes, '.\strlen($element).' given');
                     }
 
-                    throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
+                    throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($element).' given');
                 }
             }
-            $this->itemCount = $itemCount;
+            $this->elementCount = $elementCount;
         } else {
             try {
-                foreach ($items as $item) {
-                    $this[] = $item;
+                foreach ($elements as $element) {
+                    $this[] = $element;
                 }
             } catch (\TypeError | \DomainException $e) {
-                $this->delete($itemCountBeforeResizing);
+                $this->delete($elementCountBeforeResizing);
 
                 throw $e;
             }
         }
 
-        // Resize the bytemap if the negative first item index is greater than the new item count.
-        if (-$originalFirstIndex > $this->itemCount) {
-            $lastItemIndex = -$originalFirstIndex - ($this->itemCount > $originalItemCount ? 1 : 2);
-            if ($lastItemIndex >= $this->itemCount) {
-                $this[$lastItemIndex] = $this->defaultItem;
+        // Resize the bytemap if the negative first element index is greater than the new element count.
+        if (-$originalFirstIndex > $this->elementCount) {
+            $lastElementIndex = -$originalFirstIndex - ($this->elementCount > $originalElementCount ? 1 : 2);
+            if ($lastElementIndex >= $this->elementCount) {
+                $this[$lastElementIndex] = $this->defaultElement;
             }
         }
 
         // The juggling algorithm.
-        $n = $this->itemCount - $firstIndex;
-        $shift = $n - $this->itemCount + $originalItemCount;
+        $n = $this->elementCount - $firstIndex;
+        $shift = $n - $this->elementCount + $originalElementCount;
         $gcd = self::calculateGreatestCommonDivisor($n, $shift);
 
         for ($i = 0; $i < $gcd; ++$i) {
@@ -200,25 +200,25 @@ final class SplBytemap extends AbstractBytemap
     {
         self::ensureStream($stream);
 
-        $defaultItem = $this->defaultItem;
+        $defaultElement = $this->defaultElement;
 
         $buffer = '[';
-        for ($i = 0, $penultimate = $this->itemCount - 1; $i < $penultimate; ++$i) {
-            $buffer .= \json_encode($this->map[$i] ?? $defaultItem).',';
+        for ($i = 0, $penultimate = $this->elementCount - 1; $i < $penultimate; ++$i) {
+            $buffer .= \json_encode($this->map[$i] ?? $defaultElement).',';
             if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
                 self::stream($stream, $buffer);
                 $buffer = '';
             }
         }
-        $buffer .= ($this->itemCount > 0 ? \json_encode($this->map[$i] ?? $defaultItem) : '').']';
+        $buffer .= ($this->elementCount > 0 ? \json_encode($this->map[$i] ?? $defaultElement) : '').']';
         self::stream($stream, $buffer);
     }
 
-    public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultElement): BytemapInterface
     {
         self::ensureStream($jsonStream);
 
-        $bytemap = new self($defaultItem);
+        $bytemap = new self($defaultElement);
         if (self::hasStreamingParser()) {
             $maxKey = -1;
             $listener = new BytemapListener(function (string $value, ?int $key) use ($bytemap, &$maxKey) {
@@ -235,7 +235,7 @@ final class SplBytemap extends AbstractBytemap
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
-            self::validateMapAndGetMaxKey($map, $defaultItem);
+            self::validateMapAndGetMaxKey($map, $defaultElement);
             if ($map) {
                 $bytemap->map = \SplFixedArray::fromArray($map);
                 $bytemap->deriveProperties();
@@ -251,50 +251,50 @@ final class SplBytemap extends AbstractBytemap
         $this->map = new \SplFixedArray(0);
     }
 
-    protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $elementCount): void
     {
         // Keep the indices within the bounds.
-        $howMany = \min($howMany, $itemCount - $firstIndex);
+        $howMany = \min($howMany, $elementCount - $firstIndex);
 
-        // Shift all the subsequent items left by the number of items deleted.
-        for ($i = $firstIndex + $howMany; $i < $itemCount; ++$i) {
+        // Shift all the subsequent elements left by the number of elements deleted.
+        for ($i = $firstIndex + $howMany; $i < $elementCount; ++$i) {
             $this->map[$i - $howMany] = $this->map[$i];
         }
 
-        // Delete the trailing items.
-        $this->itemCount -= $howMany;
-        $this->map->setSize($this->itemCount);
+        // Delete the trailing elements.
+        $this->elementCount -= $howMany;
+        $this->map->setSize($this->elementCount);
     }
 
     protected function deriveProperties(): void
     {
         parent::deriveProperties();
 
-        $this->itemCount = \count($this->map);
+        $this->elementCount = \count($this->map);
     }
 
-    protected function findArrayItems(
-        array $items,
+    protected function findArrayElements(
+        array $elements,
         bool $whitelist,
         int $howManyToReturn,
         int $howManyToSkip
         ): \Generator {
-        $defaultItem = $this->defaultItem;
+        $defaultElement = $this->defaultElement;
         $map = clone $this->map;
         if ($howManyToReturn > 0) {
             if ($whitelist) {
-                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                    if (isset($items[$item = $map[$i] ?? $defaultItem])) {
-                        yield $i => $item;
+                for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
+                    if (isset($elements[$element = $map[$i] ?? $defaultElement])) {
+                        yield $i => $element;
                         if (0 === --$howManyToReturn) {
                             return;
                         }
                     }
                 }
             } else {
-                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                    if (!isset($items[$item = $map[$i] ?? $defaultItem])) {
-                        yield $i => $item;
+                for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
+                    if (!isset($elements[$element = $map[$i] ?? $defaultElement])) {
+                        yield $i => $element;
                         if (0 === --$howManyToReturn) {
                             return;
                         }
@@ -302,18 +302,18 @@ final class SplBytemap extends AbstractBytemap
                 }
             }
         } elseif ($whitelist) {
-            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (isset($items[$item = $map[$i] ?? $defaultItem])) {
-                    yield $i => $item;
+            for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (isset($elements[$element = $map[$i] ?? $defaultElement])) {
+                    yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
                     }
                 }
             }
         } else {
-            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!isset($items[$item = $map[$i] ?? $defaultItem])) {
-                    yield $i => $item;
+            for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (!isset($elements[$element = $map[$i] ?? $defaultElement])) {
+                    yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
                     }
@@ -332,18 +332,18 @@ final class SplBytemap extends AbstractBytemap
         $lookupSize = 0;
         $match = null;
 
-        $defaultItem = $this->defaultItem;
+        $defaultElement = $this->defaultElement;
         $map = clone $this->map;
         if ($howManyToReturn > 0) {
-            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                if (!($whitelist xor $lookup[$item = $map[$i] ?? $defaultItem] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
-                    yield $i => $item;
+            for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
+                if (!($whitelist xor $lookup[$element = $map[$i] ?? $defaultElement] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                    yield $i => $element;
                     if (0 === --$howManyToReturn) {
                         return;
                     }
                 }
                 if (null !== $match) {
-                    $lookup[$item] = $match;
+                    $lookup[$element] = $match;
                     $match = null;
                     if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
                         unset($lookup[\key($lookup)]);
@@ -353,15 +353,15 @@ final class SplBytemap extends AbstractBytemap
                 }
             }
         } else {
-            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!($whitelist xor $lookup[$item = $map[$i] ?? $defaultItem] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
-                    yield $i => $item;
+            for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (!($whitelist xor $lookup[$element = $map[$i] ?? $defaultElement] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                    yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
                     }
                 }
                 if (null !== $match) {
-                    $lookup[$item] = $match;
+                    $lookup[$element] = $match;
                     $match = null;
                     if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
                         unset($lookup[\key($lookup)]);
@@ -373,7 +373,7 @@ final class SplBytemap extends AbstractBytemap
         }
     }
 
-    protected function validateUnserializedItems(): void
+    protected function validateUnserializedElements(): void
     {
         if (!\is_object($this->map) || !($this->map instanceof \SplFixedArray)) {
             $reason = 'Failed to unserialize (the internal representation of a bytemap must be an SplFixedArray, '.\gettype($this->map).' given)';
@@ -381,14 +381,14 @@ final class SplBytemap extends AbstractBytemap
             throw new \TypeError(self::EXCEPTION_PREFIX.$reason);
         }
 
-        $bytesPerItem = \strlen($this->defaultItem);
-        foreach ($this->map as $item) {
-            if (null !== $item) {
-                if (!\is_string($item)) {
-                    throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
+        $bytesPerElement = \strlen($this->defaultElement);
+        foreach ($this->map as $element) {
+            if (null !== $element) {
+                if (!\is_string($element)) {
+                    throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($element).' given)');
                 }
-                if (\strlen($item) !== $bytesPerItem) {
-                    throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
+                if (\strlen($element) !== $bytesPerElement) {
+                    throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerElement.' bytes, '.\strlen($element).' given)');
                 }
             }
         }

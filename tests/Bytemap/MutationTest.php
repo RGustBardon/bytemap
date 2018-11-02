@@ -25,37 +25,37 @@ namespace Bytemap;
  */
 final class MutationTest extends AbstractTestOfBytemap
 {
-    public static function invalidItemTypeProvider(): \Generator
+    public static function invalidElementTypeProvider(): \Generator
     {
-        foreach (parent::invalidItemTypeProvider() as [$impl, $items, $invalidItem]) {
-            yield from self::invalidItemGenerator($impl, $items, $invalidItem);
+        foreach (parent::invalidElementTypeProvider() as [$impl, $elements, $invalidElement]) {
+            yield from self::invalidElementGenerator($impl, $elements, $invalidElement);
         }
     }
 
     /**
      * @covers \Bytemap\AbstractBytemap::insert
-     * @dataProvider invalidItemTypeProvider
+     * @dataProvider invalidElementTypeProvider
      *
-     * @param mixed $invalidItem
+     * @param mixed $invalidElement
      */
     public function testInsertionOfInvalidType(
         string $impl,
-        array $items,
-        $invalidItem,
+        array $elements,
+        $invalidElement,
         bool $useGenerator,
         array $sequence,
         array $inserted,
         int $firstIndex
     ): void {
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         $expectedSequence = [];
         foreach ($sequence as $index => $key) {
-            $bytemap[$index] = $expectedSequence[$index] = $items[$key];
+            $bytemap[$index] = $expectedSequence[$index] = $elements[$key];
         }
 
-        $generator = (function () use ($items, $inserted, $invalidItem) {
+        $generator = (function () use ($elements, $inserted, $invalidElement) {
             foreach ($inserted as $key) {
-                yield null === $key ? $invalidItem : $items[$key];
+                yield null === $key ? $invalidElement : $elements[$key];
             }
         })();
 
@@ -69,8 +69,8 @@ final class MutationTest extends AbstractTestOfBytemap
 
     public static function invalidLengthProvider(): \Generator
     {
-        foreach (parent::invalidLengthProvider() as [$impl, $defaultItem, $invalidItem]) {
-            yield from self::invalidItemGenerator($impl, \array_fill(0, 6, $defaultItem), $invalidItem);
+        foreach (parent::invalidLengthProvider() as [$impl, $defaultElement, $invalidElement]) {
+            yield from self::invalidElementGenerator($impl, \array_fill(0, 6, $defaultElement), $invalidElement);
         }
     }
 
@@ -80,21 +80,21 @@ final class MutationTest extends AbstractTestOfBytemap
      */
     public function testInsertionOfInvalidLength(
         string $impl,
-        array $items,
-        string $invalidItem,
+        array $elements,
+        string $invalidElement,
         bool $useGenerator,
         array $sequence,
         array $inserted,
         int $firstIndex
     ): void {
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         $expectedSequence = [];
         foreach ($sequence as $index => $key) {
-            $bytemap[$index] = $expectedSequence[$index] = $items[$key];
+            $bytemap[$index] = $expectedSequence[$index] = $elements[$key];
         }
-        $generator = (function () use ($items, $inserted, $invalidItem) {
+        $generator = (function () use ($elements, $inserted, $invalidElement) {
             foreach ($inserted as $key) {
-                yield null === $key ? $invalidItem : $items[$key];
+                yield null === $key ? $invalidElement : $elements[$key];
             }
         })();
 
@@ -108,7 +108,7 @@ final class MutationTest extends AbstractTestOfBytemap
 
     public static function insertionProvider(): \Generator
     {
-        foreach (self::mutationProvider() as [$impl, $items]) {
+        foreach (self::mutationProvider() as [$impl, $elements]) {
             foreach ([false, true] as $useGenerator) {
                 foreach ([
                     [[], [], -3, [0, 0]],
@@ -129,7 +129,7 @@ final class MutationTest extends AbstractTestOfBytemap
                     [[0, 1, 2, 3, 0, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
                     [[0, 1, 2, 3, null, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
                 ] as [$sequence, $inserted, $firstIndex, $expected]) {
-                    yield [$impl, $items, $useGenerator, $sequence, $inserted, $firstIndex, $expected];
+                    yield [$impl, $elements, $useGenerator, $sequence, $inserted, $firstIndex, $expected];
                 }
             }
         }
@@ -144,7 +144,7 @@ final class MutationTest extends AbstractTestOfBytemap
      */
     public function testInsertion(
         string $impl,
-        array $items,
+        array $elements,
         bool $useGenerator,
         array $sequence,
         array $inserted,
@@ -153,17 +153,17 @@ final class MutationTest extends AbstractTestOfBytemap
     ): void {
         $expectedSequence = [];
         foreach ($expected as $key) {
-            $expectedSequence[] = $items[$key];
+            $expectedSequence[] = $elements[$key];
         }
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         foreach ($sequence as $index => $key) {
             if (null !== $key) {
-                $bytemap[$index] = $items[$key];
+                $bytemap[$index] = $elements[$key];
             }
         }
-        $generator = (function () use ($items, $inserted) {
+        $generator = (function () use ($elements, $inserted) {
             foreach ($inserted as $key) {
-                yield $items[$key];
+                yield $elements[$key];
             }
         })();
         $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstIndex);
@@ -172,7 +172,7 @@ final class MutationTest extends AbstractTestOfBytemap
 
     public static function deletionProvider(): \Generator
     {
-        foreach (self::mutationProvider() as [$impl, $items]) {
+        foreach (self::mutationProvider() as [$impl, $elements]) {
             foreach ([
                 [[], -1, 0, []],
                 [[], 0, 0, []],
@@ -214,7 +214,7 @@ final class MutationTest extends AbstractTestOfBytemap
                 [[1, 2, 1, 2, 1, 2], 2, 3, [1, 2, 2]],
                 [[1, null, 1, 2, 1, 0], 2, 3, [1, 0, 0]],
             ] as [$sequence, $firstIndex, $howMany, $expected]) {
-                yield [$impl, $items, $sequence, $firstIndex, $howMany, $expected];
+                yield [$impl, $elements, $sequence, $firstIndex, $howMany, $expected];
             }
         }
     }
@@ -225,7 +225,7 @@ final class MutationTest extends AbstractTestOfBytemap
      */
     public function testDeletion(
         string $impl,
-        array $items,
+        array $elements,
         array $sequence,
         int $firstIndex,
         int $howMany,
@@ -233,12 +233,12 @@ final class MutationTest extends AbstractTestOfBytemap
     ): void {
         $expectedSequence = [];
         foreach ($expected as $key) {
-            $expectedSequence[] = $items[$key];
+            $expectedSequence[] = $elements[$key];
         }
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         foreach ($sequence as $index => $key) {
             if (null !== $key) {
-                $bytemap[$index] = $items[$key];
+                $bytemap[$index] = $elements[$key];
             }
         }
         $bytemap->delete($firstIndex, $howMany);
@@ -246,9 +246,9 @@ final class MutationTest extends AbstractTestOfBytemap
     }
 
     /**
-     * @param mixed $invalidItem
+     * @param mixed $invalidElement
      */
-    private static function invalidItemGenerator(string $impl, array $items, $invalidItem): \Generator
+    private static function invalidElementGenerator(string $impl, array $elements, $invalidElement): \Generator
     {
         foreach ([false, true] as $useGenerator) {
             foreach ([
@@ -267,7 +267,7 @@ final class MutationTest extends AbstractTestOfBytemap
                     $size,
                     $size + 1,
                 ]) as $firstIndex) {
-                    yield [$impl, $items, $invalidItem, $useGenerator, $sequence, $inserted, $firstIndex];
+                    yield [$impl, $elements, $invalidElement, $useGenerator, $sequence, $inserted, $firstIndex];
                 }
             }
         }
@@ -279,8 +279,8 @@ final class MutationTest extends AbstractTestOfBytemap
             foreach ([
                 ['z', 'x', 'y', 'w', 'u', 't'],
                 ['zx', 'xy', 'yy', 'wy', 'ut', 'tu'],
-            ] as $items) {
-                yield [$impl, $items];
+            ] as $elements) {
+                yield [$impl, $elements];
             }
         }
     }

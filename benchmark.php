@@ -104,8 +104,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 for ($i = 'aaaa'; 'kaaa' !== $i; ++$i) {
                     $bytemap[] = $i;
                 }
-                $itemCount = \count($bytemap);
-                $this->takeSnapshot(\sprintf('After creating a bytemap with %d items', $itemCount), false);
+                $elementCount = \count($bytemap);
+                $this->takeSnapshot(\sprintf('After creating a bytemap with %d elements', $elementCount), false);
                 $bytemap->streamJson($stream);
                 $this->takeSnapshot('After streaming JSON', true);
                 unset($bytemap);
@@ -114,17 +114,17 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $this->takeSnapshot('After parsing the stream', true);
                 \fclose($stream);
                 \assert('aaab' === $bytemap[1], $this->runtimeId);
-                \assert('jzzy' === $bytemap[$itemCount - 2], $this->runtimeId);
+                \assert('jzzy' === $bytemap[$elementCount - 2], $this->runtimeId);
 
                 break;
             case self::BENCHMARK_MEMORY:
                 $bytemap = $this->instantiate("\x00");
                 $i = 0;
-                foreach (\range(100000, 1000000, 100000) as $itemCount) {
-                    for (; $i < $itemCount; ++$i) {
+                foreach (\range(100000, 1000000, 100000) as $elementCount) {
+                    for (; $i < $elementCount; ++$i) {
                         $bytemap[] = "\x02";
                     }
-                    $this->takeSnapshot(\sprintf('%dk items', $itemCount / 1000), true);
+                    $this->takeSnapshot(\sprintf('%dk elements', $elementCount / 1000), true);
                 }
                 \assert("\x02" === $bytemap[42], $this->runtimeId);
                 \assert("\x02" === $bytemap[1000000 - 1], $this->runtimeId);
@@ -136,37 +136,37 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $iterations = 30000;
 
                 $bytemap = $this->instantiate("\x00");
-                $itemCount = 0;
+                $elementCount = 0;
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $index = $itemCount + \mt_rand(1, 100);
+                    $index = $elementCount + \mt_rand(1, 100);
                     $bytemap[$index] = "\x01";
-                    $itemCount = $index + 1;
+                    $elementCount = $index + 1;
                 }
                 $this->takeSnapshot(\sprintf('After expanding a single-byte bytemap %d times', $iterations), true);
                 unset($bytemap);
 
                 \mt_srand(0);
                 $bytemap = $this->instantiate("\x00\x00\x00\x00");
-                $itemCount = 0;
+                $elementCount = 0;
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $index = $itemCount + \mt_rand(1, 100);
+                    $index = $elementCount + \mt_rand(1, 100);
                     $bytemap[$index] = "\x01\x02\x03\x04";
-                    $itemCount = $index + 1;
+                    $elementCount = $index + 1;
                 }
                 $this->takeSnapshot(\sprintf('After expanding a four-byte bytemap %d times', $iterations), true);
 
                 break;
             case self::BENCHMARK_NATIVE_FOREACH:
                 $bytemap = $this->createCyclicBytemap('0', '9', 26 ** 4);
-                foreach ($bytemap as $item) {
+                foreach ($bytemap as $element) {
                 }
-                $this->takeSnapshot('After iterating over the bytemap with 1 byte per item', true);
+                $this->takeSnapshot('After iterating over the bytemap with 1 byte per element', true);
                 unset($bytemap);
 
                 $bytemap = $this->createCyclicBytemap('aaaa', 'zzzz');
-                foreach ($bytemap as $item) {
+                foreach ($bytemap as $element) {
                 }
-                $this->takeSnapshot('After iterating over the bytemap with 4 bytes per item', true);
+                $this->takeSnapshot('After iterating over the bytemap with 4 bytes per element', true);
 
                 break;
             case self::BENCHMARK_NATIVE_JSON_SERIALIZE:
@@ -179,19 +179,19 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $iterations = 1000000;
 
                 $bytemap = $this->createCyclicBytemap('0', '9', 26 ** 4);
-                $itemCount = \count($bytemap);
+                $elementCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\mt_rand(0, $itemCount - 1)] = 'a';
+                    $bytemap[\mt_rand(0, $elementCount - 1)] = 'a';
                 }
-                $this->takeSnapshot(\sprintf('After updating %d items (1 byte each) in pseudorandom order', $iterations), true);
+                $this->takeSnapshot(\sprintf('After updating %d elements (1 byte each) in pseudorandom order', $iterations), true);
                 unset($bytemap);
 
                 $bytemap = $this->createCyclicBytemap('aaaa', 'zzzz');
-                $itemCount = \count($bytemap);
+                $elementCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\mt_rand(0, $itemCount - 1)] = 'abcd';
+                    $bytemap[\mt_rand(0, $elementCount - 1)] = 'abcd';
                 }
-                $this->takeSnapshot(\sprintf('After updating %d items (4 bytes each) in pseudorandom order', $iterations), true);
+                $this->takeSnapshot(\sprintf('After updating %d elements (4 bytes each) in pseudorandom order', $iterations), true);
 
                 break;
             case self::BENCHMARK_NATIVE_PUSH:
@@ -199,7 +199,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 for ($i = 0; $i < 2 * 26 ** 4; ++$i) {
                     $bytemap[] = (string) ($i % 10);
                 }
-                $this->takeSnapshot(\sprintf('After pushing %d items (1 byte each) one by one', \count($bytemap)), true);
+                $this->takeSnapshot(\sprintf('After pushing %d elements (1 byte each) one by one', \count($bytemap)), true);
                 unset($bytemap);
 
                 $bytemap = $this->instantiate("\x00\x00\x00\x00");
@@ -208,45 +208,45 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                         $bytemap[] = $i;
                     }
                 }
-                $this->takeSnapshot(\sprintf('After pushing %d items (4 bytes each)', \count($bytemap)), true);
+                $this->takeSnapshot(\sprintf('After pushing %d elements (4 bytes each)', \count($bytemap)), true);
 
                 break;
             case self::BENCHMARK_NATIVE_RANDOM_ACCESS:
                 $iterations = 1000000;
 
                 $bytemap = $this->createCyclicBytemap('0', '9', 26 ** 4);
-                $itemCount = \count($bytemap);
+                $elementCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\mt_rand(0, $itemCount - 1)];
+                    $bytemap[\mt_rand(0, $elementCount - 1)];
                 }
-                $this->takeSnapshot(\sprintf('After retrieving %d items (1 byte each) in pseudorandom order', $iterations), true);
+                $this->takeSnapshot(\sprintf('After retrieving %d elements (1 byte each) in pseudorandom order', $iterations), true);
                 unset($bytemap);
 
                 $bytemap = $this->createCyclicBytemap('aaaa', 'zzzz');
-                $itemCount = \count($bytemap);
+                $elementCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
-                    $bytemap[\mt_rand(0, $itemCount - 1)];
+                    $bytemap[\mt_rand(0, $elementCount - 1)];
                 }
-                $this->takeSnapshot(\sprintf('After retrieving %d items (4 bytes each) in pseudorandom order', $iterations), true);
+                $this->takeSnapshot(\sprintf('After retrieving %d elements (4 bytes each) in pseudorandom order', $iterations), true);
 
                 break;
             case self::BENCHMARK_NATIVE_SERIALIZE:
                 $bytemap = $this->instantiate("\x00");
                 $i = 0;
-                foreach (\range(100000, 800000, 100000) as $itemCount) {
-                    for (; $i < $itemCount; ++$i) {
+                foreach (\range(100000, 800000, 100000) as $elementCount) {
+                    for (; $i < $elementCount; ++$i) {
                         $bytemap[] = "\x02";
                     }
-                    $this->takeSnapshot(\sprintf('After resizing to %dk', $itemCount / 1000), false);
+                    $this->takeSnapshot(\sprintf('After resizing to %dk', $elementCount / 1000), false);
                     $serializedBytemap = \serialize($bytemap);
                     $length = \strlen($serializedBytemap);
-                    $this->takeSnapshot(\sprintf('After serializing %dk items (%d bytes)', $itemCount / 1000, $length), true);
+                    $this->takeSnapshot(\sprintf('After serializing %dk elements (%d bytes)', $elementCount / 1000, $length), true);
                     unset($bytemap);
                     $bytemap = \unserialize($serializedBytemap, ['allowed_classes' => [$this->impl]]);
-                    $this->takeSnapshot(\sprintf('After unserializing %dk items', $itemCount / 1000), true);
+                    $this->takeSnapshot(\sprintf('After unserializing %dk elements', $elementCount / 1000), true);
                     \assert("\x02" === $bytemap[42], $this->runtimeId);
-                    \assert("\x02" === $bytemap[$itemCount - 1], $this->runtimeId);
-                    \assert(\count($bytemap) === $itemCount, $this->runtimeId);
+                    \assert("\x02" === $bytemap[$elementCount - 1], $this->runtimeId);
+                    \assert(\count($bytemap) === $elementCount, $this->runtimeId);
                 }
                 unset($bytemap);
 
@@ -255,8 +255,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 $iterations = 30000;
 
                 $bytemap = $this->createCyclicBytemap('0', '9', $iterations);
-                $itemCount = \count($bytemap);
-                for ($i = $itemCount - 1; $i >= 0; --$i) {
+                $elementCount = \count($bytemap);
+                for ($i = $elementCount - 1; $i >= 0; --$i) {
                     unset($bytemap[$i]);
                 }
                 $this->takeSnapshot('After unsetting the tails (1 byte each) one by one', true);
@@ -264,8 +264,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 unset($bytemap);
 
                 $bytemap = $this->createCyclicBytemap('aaaa', 'zzzz', $iterations);
-                $itemCount = \count($bytemap);
-                for ($i = $itemCount - 1; $i >= 0; --$i) {
+                $elementCount = \count($bytemap);
+                for ($i = $elementCount - 1; $i >= 0; --$i) {
                     unset($bytemap[$i]);
                 }
                 $this->takeSnapshot('After unsetting the tails (4 bytes each) one by one', true);
@@ -277,7 +277,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 for ($i = 0; $i < 200; ++$i) {
                     $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01"), 0);
                 }
-                $this->takeSnapshot(\sprintf('After unshifting %d items (1 byte each) in random batches', \count($bytemap)), true);
+                $this->takeSnapshot(\sprintf('After unshifting %d elements (1 byte each) in random batches', \count($bytemap)), true);
                 unset($bytemap);
 
                 \mt_srand(0);
@@ -285,7 +285,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 for ($i = 0; $i < 200; ++$i) {
                     $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01\x02\x03\x04"), 0);
                 }
-                $this->takeSnapshot(\sprintf('After unshifting %d items (4 bytes each) in random batches', \count($bytemap)), true);
+                $this->takeSnapshot(\sprintf('After unshifting %d elements (4 bytes each) in random batches', \count($bytemap)), true);
 
                 break;
             case self::BENCHMARK_MUTATION_INSERTION_TAIL:
@@ -293,7 +293,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 for ($i = 0; $i < 2000; ++$i) {
                     $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01"));
                 }
-                $this->takeSnapshot(\sprintf('After pushing %d items (1 byte each) in random batches', \count($bytemap)), true);
+                $this->takeSnapshot(\sprintf('After pushing %d elements (1 byte each) in random batches', \count($bytemap)), true);
                 unset($bytemap);
 
                 \mt_srand(0);
@@ -301,51 +301,51 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 for ($i = 0; $i < 2000; ++$i) {
                     $bytemap->insert(\array_fill(0, \mt_rand(1, 1000), "\x01\x02\x03\x04"));
                 }
-                $this->takeSnapshot(\sprintf('After pushing %d items (4 bytes each) in random batches', \count($bytemap)), true);
+                $this->takeSnapshot(\sprintf('After pushing %d elements (4 bytes each) in random batches', \count($bytemap)), true);
 
                 break;
             case self::BENCHMARK_MUTATION_DELETION_HEAD:
                 $iterations = 100;
 
                 $bytemap = $this->createCyclicBytemap('0', '9', 3 * 26 ** 3);
-                $itemCount = \count($bytemap);
+                $elementCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap->delete(0, \mt_rand(1, 1000));
                 }
-                $itemCount -= \count($bytemap);
-                $this->takeSnapshot(\sprintf('After deleting the first %d items (1 byte each) in random batches', $itemCount), true);
+                $elementCount -= \count($bytemap);
+                $this->takeSnapshot(\sprintf('After deleting the first %d elements (1 byte each) in random batches', $elementCount), true);
                 unset($bytemap);
 
                 \mt_srand(0);
                 $bytemap = $this->createCyclicBytemap('aaaa', 'czzz');
-                $itemCount = \count($bytemap);
+                $elementCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap->delete(0, \mt_rand(1, 1000));
                 }
-                $itemCount -= \count($bytemap);
-                $this->takeSnapshot(\sprintf('After deleting the first %d items (4 bytes each) in random batches', $itemCount), true);
+                $elementCount -= \count($bytemap);
+                $this->takeSnapshot(\sprintf('After deleting the first %d elements (4 bytes each) in random batches', $elementCount), true);
 
                 break;
             case self::BENCHMARK_MUTATION_DELETION_TAIL:
                 $iterations = 100;
 
                 $bytemap = $this->createCyclicBytemap('0', '9', 3 * 26 ** 3);
-                $itemCount = \count($bytemap);
+                $elementCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap->delete(-\mt_rand(1, 1000));
                 }
-                $itemCount -= \count($bytemap);
-                $this->takeSnapshot(\sprintf('After deleting the last %d items (1 byte each) in random batches', $itemCount), true);
+                $elementCount -= \count($bytemap);
+                $this->takeSnapshot(\sprintf('After deleting the last %d elements (1 byte each) in random batches', $elementCount), true);
                 unset($bytemap);
 
                 \mt_srand(0);
                 $bytemap = $this->createCyclicBytemap('aaaa', 'czzz');
-                $itemCount = \count($bytemap);
+                $elementCount = \count($bytemap);
                 for ($i = 0; $i < $iterations; ++$i) {
                     $bytemap->delete(-\mt_rand(1, 1000));
                 }
-                $itemCount -= \count($bytemap);
-                $this->takeSnapshot(\sprintf('After deleting the last %d items (4 bytes each) in random batches', $itemCount), true);
+                $elementCount -= \count($bytemap);
+                $this->takeSnapshot(\sprintf('After deleting the last %d elements (4 bytes each) in random batches', $elementCount), true);
 
                 break;
             case self::BENCHMARK_SEARCH_FIND_NONE:
@@ -355,8 +355,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 ] as [$first, $last, $needles]) {
                     foreach ($needles as $needle) {
                         foreach ([true, false] as $forward) {
-                            $itemCount = $this->benchmarkSearchFind($first, $last, $forward, $needle[0], $needle[1] ?? null);
-                            \assert(0 === $itemCount, $this->runtimeId);
+                            $elementCount = $this->benchmarkSearchFind($first, $last, $forward, $needle[0], $needle[1] ?? null);
+                            \assert(0 === $elementCount, $this->runtimeId);
                         }
                     }
                 }
@@ -366,11 +366,11 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 foreach ([
                     ['0', '9', [[['4'], 20000], [['4', '7'], 80000]]],
                     ['10', '99', [[['40'], 2222], [['40', '70'], 68882]]],
-                ] as [$first, $last, $needlesAndItemCounts]) {
-                    foreach ($needlesAndItemCounts as [$needle, $expectedItemCount]) {
+                ] as [$first, $last, $needlesAndElementCounts]) {
+                    foreach ($needlesAndElementCounts as [$needle, $expectedElementCount]) {
                         foreach ([true, false] as $forward) {
-                            $itemCount = $this->benchmarkSearchFind($first, $last, $forward, $needle[0], $needle[1] ?? null);
-                            \assert($expectedItemCount === $itemCount, $this->runtimeId);
+                            $elementCount = $this->benchmarkSearchFind($first, $last, $forward, $needle[0], $needle[1] ?? null);
+                            \assert($expectedElementCount === $elementCount, $this->runtimeId);
                         }
                     }
                 }
@@ -380,10 +380,10 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 foreach ([
                     ['4', '7', '0', '9'],
                     ['40', '70', '10', '99'],
-                ] as [$firstItem, $lastItem, $firstNeedle, $lastNeedle]) {
+                ] as [$firstElement, $lastElement, $firstNeedle, $lastNeedle]) {
                     foreach ([true, false] as $forward) {
-                        $itemCount = $this->benchmarkSearchFind($firstItem, $lastItem, $forward, $firstNeedle, $lastNeedle);
-                        \assert(200000 === $itemCount, $this->runtimeId);
+                        $elementCount = $this->benchmarkSearchFind($firstElement, $lastElement, $forward, $firstNeedle, $lastNeedle);
+                        \assert(200000 === $elementCount, $this->runtimeId);
                     }
                 }
 
@@ -395,8 +395,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 ] as [$first, $last, $regexes]) {
                     foreach ($regexes as $regex) {
                         foreach ([true, false] as $forward) {
-                            $itemCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
-                            \assert(0 === $itemCount, $this->runtimeId);
+                            $elementCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
+                            \assert(0 === $elementCount, $this->runtimeId);
                         }
                     }
                 }
@@ -407,10 +407,10 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                     ['0', '9', ['~[24-6]~' => 80000]],
                     ['10', '99', ['~^1~' => 22230, '~0$~' => 20000, '~1~' => 40007, '~[1-3][4-6]~' => 20004]],
                 ] as [$first, $last, $regexes]) {
-                    foreach ($regexes as $regex => $expectedItemCount) {
+                    foreach ($regexes as $regex => $expectedElementCount) {
                         foreach ([true, false] as $forward) {
-                            $itemCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
-                            \assert($expectedItemCount === $itemCount, $this->runtimeId);
+                            $elementCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
+                            \assert($expectedElementCount === $elementCount, $this->runtimeId);
                         }
                     }
                 }
@@ -423,8 +423,8 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
                 ] as [$first, $last, $regexes]) {
                     foreach ($regexes as $regex) {
                         foreach ([true, false] as $forward) {
-                            $itemCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
-                            \assert(200000 === $itemCount, $this->runtimeId);
+                            $elementCount = $this->benchmarkSearchGrep($first, $last, $forward, $regex);
+                            \assert(200000 === $elementCount, $this->runtimeId);
                         }
                     }
                 }
@@ -441,75 +441,75 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     }
 
     private function benchmarkSearchFind(
-        string $firstCyclicItem,
-        string $lastCyclicItem,
+        string $firstCyclicElement,
+        string $lastCyclicElement,
         bool $forward,
         string $firstNeedle,
         ?string $lastNeedle = null
     ): int {
-        $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem, 200000);
+        $bytemap = $this->createCyclicBytemap($firstCyclicElement, $lastCyclicElement, 200000);
         if (null === $lastNeedle) {
-            $items = [$firstNeedle];
+            $elements = [$firstNeedle];
             $needle = $firstNeedle;
         } else {
-            $items = \array_map('strval', \range($firstNeedle, $lastNeedle));
+            $elements = \array_map('strval', \range($firstNeedle, $lastNeedle));
             $needle = \sprintf('%s-%s', $firstNeedle, $lastNeedle);
         }
         $direction = $forward ? 'forward' : 'backward';
 
-        $result = $bytemap->find($items, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
-        $itemCount = 0;
+        $result = $bytemap->find($elements, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
+        $elementCount = 0;
         foreach ($result as $key => $value) {
-            ++$itemCount;
+            ++$elementCount;
         }
         $this->takeSnapshot(\sprintf('After attempting to find %s going %s', $needle, $direction), true);
 
-        return $itemCount;
+        return $elementCount;
     }
 
-    private function benchmarkSearchGrep(string $firstCyclicItem, string $lastCyclicItem, bool $forward, string $regex): int
+    private function benchmarkSearchGrep(string $firstCyclicElement, string $lastCyclicElement, bool $forward, string $regex): int
     {
-        $bytemap = $this->createCyclicBytemap($firstCyclicItem, $lastCyclicItem, 200000);
+        $bytemap = $this->createCyclicBytemap($firstCyclicElement, $lastCyclicElement, 200000);
         $direction = $forward ? 'forward' : 'backward';
 
         $result = $bytemap->grep([$regex], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
-        $itemCount = 0;
+        $elementCount = 0;
         foreach ($result as $key => $value) {
-            ++$itemCount;
+            ++$elementCount;
         }
         $this->takeSnapshot(\sprintf('After attempting to grep %s going %s', $regex, $direction), true);
 
-        return $itemCount;
+        return $elementCount;
     }
 
-    private function createCyclicBytemap(string $firstItem, string $lastItem, ?int $itemCount = null): BytemapInterface
+    private function createCyclicBytemap(string $firstElement, string $lastElement, ?int $elementCount = null): BytemapInterface
     {
-        $bytemap = $this->instantiate($firstItem);
+        $bytemap = $this->instantiate($firstElement);
 
-        if (null === $itemCount) {
-            for ($lastIteration = false, $item = $firstItem;;) {
-                $bytemap[] = $item;
-                ++$item;
-                $item = (string) $item;
-                if ($item === $lastItem) {
+        if (null === $elementCount) {
+            for ($lastIteration = false, $element = $firstElement;;) {
+                $bytemap[] = $element;
+                ++$element;
+                $element = (string) $element;
+                if ($element === $lastElement) {
                     $lastIteration = true;
                 } elseif ($lastIteration) {
                     break;
                 }
             }
         } else {
-            for ($i = 0, $item = $firstItem; $i < $itemCount; ++$i) {
-                $bytemap[] = $item;
-                if ($item === $lastItem) {
-                    $item = $firstItem;
+            for ($i = 0, $element = $firstElement; $i < $elementCount; ++$i) {
+                $bytemap[] = $element;
+                if ($element === $lastElement) {
+                    $element = $firstElement;
                 } else {
-                    ++$item;
-                    $item = (string) $item;
+                    ++$element;
+                    $element = (string) $element;
                 }
             }
         }
-        $format = 'After creating a cyclic bytemap of %s-%s with %d items';
-        $this->takeSnapshot(\sprintf($format, $firstItem, $lastItem, \count($bytemap)), false);
+        $format = 'After creating a cyclic bytemap of %s-%s with %d elements';
+        $this->takeSnapshot(\sprintf($format, $firstElement, $lastElement, \count($bytemap)), false);
 
         return $bytemap;
     }

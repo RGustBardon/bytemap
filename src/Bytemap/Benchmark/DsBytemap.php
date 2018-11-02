@@ -36,46 +36,46 @@ final class DsBytemap extends AbstractBytemap
     // `ArrayAccess`
     public function offsetGet($index): string
     {
-        if (\is_int($index) && $index >= 0 && $index < $this->itemCount) {
+        if (\is_int($index) && $index >= 0 && $index < $this->elementCount) {
             return $this->map[$index];
         }
 
         self::throwOnOffsetGet($index);
     }
 
-    public function offsetSet($index, $item): void
+    public function offsetSet($index, $element): void
     {
-        if (null === $index) {  // `$bytemap[] = $item`
-            $index = $this->itemCount;
+        if (null === $index) {  // `$bytemap[] = $element`
+            $index = $this->elementCount;
         }
 
-        if (\is_int($index) && $index >= 0 && \is_string($item) && \strlen($item) === $this->bytesPerItem) {
-            $unassignedCount = $index - $this->itemCount;
+        if (\is_int($index) && $index >= 0 && \is_string($element) && \strlen($element) === $this->bytesPerElement) {
+            $unassignedCount = $index - $this->elementCount;
             if ($unassignedCount < 0) {
-                // Case 1. Overwrite an existing item.
-                $this->map[$index] = $item;
+                // Case 1. Overwrite an existing element.
+                $this->map[$index] = $element;
             } elseif (0 === $unassignedCount) {
-                // Case 2. Append an item right after the last one.
-                $this->map[] = $item;
-                ++$this->itemCount;
+                // Case 2. Append an element right after the last one.
+                $this->map[] = $element;
+                ++$this->elementCount;
             } else {
-                // Case 3. Append to a gap after the last item. Fill the gap with default items.
-                $this->map->allocate($this->itemCount + $unassignedCount + 1);
+                // Case 3. Append to a gap after the last element. Fill the gap with default elements.
+                $this->map->allocate($this->elementCount + $unassignedCount + 1);
                 for ($i = 0; $i < $unassignedCount; ++$i) {
-                    $this->map[] = $this->defaultItem;
+                    $this->map[] = $this->defaultElement;
                 }
-                $this->map[] = $item;
-                $this->itemCount += $unassignedCount + 1;
+                $this->map[] = $element;
+                $this->elementCount += $unassignedCount + 1;
             }
         } else {
-            self::throwOnOffsetSet($index, $item, $this->bytesPerItem);
+            self::throwOnOffsetSet($index, $element, $this->bytesPerElement);
         }
     }
 
     public function offsetUnset($index): void
     {
-        if (\is_int($index) && $index >= 0 && $index < $this->itemCount) {
-            --$this->itemCount;
+        if (\is_int($index) && $index >= 0 && $index < $this->elementCount) {
+            --$this->elementCount;
             unset($this->map[$index]);
         }
     }
@@ -93,34 +93,34 @@ final class DsBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public function insert(iterable $items, int $firstIndex = -1): void
+    public function insert(iterable $elements, int $firstIndex = -1): void
     {
-        $originalItemCount = $this->itemCount;
+        $originalElementCount = $this->elementCount;
 
-        // Resize the bytemap if the positive first item index is greater than the item count.
-        if ($firstIndex > $this->itemCount) {
-            $this[$firstIndex - 1] = $this->defaultItem;
+        // Resize the bytemap if the positive first element index is greater than the element count.
+        if ($firstIndex > $this->elementCount) {
+            $this[$firstIndex - 1] = $this->defaultElement;
         }
 
         // Allocate the memory.
-        $newSize = $this->calculateNewSize($items, $firstIndex);
+        $newSize = $this->calculateNewSize($elements, $firstIndex);
         if (null !== $newSize) {
             $this->map->allocate($newSize);
         }
 
-        if (-1 === $firstIndex || $firstIndex > $this->itemCount - 1) {
-            $firstIndexToCheck = $this->itemCount;
+        if (-1 === $firstIndex || $firstIndex > $this->elementCount - 1) {
+            $firstIndexToCheck = $this->elementCount;
 
-            // Append the items.
-            $this->map->push(...$items);
+            // Append the elements.
+            $this->map->push(...$elements);
 
-            $this->itemCount = \count($this->map);
-            $this->validateInsertedItems($firstIndexToCheck, $this->itemCount - $firstIndexToCheck, $originalItemCount, $this->itemCount - $originalItemCount);
+            $this->elementCount = \count($this->map);
+            $this->validateInsertedElements($firstIndexToCheck, $this->elementCount - $firstIndexToCheck, $originalElementCount, $this->elementCount - $originalElementCount);
         } else {
             $originalFirstIndex = $firstIndex;
             // Calculate the positive index corresponding to the negative one.
             if ($firstIndex < 0) {
-                $firstIndex += $this->itemCount;
+                $firstIndex += $this->elementCount;
 
                 // Keep the indices within the bounds.
                 if ($firstIndex < 0) {
@@ -128,25 +128,25 @@ final class DsBytemap extends AbstractBytemap
                 }
             }
 
-            // Insert the items.
-            $itemCount = \count($this->map);
-            $this->map->insert($firstIndex, ...$items);
-            $insertedItemCount = \count($this->map) - $itemCount;
-            $this->itemCount += $insertedItemCount;
-            $this->validateInsertedItems($firstIndex, $insertedItemCount, $firstIndex, $insertedItemCount);
+            // Insert the elements.
+            $elementCount = \count($this->map);
+            $this->map->insert($firstIndex, ...$elements);
+            $insertedElementCount = \count($this->map) - $elementCount;
+            $this->elementCount += $insertedElementCount;
+            $this->validateInsertedElements($firstIndex, $insertedElementCount, $firstIndex, $insertedElementCount);
 
-            // Resize the bytemap if the negative first item index is greater than the new item count.
-            if (-$originalFirstIndex > $this->itemCount) {
-                $overflow = -$originalFirstIndex - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
+            // Resize the bytemap if the negative first element index is greater than the new element count.
+            if (-$originalFirstIndex > $this->elementCount) {
+                $overflow = -$originalFirstIndex - $this->elementCount - ($insertedElementCount > 0 ? 0 : 1);
                 if ($overflow > 0) {
-                    $this->map->insert($insertedItemCount, ...(function () use ($overflow): \Generator {
+                    $this->map->insert($insertedElementCount, ...(function () use ($overflow): \Generator {
                         do {
-                            yield $this->defaultItem;
+                            yield $this->defaultElement;
                         } while (--$overflow > 0);
                     })());
                 }
             }
-            $this->itemCount = \count($this->map);
+            $this->elementCount = \count($this->map);
         }
     }
 
@@ -154,25 +154,25 @@ final class DsBytemap extends AbstractBytemap
     {
         self::ensureStream($stream);
 
-        $defaultItem = $this->defaultItem;
+        $defaultElement = $this->defaultElement;
 
         $buffer = '[';
-        for ($i = 0, $penultimate = $this->itemCount - 1; $i < $penultimate; ++$i) {
+        for ($i = 0, $penultimate = $this->elementCount - 1; $i < $penultimate; ++$i) {
             $buffer .= \json_encode($this->map[$i]).',';
             if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
                 self::stream($stream, $buffer);
                 $buffer = '';
             }
         }
-        $buffer .= ($this->itemCount > 0 ? \json_encode($this->map[$i] ?? $defaultItem) : '').']';
+        $buffer .= ($this->elementCount > 0 ? \json_encode($this->map[$i] ?? $defaultElement) : '').']';
         self::stream($stream, $buffer);
     }
 
-    public static function parseJsonStream($jsonStream, $defaultItem): BytemapInterface
+    public static function parseJsonStream($jsonStream, $defaultElement): BytemapInterface
     {
         self::ensureStream($jsonStream);
 
-        $bytemap = new self($defaultItem);
+        $bytemap = new self($defaultElement);
         if (self::hasStreamingParser()) {
             $maxKey = -1;
             $listener = new BytemapListener(function (string $value, ?int $key) use ($bytemap, &$maxKey) {
@@ -186,7 +186,7 @@ final class DsBytemap extends AbstractBytemap
                         if ($unassignedCount > 0) {
                             $bytemap->map->allocate($maxKey + 1);
                             for ($i = 0; $i < $unassignedCount; ++$i) {
-                                $bytemap[] = $bytemap->defaultItem;
+                                $bytemap[] = $bytemap->defaultElement;
                             }
                         }
                         $bytemap[] = $value;
@@ -197,7 +197,7 @@ final class DsBytemap extends AbstractBytemap
             self::parseJsonStreamOnline($jsonStream, $listener);
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
-            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultItem);
+            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultElement);
             $size = \count($map);
             if ($size > 0) {
                 $bytemap->map->allocate($maxKey + 1);
@@ -210,7 +210,7 @@ final class DsBytemap extends AbstractBytemap
                     $lastIndex = -1;
                     foreach ($map as $key => $value) {
                         for ($i = $lastIndex + 1; $i < $key; ++$i) {
-                            $bytemap[$i] = $defaultItem;
+                            $bytemap[$i] = $defaultElement;
                         }
                         $bytemap[$lastIndex = $key] = $value;
                     }
@@ -228,16 +228,16 @@ final class DsBytemap extends AbstractBytemap
         $this->map = new \Ds\Vector();
     }
 
-    protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $elementCount): void
     {
-        $maximumRange = $itemCount - $firstIndex;
+        $maximumRange = $elementCount - $firstIndex;
         if ($howMany >= $maximumRange) {
-            $this->itemCount -= $maximumRange;
+            $this->elementCount -= $maximumRange;
             while (--$maximumRange >= 0) {
                 $this->map->pop();
             }
         } else {
-            $this->itemCount -= $howMany;
+            $this->elementCount -= $howMany;
             $this->map = $this->map->slice(0, $firstIndex)->merge($this->map->slice($firstIndex + $howMany));
         }
     }
@@ -246,11 +246,11 @@ final class DsBytemap extends AbstractBytemap
     {
         parent::deriveProperties();
 
-        $this->itemCount = \count($this->map);
+        $this->elementCount = \count($this->map);
     }
 
-    protected function findArrayItems(
-        array $items,
+    protected function findArrayElements(
+        array $elements,
         bool $whitelist,
         int $howManyToReturn,
         int $howManyToSkip
@@ -258,18 +258,18 @@ final class DsBytemap extends AbstractBytemap
         $map = clone $this->map;
         if ($howManyToReturn > 0) {
             if ($whitelist) {
-                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                    if (isset($items[$item = $map[$i]])) {
-                        yield $i => $item;
+                for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
+                    if (isset($elements[$element = $map[$i]])) {
+                        yield $i => $element;
                         if (0 === --$howManyToReturn) {
                             return;
                         }
                     }
                 }
             } else {
-                for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                    if (!isset($items[$item = $map[$i]])) {
-                        yield $i => $item;
+                for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
+                    if (!isset($elements[$element = $map[$i]])) {
+                        yield $i => $element;
                         if (0 === --$howManyToReturn) {
                             return;
                         }
@@ -277,18 +277,18 @@ final class DsBytemap extends AbstractBytemap
                 }
             }
         } elseif ($whitelist) {
-            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (isset($items[$item = $map[$i]])) {
-                    yield $i => $item;
+            for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (isset($elements[$element = $map[$i]])) {
+                    yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
                     }
                 }
             }
         } else {
-            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!isset($items[$item = $map[$i]])) {
-                    yield $i => $item;
+            for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (!isset($elements[$element = $map[$i]])) {
+                    yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
                     }
@@ -309,15 +309,15 @@ final class DsBytemap extends AbstractBytemap
 
         $clone = clone $this;
         if ($howManyToReturn > 0) {
-            for ($i = $howManyToSkip, $itemCount = $this->itemCount; $i < $itemCount; ++$i) {
-                if (!($whitelist xor $lookup[$item = $clone->map[$i]] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
-                    yield $i => $item;
+            for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
+                if (!($whitelist xor $lookup[$element = $clone->map[$i]] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                    yield $i => $element;
                     if (0 === --$howManyToReturn) {
                         return;
                     }
                 }
                 if (null !== $match) {
-                    $lookup[$item] = $match;
+                    $lookup[$element] = $match;
                     $match = null;
                     if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
                         unset($lookup[\key($lookup)]);
@@ -327,15 +327,15 @@ final class DsBytemap extends AbstractBytemap
                 }
             }
         } else {
-            for ($i = $this->itemCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!($whitelist xor $lookup[$item = $clone->map[$i]] ?? ($match = (null !== \preg_filter($patterns, '', $item))))) {
-                    yield $i => $item;
+            for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
+                if (!($whitelist xor $lookup[$element = $clone->map[$i]] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                    yield $i => $element;
                     if (0 === ++$howManyToReturn) {
                         return;
                     }
                 }
                 if (null !== $match) {
-                    $lookup[$item] = $match;
+                    $lookup[$element] = $match;
                     $match = null;
                     if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
                         unset($lookup[\key($lookup)]);
@@ -347,7 +347,7 @@ final class DsBytemap extends AbstractBytemap
         }
     }
 
-    protected function validateUnserializedItems(): void
+    protected function validateUnserializedElements(): void
     {
         if (!\is_object($this->map) || !($this->map instanceof \Ds\Vector)) {
             $reason = 'Failed to unserialize (the internal representation of a bytemap must be a Ds\\Vector, '.\gettype($this->map).' given)';
@@ -355,36 +355,36 @@ final class DsBytemap extends AbstractBytemap
             throw new \TypeError(self::EXCEPTION_PREFIX.$reason);
         }
 
-        $bytesPerItem = \strlen($this->defaultItem);
-        foreach ($this->map as $item) {
-            if (!\is_string($item)) {
-                throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($item).' given)');
+        $bytesPerElement = \strlen($this->defaultElement);
+        foreach ($this->map as $element) {
+            if (!\is_string($element)) {
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be of type string, '.\gettype($element).' given)');
             }
-            if (\strlen($item) !== $bytesPerItem) {
-                throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given)');
+            if (\strlen($element) !== $bytesPerElement) {
+                throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (value must be exactly '.$bytesPerElement.' bytes, '.\strlen($element).' given)');
             }
         }
     }
 
     // `DsBytemap`
-    protected function validateInsertedItems(
+    protected function validateInsertedElements(
         int $firstIndexToCheck,
         int $howManyToCheck,
         int $firstIndexToRollBack,
         int $howManyToRollBack
         ): void {
-        $bytesPerItem = $this->bytesPerItem;
-        $lastItemIndexToCheck = $firstIndexToCheck + $howManyToCheck;
-        for ($index = $firstIndexToCheck; $index < $lastItemIndexToCheck; ++$index) {
-            if (!\is_string($item = $this->map[$index])) {
+        $bytesPerElement = $this->bytesPerElement;
+        $lastElementIndexToCheck = $firstIndexToCheck + $howManyToCheck;
+        for ($index = $firstIndexToCheck; $index < $lastElementIndexToCheck; ++$index) {
+            if (!\is_string($element = $this->map[$index])) {
                 $this->delete($firstIndexToRollBack, $howManyToRollBack);
 
-                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($element).' given');
             }
-            if (\strlen($item) !== $bytesPerItem) {
+            if (\strlen($element) !== $bytesPerElement) {
                 $this->delete($firstIndexToRollBack, $howManyToRollBack);
 
-                throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+                throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerElement.' bytes, '.\strlen($element).' given');
             }
         }
     }

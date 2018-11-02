@@ -77,14 +77,14 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
 
     public static function nullIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            yield [$impl, $items, null];
+        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
+            yield [$impl, $elements, null];
         }
     }
 
     public static function invalidIndexTypeProvider(): \Generator
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
             foreach ([
                 false, true,
                 0., 1.,
@@ -100,7 +100,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 function (): int { return 0; },
                 function (): \Generator { yield 0; },
             ] as $index) {
-                yield [$impl, $items, $index];
+                yield [$impl, $elements, $index];
             }
         }
     }
@@ -112,26 +112,26 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      *
      * @param mixed $index
      */
-    public function testExistsInvalidType(string $impl, array $items, $index): void
+    public function testExistsInvalidType(string $impl, array $elements, $index): void
     {
-        self::assertFalse(isset(self::instantiate($impl, $items[0])[$index]));
+        self::assertFalse(isset(self::instantiate($impl, $elements[0])[$index]));
     }
 
     public static function negativeIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
-            yield [$impl, $items, 0, -1];
+        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
+            yield [$impl, $elements, 0, -1];
         }
     }
 
     public static function outOfRangeIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
             foreach ([
                 [0, 0],
                 [1, 1],
-            ] as [$itemCount, $index]) {
-                yield [$impl, $items, $itemCount, $index];
+            ] as [$elementCount, $index]) {
+                yield [$impl, $elements, $elementCount, $index];
             }
         }
     }
@@ -141,9 +141,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider negativeIndexProvider
      * @dataProvider outOfRangeIndexProvider
      */
-    public function testExistsOutOfRange(string $impl, array $items, int $itemCount, int $index): void
+    public function testExistsOutOfRange(string $impl, array $elements, int $elementCount, int $index): void
     {
-        self::assertFalse(isset(self::instantiateWithSize($impl, $items, $itemCount)[$index]));
+        self::assertFalse(isset(self::instantiateWithSize($impl, $elements, $elementCount)[$index]));
     }
 
     /**
@@ -157,9 +157,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      *
      * @param mixed $index
      */
-    public function testGetInvalidType(string $impl, array $items, $index): void
+    public function testGetInvalidType(string $impl, array $elements, $index): void
     {
-        self::instantiate($impl, $items[0])[$index];
+        self::instantiate($impl, $elements[0])[$index];
     }
 
     /**
@@ -171,9 +171,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider outOfRangeIndexProvider
      * @expectedException \OutOfRangeException
      */
-    public function testGetOutOfRange(string $impl, array $items, int $itemCount, int $index): void
+    public function testGetOutOfRange(string $impl, array $elements, int $elementCount, int $index): void
     {
-        self::instantiateWithSize($impl, $items, $itemCount)[$index];
+        self::instantiateWithSize($impl, $elements, $elementCount)[$index];
     }
 
     /**
@@ -186,10 +186,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      *
      * @param mixed $index
      */
-    public function testSetInvalidIndexType(string $impl, array $items, $index): void
+    public function testSetInvalidIndexType(string $impl, array $elements, $index): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
-        $bytemap[$index] = $items[0];
+        $bytemap = self::instantiate($impl, $elements[0]);
+        $bytemap[$index] = $elements[0];
     }
 
     /**
@@ -200,10 +200,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider negativeIndexProvider
      * @expectedException \OutOfRangeException
      */
-    public function testSetNegativeIndex(string $impl, array $items, int $itemCount, int $index): void
+    public function testSetNegativeIndex(string $impl, array $elements, int $elementCount, int $index): void
     {
-        $bytemap = self::instantiateWithSize($impl, $items, $itemCount);
-        $bytemap[$index] = $items[0];
+        $bytemap = self::instantiateWithSize($impl, $elements, $elementCount);
+        $bytemap[$index] = $elements[0];
     }
 
     /**
@@ -211,15 +211,15 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\DsBytemap::offsetSet
      * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
      * @covers \Bytemap\Bytemap::offsetSet
-     * @dataProvider invalidItemTypeProvider
+     * @dataProvider invalidElementTypeProvider
      * @expectedException \TypeError
      *
-     * @param mixed $invalidItem
+     * @param mixed $invalidElement
      */
-    public function testSetInvalidItemType(string $impl, array $items, $invalidItem): void
+    public function testSetInvalidElementType(string $impl, array $elements, $invalidElement): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
-        $bytemap[] = $invalidItem;
+        $bytemap = self::instantiate($impl, $elements[0]);
+        $bytemap[] = $invalidElement;
     }
 
     /**
@@ -230,10 +230,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider invalidLengthProvider
      * @expectedException \DomainException
      */
-    public function testSetInvalidLength(string $impl, string $defaultItem, string $invalidItem): void
+    public function testSetInvalidLength(string $impl, string $defaultElement, string $invalidElement): void
     {
-        $bytemap = self::instantiate($impl, $defaultItem);
-        $bytemap[] = $invalidItem;
+        $bytemap = self::instantiate($impl, $defaultElement);
+        $bytemap[] = $invalidElement;
     }
 
     /**
@@ -247,9 +247,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      *
      * @param mixed $index
      */
-    public function testUnsetInvalidType(string $impl, array $items, $index): void
+    public function testUnsetInvalidType(string $impl, array $elements, $index): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         unset($bytemap[$index]);
     }
 
@@ -262,9 +262,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider outOfRangeIndexProvider
      * @doesNotPerformAssertions
      */
-    public function testUnsetOutOfRange(string $impl, array $items, int $itemCount, int $index): void
+    public function testUnsetOutOfRange(string $impl, array $elements, int $elementCount, int $index): void
     {
-        $bytemap = self::instantiateWithSize($impl, $items, $itemCount);
+        $bytemap = self::instantiateWithSize($impl, $elements, $elementCount);
         unset($bytemap[$index]);
     }
 
@@ -284,41 +284,41 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Bytemap::offsetUnset
      * @dataProvider arrayAccessProvider
      */
-    public function testArrayAccess(string $impl, array $items): void
+    public function testArrayAccess(string $impl, array $elements): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         self::assertFalse(isset($bytemap[0]));
         self::assertFalse(isset($bytemap[2]));
 
-        $bytemap[2] = $items[1];
+        $bytemap[2] = $elements[1];
         self::assertTrue(isset($bytemap[0]));
         self::assertTrue(isset($bytemap[2]));
-        self::assertSame($items[0], $bytemap[0]);
-        self::assertSame($items[0], $bytemap[1]);
-        self::assertSame($items[1], $bytemap[2]);
+        self::assertSame($elements[0], $bytemap[0]);
+        self::assertSame($elements[0], $bytemap[1]);
+        self::assertSame($elements[1], $bytemap[2]);
 
-        $bytemap[2] = $items[2];
-        self::assertSame($items[2], $bytemap[2]);
+        $bytemap[2] = $elements[2];
+        self::assertSame($elements[2], $bytemap[2]);
 
         unset($bytemap[2]);
         self::assertFalse(isset($bytemap[2]));
 
         unset($bytemap[0]);
         self::assertTrue(isset($bytemap[0]));
-        self::assertSame($items[0], $bytemap[0]);
+        self::assertSame($elements[0], $bytemap[0]);
 
-        $bytemap = self::instantiate($impl, $items[0]);
-        $bytemap[] = $items[1];
-        $bytemap[] = $items[2];
+        $bytemap = self::instantiate($impl, $elements[0]);
+        $bytemap[] = $elements[1];
+        $bytemap[] = $elements[2];
 
         self::assertTrue(isset($bytemap[0]));
         self::assertTrue(isset($bytemap[1]));
         self::assertFalse(isset($bytemap[2]));
-        self::assertSame($items[1], $bytemap[0]);
-        self::assertSame($items[2], $bytemap[1]);
+        self::assertSame($elements[1], $bytemap[0]);
+        self::assertSame($elements[2], $bytemap[1]);
 
         unset($bytemap[0]);
-        self::assertSame($items[2], $bytemap[0]);
+        self::assertSame($elements[2], $bytemap[0]);
         self::assertFalse(isset($bytemap[1]));
     }
 
@@ -328,18 +328,18 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
-    public function testCountable(string $impl, array $items): void
+    public function testCountable(string $impl, array $elements): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         self::assertCount(0, $bytemap);
 
-        $bytemap[] = $items[1];
+        $bytemap[] = $elements[1];
         self::assertCount(1, $bytemap);
 
-        $bytemap[4] = $items[2];
+        $bytemap[4] = $elements[2];
         self::assertCount(5, $bytemap);
 
-        $bytemap[4] = $items[1];
+        $bytemap[4] = $elements[1];
         self::assertCount(5, $bytemap);
 
         unset($bytemap[1]);
@@ -358,12 +358,12 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider arrayAccessProvider
      * @depends testCountable
      */
-    public function testCloning(string $impl, array $items): void
+    public function testCloning(string $impl, array $elements): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
-        $bytemap[] = $items[1];
-        $bytemap[] = $items[2];
-        $bytemap[] = $items[1];
+        $bytemap = self::instantiate($impl, $elements[0]);
+        $bytemap[] = $elements[1];
+        $bytemap[] = $elements[2];
+        $bytemap[] = $elements[1];
 
         $clone = clone $bytemap;
         $size = \count($clone);
@@ -372,13 +372,13 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
             self::assertSame($bytemap[$i], $clone[$i]);
         }
 
-        $bytemap[] = $items[1];
+        $bytemap[] = $elements[1];
         self::assertCount($size, $clone);
         self::assertCount($size + 1, $bytemap);
         unset($bytemap[$size + 1]);
 
-        self::assertDefaultItem($items[0], $clone, $items[1]);
-        self::assertDefaultItem($items[0], $bytemap, $items[2]);
+        self::assertDefaultElement($elements[0], $clone, $elements[1]);
+        self::assertDefaultElement($elements[0], $bytemap, $elements[2]);
     }
 
     /**
@@ -389,40 +389,40 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider arrayAccessProvider
      * @depends testArrayAccess
      */
-    public function testIteratorAggregate(string $impl, array $items): void
+    public function testIteratorAggregate(string $impl, array $elements): void
     {
-        $sequence = [$items[1], $items[2], $items[1]];
+        $sequence = [$elements[1], $elements[2], $elements[1]];
 
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         foreach ($bytemap as $key => $value) {
             self::fail();
         }
 
-        self::pushItems($bytemap, ...$sequence);
+        self::pushElements($bytemap, ...$sequence);
         self::assertSequence($sequence, $bytemap);
 
         $iterations = [];
-        foreach ($bytemap as $outerKey => $outerItem) {
+        foreach ($bytemap as $outerKey => $outerElement) {
             if (1 === $outerKey) {
-                $bytemap[] = $items[2];
+                $bytemap[] = $elements[2];
             }
             $innerIteration = [];
-            foreach ($bytemap as $innerKey => $innerItem) {
+            foreach ($bytemap as $innerKey => $innerElement) {
                 if (1 === $innerKey) {
-                    $bytemap[2] = $items[0];
+                    $bytemap[2] = $elements[0];
                 }
-                $innerIteration[] = [$innerKey, $innerItem];
+                $innerIteration[] = [$innerKey, $innerElement];
             }
             $iterations[] = $innerIteration;
-            $iterations[] = [$outerKey, $outerItem];
+            $iterations[] = [$outerKey, $outerElement];
         }
         self::assertSame([
-            [[0, $items[1]], [1, $items[2]], [2, $items[1]]],
-            [0, $items[1]],
-            [[0, $items[1]], [1, $items[2]], [2, $items[0]], [3, $items[2]]],
-            [1, $items[2]],
-            [[0, $items[1]], [1, $items[2]], [2, $items[0]], [3, $items[2]]],
-            [2, $items[1]],
+            [[0, $elements[1]], [1, $elements[2]], [2, $elements[1]]],
+            [0, $elements[1]],
+            [[0, $elements[1]], [1, $elements[2]], [2, $elements[0]], [3, $elements[2]]],
+            [1, $elements[2]],
+            [[0, $elements[1]], [1, $elements[2]], [2, $elements[0]], [3, $elements[2]]],
+            [2, $elements[1]],
         ], $iterations);
     }
 
@@ -434,15 +434,15 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider arrayAccessProvider
      * @depends testCountable
      */
-    public function testJsonSerializable(string $impl, array $items): void
+    public function testJsonSerializable(string $impl, array $elements): void
     {
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         self::assertNativeJson([], $bytemap);
 
-        $sequence = [$items[1], $items[2], $items[1]];
-        self::pushItems($bytemap, ...$sequence);
-        $bytemap[4] = $items[0];
-        \array_push($sequence, $items[0], $items[0]);
+        $sequence = [$elements[1], $elements[2], $elements[1]];
+        self::pushElements($bytemap, ...$sequence);
+        $bytemap[4] = $elements[0];
+        \array_push($sequence, $elements[0], $elements[0]);
         self::assertNativeJson($sequence, $bytemap);
     }
 
@@ -554,18 +554,18 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @dataProvider arrayAccessProvider
      * @depends testCountable
      */
-    public function testSerializable(string $impl, array $items): void
+    public function testSerializable(string $impl, array $elements): void
     {
-        $sequence = [$items[1], $items[2], $items[1], $items[0], $items[0]];
+        $sequence = [$elements[1], $elements[2], $elements[1], $elements[0], $elements[0]];
 
-        $bytemap = self::instantiate($impl, $items[0]);
-        self::pushItems($bytemap, ...$sequence);
+        $bytemap = self::instantiate($impl, $elements[0]);
+        self::pushElements($bytemap, ...$sequence);
 
         $copy = \unserialize(\serialize($bytemap), ['allowed_classes' => [$impl]]);
         self::assertNotSame($bytemap, $copy);
         self::assertSequence($sequence, $copy);
-        self::assertDefaultItem($items[0], $copy, $items[1]);
-        self::assertDefaultItem($items[0], $bytemap, $items[2]);
+        self::assertDefaultElement($elements[0], $copy, $elements[1]);
+        self::assertDefaultElement($elements[0], $bytemap, $elements[2]);
     }
 
     private static function assertNativeJson($expected, $actual): void

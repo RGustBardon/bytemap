@@ -6,10 +6,10 @@
 
 ## Differences to built-in arrays
 
-- Each item of a bytemap is a scalar of the same type and the same length.
-- The index of the first item of a bytemap is `0`.
-- The index of any other item is the index of the previous item plus one.
-- A default value is assigned to all the items that have not been assigned yet.
+- Each element of a bytemap is a scalar of the same type and the same length.
+- The index of the first element of a bytemap is `0`.
+- The index of any other element is the index of the previous element plus one.
+- A default value is assigned to all the elements that have not been assigned yet.
 - The internal representation of a bytemap is a string.
 
 ### Author

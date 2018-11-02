@@ -31,7 +31,7 @@ final class SearchTest extends AbstractTestOfBytemap
             foreach ([
                 ['z', 'x', 'y', 'w', 'u', 't'],
                 ['zx', 'xy', 'yy', 'wy', 'ut', 'tu'],
-            ] as $items) {
+            ] as $elements) {
                 foreach ([
                     [[], [], false, true, -1, null, []],
                     [[], [], false, true, 0, null, []],
@@ -112,7 +112,7 @@ final class SearchTest extends AbstractTestOfBytemap
                     [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
                     [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, -42, []],
                 ] as [$subject, $query, $generator, $whitelist, $howMany, $startAfter, $expected]) {
-                    yield [$impl, $items, $subject, $query, $generator, $whitelist, $howMany, $startAfter, $expected];
+                    yield [$impl, $elements, $subject, $query, $generator, $whitelist, $howMany, $startAfter, $expected];
                 }
             }
         }
@@ -124,7 +124,7 @@ final class SearchTest extends AbstractTestOfBytemap
      */
     public function testFinding(
         string $impl,
-        array $items,
+        array $elements,
         array $subject,
         ?array $query,
         bool $generator,
@@ -135,19 +135,19 @@ final class SearchTest extends AbstractTestOfBytemap
     ): void {
         $expectedSequence = [];
         foreach ($expected as $index => $key) {
-            $expectedSequence[$index] = $items[$key];
+            $expectedSequence[$index] = $elements[$key];
         }
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         foreach ($subject as $index => $key) {
             if (null !== $key) {
-                $bytemap[$index] = $items[$key];
+                $bytemap[$index] = $elements[$key];
             }
         }
         if (null !== $query) {
             $queryIndices = $query;
-            $query = (function () use ($items, $queryIndices) {
+            $query = (function () use ($elements, $queryIndices) {
                 foreach ($queryIndices as $key) {
-                    yield $items[$key];
+                    yield $elements[$key];
                 }
             })();
             if (!$generator) {
@@ -174,10 +174,10 @@ final class SearchTest extends AbstractTestOfBytemap
     public function testFindingCloning(string $impl, bool $forward): void
     {
         $bytemap = self::instantiate($impl, "\x0");
-        self::pushItems($bytemap, 'a', 'b', 'c', 'a', 'b', 'c');
+        self::pushElements($bytemap, 'a', 'b', 'c', 'a', 'b', 'c');
 
         $matchCount = 0;
-        foreach ($bytemap->find(['a', 'c'], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $item) {
+        foreach ($bytemap->find(['a', 'c'], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $element) {
             ++$matchCount;
             if (1 === $matchCount) {
                 $bytemap[1] = 'a';
@@ -200,7 +200,7 @@ final class SearchTest extends AbstractTestOfBytemap
     public static function greppingProvider(): \Generator
     {
         foreach (self::implementationProvider() as [$impl]) {
-            $items = ['z', 'x', 'y', 'w', 'u', 't'];
+            $elements = ['z', 'x', 'y', 'w', 'u', 't'];
             foreach ([
                 [[], ['~~'], false, 1, null, []],
                 [[], ['~~'], true, 1, null, []],
@@ -263,10 +263,10 @@ final class SearchTest extends AbstractTestOfBytemap
                 [[1, 2, 3, 4, 5, 1, 2], ['~z~'], false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
                 [[1, 2, 3, 4, 5, 1, 2], ['~z~'], false, -7, -42, []],
             ] as [$subject, $patterns, $whitelist, $howMany, $startAfter, $expected]) {
-                yield [$impl, $items, $subject, $patterns, $whitelist, $howMany, $startAfter, $expected];
+                yield [$impl, $elements, $subject, $patterns, $whitelist, $howMany, $startAfter, $expected];
             }
 
-            $items = ['zx', 'xy', 'yy', 'wy', 'wx', 'tu'];
+            $elements = ['zx', 'xy', 'yy', 'wy', 'wx', 'tu'];
             foreach ([
                 [[], ['~~'], false, 1, null, []],
                 [[], ['~~'], true, 1, null, []],
@@ -334,7 +334,7 @@ final class SearchTest extends AbstractTestOfBytemap
                 [[1, 2, 3, 4, 5, 1, 2], ['~zx~'], false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
                 [[1, 2, 3, 4, 5, 1, 2], ['~zx~'], false, -7, -42, []],
             ] as [$subject, $patterns, $whitelist, $howMany, $startAfter, $expected]) {
-                yield [$impl, $items, $subject, $patterns, $whitelist, $howMany, $startAfter, $expected];
+                yield [$impl, $elements, $subject, $patterns, $whitelist, $howMany, $startAfter, $expected];
             }
         }
     }
@@ -345,7 +345,7 @@ final class SearchTest extends AbstractTestOfBytemap
      */
     public function testGrepping(
         string $impl,
-        array $items,
+        array $elements,
         array $subject,
         array $patterns,
         bool $whitelist,
@@ -355,12 +355,12 @@ final class SearchTest extends AbstractTestOfBytemap
     ): void {
         $expectedSequence = [];
         foreach ($expected as $index => $key) {
-            $expectedSequence[$index] = $items[$key];
+            $expectedSequence[$index] = $elements[$key];
         }
-        $bytemap = self::instantiate($impl, $items[0]);
+        $bytemap = self::instantiate($impl, $elements[0]);
         foreach ($subject as $index => $key) {
             if (null !== $key) {
-                $bytemap[$index] = $items[$key];
+                $bytemap[$index] = $elements[$key];
             }
         }
         self::assertSame($expectedSequence, \iterator_to_array($bytemap->grep($patterns, $whitelist, $howMany, $startAfter)));
@@ -375,15 +375,15 @@ final class SearchTest extends AbstractTestOfBytemap
     {
         $bytemap = self::instantiate($impl, "\x0\x0\x0");
 
-        // The number of unique items should exceed `AbstractBytemap::GREP_MAXIMUM_LOOKUP_SIZE`.
-        for ($item = 'aaa'; $item <= 'pzz'; ++$item) {  // 16 * 26 * 26 = 10816 items.
-            $bytemap[] = $item;
+        // The number of unique elements should exceed `AbstractBytemap::GREP_MAXIMUM_LOOKUP_SIZE`.
+        for ($element = 'aaa'; $element <= 'pzz'; ++$element) {  // 16 * 26 * 26 = 10816 elements.
+            $bytemap[] = $element;
         }
         $bytemap[0] = 'akk';
         $bytemap[] = 'akk';
         $pattern = '~(?<![c-d])(?<=[a-f])([k-p])(?=\\1)(?![m-n])~';  // [abef](kk|ll|oo|pp)
         $matchCount = 0;
-        foreach ($bytemap->grep([$pattern], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $item) {
+        foreach ($bytemap->grep([$pattern], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $element) {
             ++$matchCount;
             if (1 === $matchCount) {
                 $bytemap[1] = 'akk';

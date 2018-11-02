@@ -22,13 +22,13 @@ class BytemapListener implements Listener
 {
     private const STATE_INITIAL = 'Initial';
     private const STATE_DOCUMENT_STARTED = 'DocumentStarted';
-    private const STATE_AWAITING_ITEM = 'AwaitingItem';
+    private const STATE_AWAITING_ELEMENT = 'AwaitingElement';
     private const STATE_DOCUMENT_ENDED = 'DocumentEnded';
 
     private const TRANSITIONS = [
         self::STATE_INITIAL => self::STATE_DOCUMENT_STARTED,
-        self::STATE_DOCUMENT_STARTED => self::STATE_AWAITING_ITEM,
-        self::STATE_AWAITING_ITEM => self::STATE_DOCUMENT_ENDED,
+        self::STATE_DOCUMENT_STARTED => self::STATE_AWAITING_ELEMENT,
+        self::STATE_AWAITING_ELEMENT => self::STATE_DOCUMENT_ENDED,
         self::STATE_DOCUMENT_ENDED => self::STATE_INITIAL,
     ];
 
@@ -54,7 +54,7 @@ class BytemapListener implements Listener
 
     public function startObject()
     {
-        $this->transition(self::STATE_AWAITING_ITEM);
+        $this->transition(self::STATE_AWAITING_ELEMENT);
     }
 
     public function endObject()
@@ -64,7 +64,7 @@ class BytemapListener implements Listener
 
     public function startArray()
     {
-        $this->transition(self::STATE_AWAITING_ITEM);
+        $this->transition(self::STATE_AWAITING_ELEMENT);
     }
 
     public function endArray()

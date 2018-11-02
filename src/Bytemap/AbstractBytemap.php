@@ -30,21 +30,21 @@ abstract class AbstractBytemap implements BytemapInterface
     protected const UNSERIALIZED_CLASSES = false;
 
     /** @var string */
-    protected $defaultItem;
+    protected $defaultElement;
     /** @var int */
-    protected $bytesPerItem;
+    protected $bytesPerElement;
 
     /** @var int */
-    protected $itemCount = 0;
+    protected $elementCount = 0;
     protected $map;
 
-    public function __construct(string $defaultItem)
+    public function __construct(string $defaultElement)
     {
-        if ('' === $defaultItem) {
-            throw new \DomainException(self::EXCEPTION_PREFIX.'The default item cannot be an empty string');
+        if ('' === $defaultElement) {
+            throw new \DomainException(self::EXCEPTION_PREFIX.'The default element cannot be an empty string');
         }
 
-        $this->defaultItem = $defaultItem;
+        $this->defaultElement = $defaultElement;
         $this->createEmptyMap();
 
         $this->deriveProperties();
@@ -74,31 +74,31 @@ abstract class AbstractBytemap implements BytemapInterface
     // `ArrayAccess`
     final public function offsetExists($index): bool
     {
-        return \is_int($index) && $index >= 0 && $index < $this->itemCount;
+        return \is_int($index) && $index >= 0 && $index < $this->elementCount;
     }
 
     // `Countable`
     final public function count(): int
     {
-        return $this->itemCount;
+        return $this->elementCount;
     }
 
     // `Serializable`
     public function serialize(): string
     {
-        return \serialize([$this->defaultItem, $this->map]);
+        return \serialize([$this->defaultElement, $this->map]);
     }
 
     public function unserialize($serialized)
     {
         $this->unserializeAndValidate($serialized);
-        $this->validateUnserializedItems();
+        $this->validateUnserializedElements();
         $this->deriveProperties();
     }
 
     // `BytemapInterface`
     public function find(
-        ?iterable $items = null,
+        ?iterable $elements = null,
         bool $whitelist = true,
         int $howMany = \PHP_INT_MAX,
         ?int $startAfter = null
@@ -112,14 +112,14 @@ abstract class AbstractBytemap implements BytemapInterface
             return;
         }
 
-        if (null === $items) {
-            $needles = [$this->defaultItem => true];
+        if (null === $elements) {
+            $needles = [$this->defaultElement => true];
             $whitelist = !$whitelist;
         } else {
             $needles = [];
-            $bytesPerItem = $this->bytesPerItem;
-            foreach ($items as $value) {
-                if (\is_string($value) && \strlen($value) === $bytesPerItem) {
+            $bytesPerElement = $this->bytesPerElement;
+            foreach ($elements as $value) {
+                if (\is_string($value) && \strlen($value) === $bytesPerElement) {
                     $needles[$value] = true;
                 }
             }
@@ -129,7 +129,7 @@ abstract class AbstractBytemap implements BytemapInterface
             return;
         }
 
-        yield from $this->findArrayItems($needles, $whitelist, $howMany, $howManyToSkip);
+        yield from $this->findArrayElements($needles, $whitelist, $howMany, $howManyToSkip);
     }
 
     public function grep(
@@ -154,7 +154,7 @@ abstract class AbstractBytemap implements BytemapInterface
         \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
             $errorMessage = $errstr;
         });
-        if (null === \preg_filter($patterns, '', $this->defaultItem)) {
+        if (null === \preg_filter($patterns, '', $this->defaultElement)) {
             $pregLastError = \preg_last_error();
             if (\PREG_NO_ERROR !== $pregLastError) {
                 $constants = \get_defined_constants(true)['pcre'];
@@ -178,7 +178,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         $patterns = \preg_filter('~$~', 'S', $patterns);
-        if ($this->bytesPerItem > 1) {
+        if ($this->bytesPerElement > 1) {
             yield from $this->grepMultibyte($patterns, $whitelist, $howMany, $howManyToSkip);
         } else {
             $whitelistNeedles = [];
@@ -192,26 +192,26 @@ abstract class AbstractBytemap implements BytemapInterface
                 }
             }
             $whitelist = \count($whitelistNeedles) <= 128;
-            yield from $this->findArrayItems($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany, $howManyToSkip);
+            yield from $this->findArrayElements($whitelist ? $whitelistNeedles : $blacklistNeedles, $whitelist, $howMany, $howManyToSkip);
         }
     }
 
     final public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void
     {
-        $itemCount = $this->itemCount;
+        $elementCount = $this->elementCount;
 
         // Check if there is anything to delete.
-        if ($howMany < 1 || 0 === $itemCount) {
+        if ($howMany < 1 || 0 === $elementCount) {
             return;
         }
 
         // Calculate the positive index corresponding to the negative one.
         if ($firstIndex < 0) {
-            $firstIndex += $itemCount;
+            $firstIndex += $elementCount;
         }
 
-        // Delete the items.
-        $this->deleteWithNonNegativeIndex(\max(0, $firstIndex), $howMany, $itemCount);
+        // Delete the elements.
+        $this->deleteWithNonNegativeIndex(\max(0, $firstIndex), $howMany, $elementCount);
     }
 
     // `AbstractBytemap`
@@ -222,22 +222,22 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         if ($startAfter < 0) {
-            $startAfter += $this->itemCount;
+            $startAfter += $this->elementCount;
         }
 
         if ($searchForwards) {
-            return $startAfter < $this->itemCount - 1 ? \max(0, $startAfter + 1) : null;
+            return $startAfter < $this->elementCount - 1 ? \max(0, $startAfter + 1) : null;
         }
 
-        return $startAfter > 0 ? \max(0, $this->itemCount - $startAfter) : null;
+        return $startAfter > 0 ? \max(0, $this->elementCount - $startAfter) : null;
     }
 
-    final protected function calculateNewSize(iterable $additionalItems, int $firstIndex = -1): ?int
+    final protected function calculateNewSize(iterable $additionalElements, int $firstIndex = -1): ?int
     {
         // Assume that no gap exists between the tail of the bytemap and `$firstIndex`.
 
-        if (\is_array($additionalItems) || $additionalItems instanceof \Countable) {
-            return $this->itemCount + \count($additionalItems);
+        if (\is_array($additionalElements) || $additionalElements instanceof \Countable) {
+            return $this->elementCount + \count($additionalElements);
         }
 
         return null;
@@ -245,7 +245,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     protected function deriveProperties(): void
     {
-        $this->bytesPerItem = \strlen($this->defaultItem);
+        $this->bytesPerElement = \strlen($this->defaultElement);
     }
 
     final protected function throwOnOffsetGet($index): void
@@ -254,11 +254,11 @@ abstract class AbstractBytemap implements BytemapInterface
             throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type int, '.\gettype($index).' given');
         }
 
-        if (0 === $this->itemCount) {
+        if (0 === $this->elementCount) {
             throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'The container is empty, so index '.$index.' does not exist');
         }
 
-        throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Index out of range: '.$index.', expected 0 <= x <= '.($this->itemCount - 1));
+        throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Index out of range: '.$index.', expected 0 <= x <= '.($this->elementCount - 1));
     }
 
     protected function unserializeAndValidate(string $serialized): void
@@ -277,13 +277,13 @@ abstract class AbstractBytemap implements BytemapInterface
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize (expected an array of two elements)');
         }
 
-        [$this->defaultItem, $this->map] = $result;
+        [$this->defaultElement, $this->map] = $result;
 
-        if (!\is_string($this->defaultItem)) {
-            throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item must be of type string, '.\gettype($this->defaultItem).' given)');
+        if (!\is_string($this->defaultElement)) {
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the default element must be of type string, '.\gettype($this->defaultElement).' given)');
         }
-        if ('' === $this->defaultItem) {
-            throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default item cannot be an empty string)');
+        if ('' === $this->defaultElement) {
+            throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default element cannot be an empty string)');
         }
     }
 
@@ -376,7 +376,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    protected static function throwOnOffsetSet($index, $item, int $bytesPerItem): void
+    protected static function throwOnOffsetSet($index, $element, int $bytesPerElement): void
     {
         if (!\is_int($index)) {
             throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type integer, '.\gettype($index).' given');
@@ -386,14 +386,14 @@ abstract class AbstractBytemap implements BytemapInterface
             throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Negative index: '.$index);
         }
 
-        if (!\is_string($item)) {
-            throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
+        if (!\is_string($element)) {
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($element).' given');
         }
 
-        throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
+        throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerElement.' bytes, '.\strlen($element).' given');
     }
 
-    protected static function validateMapAndGetMaxKey($map, string $defaultItem): array
+    protected static function validateMapAndGetMaxKey($map, string $defaultElement): array
     {
         if (!\is_array($map)) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Invalid JSON (expected an array or an object, '.\gettype($map).' given)');
@@ -401,16 +401,16 @@ abstract class AbstractBytemap implements BytemapInterface
 
         $sorted = true;
         $maxKey = -1;
-        $bytesPerItem = \strlen($defaultItem);
-        foreach ($map as $key => $item) {
-            if (\is_int($key) && $key >= 0 && \is_string($item) && \strlen($item) === $bytesPerItem) {
+        $bytesPerElement = \strlen($defaultElement);
+        foreach ($map as $key => $element) {
+            if (\is_int($key) && $key >= 0 && \is_string($element) && \strlen($element) === $bytesPerElement) {
                 if ($maxKey < $key) {
                     $maxKey = $key;
                 } else {
                     $sorted = false;
                 }
             } else {
-                self::throwOnOffsetSet($key, $item, $bytesPerItem);
+                self::throwOnOffsetSet($key, $element, $bytesPerElement);
             }
         }
 
@@ -419,10 +419,10 @@ abstract class AbstractBytemap implements BytemapInterface
 
     abstract protected function createEmptyMap(): void;
 
-    abstract protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $itemCount): void;
+    abstract protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $elementCount): void;
 
-    abstract protected function findArrayItems(
-        array $items,
+    abstract protected function findArrayElements(
+        array $elements,
         bool $whitelist,
         int $howManyToReturn,
         int $howManyToSkip
@@ -435,5 +435,5 @@ abstract class AbstractBytemap implements BytemapInterface
         int $howManyToSkip
         ): \Generator;
 
-    abstract protected function validateUnserializedItems(): void;
+    abstract protected function validateUnserializedElements(): void;
 }

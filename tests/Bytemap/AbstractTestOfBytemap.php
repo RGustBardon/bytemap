@@ -43,15 +43,15 @@ abstract class AbstractTestOfBytemap extends TestCase
             foreach ([
                 ['b', 'd', 'f'],
                 ['bd', 'df', 'gg'],
-            ] as $items) {
-                yield [$impl, $items];
+            ] as $elements) {
+                yield [$impl, $elements];
             }
         }
     }
 
-    public static function invalidItemTypeProvider(): \Generator
+    public static function invalidElementTypeProvider(): \Generator
     {
-        foreach (self::arrayAccessProvider() as [$impl, $items]) {
+        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
             foreach ([
                 false, true,
                 0, 1, 10, 42,
@@ -66,8 +66,8 @@ abstract class AbstractTestOfBytemap extends TestCase
                 \fopen('php://memory', 'rb'),
                 function (): int { return 0; },
                 function (): \Generator { yield 0; },
-            ] as $invalidItem) {
-                yield [$impl, $items, $invalidItem];
+            ] as $invalidElement) {
+                yield [$impl, $elements, $invalidElement];
             }
         }
     }
@@ -85,8 +85,8 @@ abstract class AbstractTestOfBytemap extends TestCase
                 ['ab', 'abc'],
                 ['ab', 'ab '],
                 ['ab', ' ab'],
-            ] as [$defaultItem, $invalidItem]) {
-                yield [$impl, $defaultItem, $invalidItem];
+            ] as [$defaultElement, $invalidElement]) {
+                yield [$impl, $defaultElement, $invalidElement];
             }
         }
     }
@@ -96,38 +96,38 @@ abstract class AbstractTestOfBytemap extends TestCase
         return new $impl(...$args);
     }
 
-    protected static function instantiateWithSize(string $impl, array $items, int $size): BytemapInterface
+    protected static function instantiateWithSize(string $impl, array $elements, int $size): BytemapInterface
     {
-        $bytemap = self::instantiate($impl, $items[0]);
-        for ($i = 0, $sizeOfSeed = \count($items); $i < $size; ++$i) {
-            $bytemap[$i] = $items[$i % $sizeOfSeed];
+        $bytemap = self::instantiate($impl, $elements[0]);
+        for ($i = 0, $sizeOfSeed = \count($elements); $i < $size; ++$i) {
+            $bytemap[$i] = $elements[$i % $sizeOfSeed];
         }
 
         return $bytemap;
     }
 
-    protected static function pushItems(BytemapInterface $bytemap, ...$items): void
+    protected static function pushElements(BytemapInterface $bytemap, ...$elements): void
     {
-        foreach ($items as $item) {
-            $bytemap[] = $item;
+        foreach ($elements as $element) {
+            $bytemap[] = $element;
         }
     }
 
     /**
-     * Ensure that the information on the default item is preserved when cloning and serializing.
+     * Ensure that the information on the default element is preserved when cloning and serializing.
      *
-     * @param bool|int|string $defaultItem
-     * @param bool|int|string $newItem
+     * @param bool|int|string $defaultElement
+     * @param bool|int|string $newElement
      */
-    protected static function assertDefaultItem($defaultItem, BytemapInterface $bytemap, $newItem): void
+    protected static function assertDefaultElement($defaultElement, BytemapInterface $bytemap, $newElement): void
     {
-        $indexOfDefaultItem = \count($bytemap);
-        $indexOfNewItem = $indexOfDefaultItem + 1;
-        $bytemap[$indexOfNewItem] = $newItem;
-        self::assertSame($defaultItem, $bytemap[$indexOfDefaultItem]);
-        self::assertSame($newItem, $bytemap[$indexOfNewItem]);
-        unset($bytemap[$indexOfNewItem]);
-        unset($bytemap[$indexOfDefaultItem]);
+        $indexOfDefaultElement = \count($bytemap);
+        $indexOfNewElement = $indexOfDefaultElement + 1;
+        $bytemap[$indexOfNewElement] = $newElement;
+        self::assertSame($defaultElement, $bytemap[$indexOfDefaultElement]);
+        self::assertSame($newElement, $bytemap[$indexOfNewElement]);
+        unset($bytemap[$indexOfNewElement]);
+        unset($bytemap[$indexOfDefaultElement]);
     }
 
     protected static function assertSequence(array $sequence, BytemapInterface $bytemap): void

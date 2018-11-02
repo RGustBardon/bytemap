@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Bytemap;
 
 /**
- * A vector of values which belong to the same well-defined data domain.
+ * A vector of elements which belong to the same well-defined data domain.
  *
  * In addition to the exceptions thrown by the documented methods,
  * the following exceptions may be thrown:
@@ -38,65 +38,65 @@ namespace Bytemap;
 interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
 {
     /**
-     * Returns the items that match a certain whitelist or a certain blacklist.
+     * Returns the elements that match a certain whitelist or a certain blacklist.
      *
      * Values are compared strictly.
      *
-     * @param ?iterable $items      the items to look for (whitelist) or to ignore (blacklist).
-     *                              `null` means all the items except for the default one
+     * @param ?iterable $elements   the elements to look for (whitelist) or to ignore (blacklist).
+     *                              `null` means all the elements except for the default one
      * @param bool      $whitelist  `true` if the first argument is a whitelist
      * @param int       $howMany    The maximum number of matches. By default, all the matches are included.
      *                              If negative, the search starts from the end.
-     * @param ?int      $startAfter the index of the item after which the search should commence.
-     *                              `null` means that the search will start from the first item of the
-     *                              bytemap (if `$howMany` is positive) or from the last item of the
+     * @param ?int      $startAfter the index of the element after which the search should commence.
+     *                              `null` means that the search will start from the first element of the
+     *                              bytemap (if `$howMany` is positive) or from the last element of the
      *                              bytemap (if `$howMany` is negative)
      *
-     * @return \Generator items found (including their keys)
+     * @return \Generator elements found (including their keys)
      */
-    public function find(?iterable $items = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
+    public function find(?iterable $elements = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
 
     /**
-     * Returns the items that either match or do not match any of certain POSIX regular expressions.
+     * Returns the elements that either match or do not match any of certain POSIX regular expressions.
      *
-     * @param iterable $patterns   POSIX regular expressions that the items will be tested against
+     * @param iterable $patterns   POSIX regular expressions that the elements will be tested against
      * @param bool     $whitelist  `true` if the first argument represents a whitelist
      * @param int      $howMany    The maximum number of matches. By default, all the matches are included.
      *                             If negative, the search starts from the end.
-     * @param ?int     $startAfter the index of the item after which the search should commence.
-     *                             `null` means that the search will start from the first item of the
-     *                             bytemap (if `$howMany` is positive) or from the last item of the
+     * @param ?int     $startAfter the index of the element after which the search should commence.
+     *                             `null` means that the search will start from the first element of the
+     *                             bytemap (if `$howMany` is positive) or from the last element of the
      *                             bytemap (if `$howMany` is negative)
      *
      * @throws \UnexpectedValueException if any pattern fails to compile
      *
-     * @return \Generator items found (including their keys)
+     * @return \Generator elements found (including their keys)
      */
     public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
 
     /**
-     * Inserts items at a certain index.
+     * Inserts elements at a certain index.
      *
-     * Subsequent bytemap items are shifted right by the number of items inserted.
+     * Subsequent bytemap elements are shifted right by the number of elements inserted.
      *
-     * @param iterable $items      The items to be inserted. Keys are ignored.
-     * @param int      $firstIndex the index that the first newly inserted item is going to have.
-     *                             If negative, `-1` represents the last item, `-2` the item preceding it, etc
+     * @param iterable $elements   The elements to be inserted. Keys are ignored.
+     * @param int      $firstIndex the index that the first newly inserted element is going to have.
+     *                             If negative, `-1` represents the last element, `-2` the element preceding it, etc
      *
-     * @throws \TypeError       if any item that is to be inserted is not of the expected type
-     * @throws \DomainException if any item found in the JSON stream is of the expected type,
+     * @throws \TypeError       if any element that is to be inserted is not of the expected type
+     * @throws \DomainException if any element found in the JSON stream is of the expected type,
      *                          but does not belong to the data domain of the bytemap
      */
-    public function insert(iterable $items, int $firstIndex = -1): void;
+    public function insert(iterable $elements, int $firstIndex = -1): void;
 
     /**
-     * Delete a certain number of items.
+     * Delete a certain number of elements.
      *
-     * Subsequent bytemap items are shifted left by the number of items deleted.
+     * Subsequent bytemap elements are shifted left by the number of elements deleted.
      *
-     * @param int $firstIndex the index of the first item that is to be deleted.
-     *                        If negative, `-1` represents the last item, `-2` the item preceding it, etc
-     * @param int $howMany    the number of items to be deleted from the bytemap
+     * @param int $firstIndex the index of the first element that is to be deleted.
+     *                        If negative, `-1` represents the last element, `-2` the element preceding it, etc
+     * @param int $howMany    the number of elements to be deleted from the bytemap
      */
     public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void;
 
@@ -119,21 +119,21 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * The keys must be natural numbers.
      * The decoded values must be strings of the same length.
      *
-     * @param resource $jsonStream  a stream with JSON data
-     * @param string   $defaultItem the default item of the resulting bytemap
+     * @param resource $jsonStream     a stream with JSON data
+     * @param string   $defaultElement the default element of the resulting bytemap
      *
-     * @throws \TypeError                if the argument is not an open resource
-     * @throws \InvalidArgumentException if the argument is an open resource that is not a stream
+     * @throws \TypeError                if `$jsonStream` is not an open resource
+     * @throws \InvalidArgumentException if `$jsonStream` is an open resource that is not a stream
      * @throws \RuntimeException         if the stream cannot be read
      * @throws \UnexpectedValueException if the stream cannot be parsed as JSON
      * @throws \UnexpectedValueException if the parsed JSON stream has unexpected structure
      * @throws \TypeError                if any index found in the JSON stream is not an integer
      * @throws \OutOfRangeException      if any integer index found in the JSON stream is negative
-     * @throws \TypeError                if any item found in the JSON stream is not of the expected type
-     * @throws \DomainException          if any item found in the JSON stream is of the expected type,
+     * @throws \TypeError                if any element found in the JSON stream is not of the expected type
+     * @throws \DomainException          if any element found in the JSON stream is of the expected type,
      *                                   but does not belong to the data domain of the bytemap
      *
      * @return self a bytemap corresponding to the JSON data
      */
-    public static function parseJsonStream($jsonStream, $defaultItem): self;
+    public static function parseJsonStream($jsonStream, $defaultElement): self;
 }
