@@ -39,28 +39,28 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public function testConstructor(): void
     {
-        $values = ['cd', 'xy', 'ef', 'ef'];
-        self::assertSame($values, self::instantiate(...$values)->exportArray());
+        $elements = ['cd', 'xy', 'ef', 'ef'];
+        self::assertSame($elements, self::instantiate(...$elements)->exportArray());
     }
 
     public function testClone(): void
     {
-        $values = ['cd', 'xy', 'ef', 'ef'];
-        $arrayProxy = self::instantiate(...$values);
+        $elements = ['cd', 'xy', 'ef', 'ef'];
+        $arrayProxy = self::instantiate(...$elements);
         $clone = clone $arrayProxy;
         self::assertNotSame($arrayProxy, $clone);
         $clone[] = 'bb';
-        self::assertSame($values, $arrayProxy->exportArray());
-        self::assertSame(\array_merge($values, ['bb']), $clone->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
+        self::assertSame(\array_merge($elements, ['bb']), $clone->exportArray());
     }
 
     public function testWrapUnwrap(): void
     {
-        $values = ['cd', 'xy', 'ef', 'ef'];
+        $elements = ['cd', 'xy', 'ef', 'ef'];
         $bytemap = new Bytemap('ab');
-        $bytemap->insert($values);
+        $bytemap->insert($elements);
         $arrayProxy = self::instantiate()::wrap($bytemap);
-        self::assertSame($values, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
 
         $arrayProxy[] = 'bb';
         self::assertSame($bytemap, $arrayProxy->unwrap());
@@ -68,9 +68,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public function testExportArray(): void
     {
-        $values = ['cd', 'xy', 'ef', 'ef'];
-        $arrayProxy = self::instantiate(...$values);
-        self::assertSame($values, $arrayProxy->exportArray());
+        $elements = ['cd', 'xy', 'ef', 'ef'];
+        $arrayProxy = self::instantiate(...$elements);
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public function testImport(): void
@@ -334,8 +334,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public function testMerge(): void
     {
-        $values = ['cd', 'xy', 'ef', 'ef'];
-        $arrayProxy = self::instantiate(...$values);
+        $elements = ['cd', 'xy', 'ef', 'ef'];
+        $arrayProxy = self::instantiate(...$elements);
         $array = ['a1', 'a2', 'a3'];
         $bytemap = new Bytemap('cd');
         $bytemap->insert(['b1', 'b2']);
@@ -348,7 +348,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             'b1', 'b2',
             'g1', 'g2', 'g3',
         ], \iterator_to_array($arrayProxy->merge($array, $bytemap, $generator())));
-        self::assertSame($values, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public function testNatCaseSort(): void
@@ -377,12 +377,12 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public function testPad(): void
     {
-        $values = ['cd', 'xy', 'ef', 'ef'];
-        $arrayProxy = self::instantiate(...$values);
-        self::assertSame($values, \iterator_to_array($arrayProxy->pad(2, 'bb')));
-        self::assertSame($values + [4 => 'bb', 5 => 'bb'], \iterator_to_array($arrayProxy->pad(6, 'bb')));
-        self::assertSame(\array_merge(['bb', 'bb'], $values), \iterator_to_array($arrayProxy->pad(-6, 'bb')));
-        self::assertSame($values, $arrayProxy->exportArray());
+        $elements = ['cd', 'xy', 'ef', 'ef'];
+        $arrayProxy = self::instantiate(...$elements);
+        self::assertSame($elements, \iterator_to_array($arrayProxy->pad(2, 'bb')));
+        self::assertSame($elements + [4 => 'bb', 5 => 'bb'], \iterator_to_array($arrayProxy->pad(6, 'bb')));
+        self::assertSame(\array_merge(['bb', 'bb'], $elements), \iterator_to_array($arrayProxy->pad(-6, 'bb')));
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     /**
@@ -460,8 +460,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public function testReduce(): void
     {
         $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
-        self::assertSame('barcd2xy2ef2ef2', $arrayProxy->reduce(function (string $initial, string $value): string {
-            return $initial.$value.\strlen($value);
+        self::assertSame('barcd2xy2ef2ef2', $arrayProxy->reduce(function (string $initial, string $element): string {
+            return $initial.$element.\strlen($element);
         }, 'bar'));
     }
 
@@ -495,11 +495,11 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public function testReverse(): void
     {
-        $values = ['cd', 'xy', 'ef', 'ef', 'bb'];
-        $arrayProxy = self::instantiate(...$values);
+        $elements = ['cd', 'xy', 'ef', 'ef', 'bb'];
+        $arrayProxy = self::instantiate(...$elements);
         self::assertSame(['bb', 'ef', 'ef', 'xy', 'cd'], \iterator_to_array($arrayProxy->reverse(false)));
         self::assertSame([4 => 'bb', 3 => 'ef', 2 => 'ef', 1 => 'xy', 0 => 'cd'], \iterator_to_array($arrayProxy->reverse(true)));
-        self::assertSame($values, $arrayProxy->exportArray());
+        self::assertSame($elements, $arrayProxy->exportArray());
     }
 
     public static function sortProvider(): \Generator
@@ -806,8 +806,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public function testValues(): void
     {
-        $values = ['cd', 'xy', 'ef', 'ef'];
-        self::assertSame($values, \iterator_to_array(self::instantiate(...$values)->values()));
+        $elements = ['cd', 'xy', 'ef', 'ef'];
+        self::assertSame($elements, \iterator_to_array(self::instantiate(...$elements)->values()));
     }
 
     /**
@@ -1162,9 +1162,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     private static function assertArrayMask(array $arrayMask, array $array): void
     {
         self::assertCount(\count($arrayMask), $array);
-        foreach ($arrayMask as $index => &$value) {
+        foreach ($arrayMask as $key => &$value) {
             if (null === $value) {
-                $value = $array[$index] ?? '';
+                $value = $array[$key] ?? '';
             }
         }
         self::assertSame(\serialize($arrayMask), \serialize($array));

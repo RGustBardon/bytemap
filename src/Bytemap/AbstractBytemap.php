@@ -402,15 +402,15 @@ abstract class AbstractBytemap implements BytemapInterface
         $sorted = true;
         $maxKey = -1;
         $bytesPerElement = \strlen($defaultValue);
-        foreach ($map as $key => $element) {
-            if (\is_int($key) && $key >= 0 && \is_string($element) && \strlen($element) === $bytesPerElement) {
+        foreach ($map as $key => $value) {
+            if (\is_int($key) && $key >= 0 && \is_string($value) && \strlen($value) === $bytesPerElement) {
                 if ($maxKey < $key) {
                     $maxKey = $key;
                 } else {
                     $sorted = false;
                 }
             } else {
-                self::throwOnOffsetSet($key, $element, $bytesPerElement);
+                self::throwOnOffsetSet($key, $value, $bytesPerElement);
             }
         }
 

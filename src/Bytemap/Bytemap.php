@@ -173,7 +173,6 @@ class Bytemap extends AbstractBytemap
     {
         self::ensureStream($stream);
 
-        $defaultValue = $this->defaultValue;
         $bytesPerElement = $this->bytesPerElement;
 
         $buffer = '[';
@@ -207,11 +206,11 @@ class Bytemap extends AbstractBytemap
 
         $bytemap = new self($defaultValue);
         if (self::hasStreamingParser()) {
-            $listener = new BytemapListener(static function (string $value, ?int $key) use ($bytemap) {
-                if (null === $key) {
-                    $bytemap[] = $value;
+            $listener = new BytemapListener(static function (string $element, ?int $index) use ($bytemap) {
+                if (null === $index) {
+                    $bytemap[] = $element;
                 } else {
-                    $bytemap[$key] = $value;
+                    $bytemap[$index] = $element;
                 }
             });
             self::parseJsonStreamOnline($jsonStream, $listener);

@@ -394,7 +394,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         $sequence = [$elements[1], $elements[2], $elements[1]];
 
         $bytemap = self::instantiate($impl, $elements[0]);
-        foreach ($bytemap as $key => $value) {
+        foreach ($bytemap as $element) {
             self::fail();
         }
 
@@ -402,19 +402,19 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertSequence($sequence, $bytemap);
 
         $iterations = [];
-        foreach ($bytemap as $outerKey => $outerElement) {
-            if (1 === $outerKey) {
+        foreach ($bytemap as $outerIndex => $outerElement) {
+            if (1 === $outerIndex) {
                 $bytemap[] = $elements[2];
             }
             $innerIteration = [];
-            foreach ($bytemap as $innerKey => $innerElement) {
-                if (1 === $innerKey) {
+            foreach ($bytemap as $innerIndex => $innerElement) {
+                if (1 === $innerIndex) {
                     $bytemap[2] = $elements[0];
                 }
-                $innerIteration[] = [$innerKey, $innerElement];
+                $innerIteration[] = [$innerIndex, $innerElement];
             }
             $iterations[] = $innerIteration;
-            $iterations[] = [$outerKey, $outerElement];
+            $iterations[] = [$outerIndex, $outerElement];
         }
         self::assertSame([
             [[0, $elements[1]], [1, $elements[2]], [2, $elements[1]]],

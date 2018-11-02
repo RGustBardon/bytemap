@@ -459,7 +459,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
 
         $result = $bytemap->find($elements, true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
         $elementCount = 0;
-        foreach ($result as $key => $value) {
+        foreach ($result as $element) {
             ++$elementCount;
         }
         $this->takeSnapshot(\sprintf('After attempting to find %s going %s', $needle, $direction), true);
@@ -474,7 +474,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
 
         $result = $bytemap->grep([$regex], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX);
         $elementCount = 0;
-        foreach ($result as $key => $value) {
+        foreach ($result as $element) {
             ++$elementCount;
         }
         $this->takeSnapshot(\sprintf('After attempting to grep %s going %s', $regex, $direction), true);

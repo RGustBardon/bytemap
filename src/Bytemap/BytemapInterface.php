@@ -52,7 +52,7 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *                              bytemap (if `$howMany` is positive) or from the last element of the
      *                              bytemap (if `$howMany` is negative)
      *
-     * @return \Generator elements found (including their keys)
+     * @return \Generator elements found (including their indices)
      */
     public function find(?iterable $elements = null, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
 
@@ -70,7 +70,7 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *
      * @throws \UnexpectedValueException if any pattern fails to compile
      *
-     * @return \Generator elements found (including their keys)
+     * @return \Generator elements found (including their indices)
      */
     public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator;
 
@@ -127,10 +127,10 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * @throws \RuntimeException         if the stream cannot be read
      * @throws \UnexpectedValueException if the stream cannot be parsed as JSON
      * @throws \UnexpectedValueException if the parsed JSON stream has unexpected structure
-     * @throws \TypeError                if any index found in the JSON stream is not an integer
-     * @throws \OutOfRangeException      if any integer index found in the JSON stream is negative
-     * @throws \TypeError                if any element found in the JSON stream is not of the expected type
-     * @throws \DomainException          if any element found in the JSON stream is of the expected type,
+     * @throws \TypeError                if any key found in the JSON stream is not an integer
+     * @throws \OutOfRangeException      if any integer key found in the JSON stream is negative
+     * @throws \TypeError                if any value found in the JSON stream is not of the expected type
+     * @throws \DomainException          if any value found in the JSON stream is of the expected type,
      *                                   but does not belong to the data domain of the bytemap
      *
      * @return self a bytemap corresponding to the JSON data

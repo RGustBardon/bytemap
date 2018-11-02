@@ -55,8 +55,8 @@ interface ArrayProxyInterface extends ProxyInterface
      * `\array_chunk` (split the bytemap into chunks).
      *
      * @param int  $size         the number of elements in each chunk
-     * @param bool $preserveKeys `true` if the indices in the array of generated values should
-     *                           correspond to the indices of bytemap elements, `false` otherwise
+     * @param bool $preserveKeys `true` if the keys of generated arrays should correspond to the
+     *                           indices of bytemap elements, `false` otherwise
      *
      * @throws \OutOfRangeException if the size parameter is not positive
      *
@@ -91,10 +91,10 @@ interface ArrayProxyInterface extends ProxyInterface
      *                                a callback to determine which elements are to be preserved
      *                                otherwise (if the callback returns `true`, the element is going
      *                                to be preserved)
-     * @param int           $flag     `0` if only the element is to be passed to the callback,
-     *                                `\ARRAY_FILTER_USE_KEY` if only the index is to be passed to
-     *                                the callback, `\ARRAY_FILTER_USE_BOTH` if both the element and
-     *                                the index are to be passed to the callback (in that order)
+     * @param int           $flag     `0` if only an element is to be passed to the callback,
+     *                                `\ARRAY_FILTER_USE_KEY` if only an index is to be passed to
+     *                                the callback, `\ARRAY_FILTER_USE_BOTH` if both an element and
+     *                                its index are to be passed to the callback (in that order)
      *
      * @return \Generator a generator whose values are the elements that pass the filter and whose
      *                    keys are their corresponding indices
@@ -269,8 +269,7 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `\array_reverse` (generates the elements in reverse order).
      *
-     * @param bool $preserveKeys `true` if the indices are to be preserved,
-     *                           `false` otherwise
+     * @param bool $preserveKeys `true` if the indices are to be preserved, `false` otherwise
      *
      * @return \Generator a generator whose values are the elements of the bytemap in the reverse
      *                    order and whose keys are either the corresponding indices or
@@ -414,12 +413,12 @@ interface ArrayProxyInterface extends ProxyInterface
     public function walk(callable $callback, $userdata = null): void;
 
     /**
-     * `\array_combine` (creates a bytemap by using one iterable for keys and another for its values).
+     * `\array_combine` (creates a bytemap by using one iterable for indices and another for its elements).
      *
      * @param string   $defaultValue the default value of the underlying bytemap
-     * @param iterable $keys         keys to be used.
-     *                               They need not be consecutive. All the missing keys between 0
-     *                               and the maximum key will be assigned the default value.
+     * @param iterable $keys         inidices to be used.
+     *                               They need not be consecutive. All the missing elements between 0
+     *                               and the maximum index will be assigned the default value.
      * @param iterable $values       values to be used
      *
      * @throws \UnderflowException if `$keys` and `$values` do not contain the same number of
@@ -434,8 +433,8 @@ interface ArrayProxyInterface extends ProxyInterface
      *
      * @param string      $defaultValue the default value of the underlying bytemap
      * @param int         $startIndex   the first index of the value used for filling
-     * @param int         $num          number of elements to insert
-     * @param null|string $value        value to use for filling.
+     * @param int         $num          the number of elements to insert
+     * @param null|string $value        the value to use for filling.
      *                                  `null` means that the default value will be used
      *
      * @throws \OutOfRangeException if `$startIndex` is negative
@@ -444,10 +443,10 @@ interface ArrayProxyInterface extends ProxyInterface
     public static function fill(string $defaultValue, int $startIndex, int $num, ?string $value = null): self;
 
     /**
-     * `\array_fill_keys` (fills a bytemap with values, specifying keys).
+     * `\array_fill_keys` (fills a bytemap with a value, specifying indices).
      *
      * @param string      $defaultValue the default value of the underlying bytemap
-     * @param iterable    $keys         values that will be used as keys
+     * @param iterable    $keys         values that will be used as indices
      * @param null|string $value        value to use for filling
      *                                  `null` means that the default value will be used
      */

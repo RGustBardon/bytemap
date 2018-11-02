@@ -134,9 +134,9 @@ abstract class AbstractTestOfBytemap extends TestCase
     {
         self::assertCount(\count($sequence), $bytemap);
         $i = 0;
-        foreach ($bytemap as $key => $value) {
-            self::assertSame($i, $key);
-            self::assertSame($sequence[$key], $value);
+        foreach ($bytemap as $index => $element) {
+            self::assertSame($i, $index);
+            self::assertSame($sequence[$index], $element);
             ++$i;
         }
     }
