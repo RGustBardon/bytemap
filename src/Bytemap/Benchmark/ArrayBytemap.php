@@ -97,14 +97,14 @@ final class ArrayBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public function insert(iterable $items, int $firstItemIndex = -1): void
+    public function insert(iterable $items, int $firstIndex = -1): void
     {
-        if (-1 === $firstItemIndex || $firstItemIndex > $this->itemCount - 1) {
+        if (-1 === $firstIndex || $firstIndex > $this->itemCount - 1) {
             $originalItemCount = $this->itemCount;
 
             // Resize the bytemap if the positive first item index is greater than the item count.
-            if ($firstItemIndex > $this->itemCount) {
-                $this[$firstItemIndex - 1] = $this->defaultItem;
+            if ($firstIndex > $this->itemCount) {
+                $this[$firstIndex - 1] = $this->defaultItem;
             }
 
             // Append the items.
@@ -119,27 +119,27 @@ final class ArrayBytemap extends AbstractBytemap
         } else {
             $this->fillAndSort();
 
-            $originalFirstItemIndex = $firstItemIndex;
+            $originalFirstIndex = $firstIndex;
             // Calculate the positive index corresponding to the negative one.
-            if ($firstItemIndex < 0) {
-                $firstItemIndex += $this->itemCount;
+            if ($firstIndex < 0) {
+                $firstIndex += $this->itemCount;
 
                 // Keep the indices within the bounds.
-                if ($firstItemIndex < 0) {
-                    $firstItemIndex = 0;
+                if ($firstIndex < 0) {
+                    $firstIndex = 0;
                 }
             }
 
             // Insert the items.
             $itemCount = \count($this->map);
-            \array_splice($this->map, $firstItemIndex, 0, \is_array($items) ? $items : \iterator_to_array($items));
+            \array_splice($this->map, $firstIndex, 0, \is_array($items) ? $items : \iterator_to_array($items));
             $insertedItemCount = \count($this->map) - $itemCount;
             $this->itemCount += $insertedItemCount;
-            $this->validateInsertedItems($firstItemIndex, $insertedItemCount, $firstItemIndex, $insertedItemCount);
+            $this->validateInsertedItems($firstIndex, $insertedItemCount, $firstIndex, $insertedItemCount);
 
             // Resize the bytemap if the negative first item index is greater than the new item count.
-            if (-$originalFirstItemIndex > $this->itemCount) {
-                $overflow = -$originalFirstItemIndex - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
+            if (-$originalFirstIndex > $this->itemCount) {
+                $overflow = -$originalFirstIndex - $this->itemCount - ($insertedItemCount > 0 ? 0 : 1);
                 if ($overflow > 0) {
                     \array_splice($this->map, $insertedItemCount, 0, \array_fill(0, $overflow, $this->defaultItem));
                     $this->itemCount += $overflow;
@@ -195,9 +195,9 @@ final class ArrayBytemap extends AbstractBytemap
         $this->map = [];
     }
 
-    protected function deleteWithNonNegativeIndex(int $firstItemIndex, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $itemCount): void
     {
-        $maximumRange = $itemCount - $firstItemIndex;
+        $maximumRange = $itemCount - $firstIndex;
         if ($howMany >= $maximumRange) {
             $this->itemCount -= $maximumRange;
             while (--$maximumRange >= 0) {
@@ -205,7 +205,7 @@ final class ArrayBytemap extends AbstractBytemap
             }
         } else {
             $this->fillAndSort();
-            \array_splice($this->map, $firstItemIndex, $howMany);
+            \array_splice($this->map, $firstIndex, $howMany);
             $this->map = \array_diff($this->map, [$this->defaultItem]);
             $this->itemCount -= $howMany;
             if (!isset($this->map[$this->itemCount - 1])) {
@@ -359,21 +359,21 @@ final class ArrayBytemap extends AbstractBytemap
     }
 
     protected function validateInsertedItems(
-        int $firstItemIndexToCheck,
+        int $firstIndexToCheck,
         int $howManyToCheck,
-        int $firstItemIndexToRollBack,
+        int $firstIndexToRollBack,
         int $howManyToRollBack
         ): void {
         $bytesPerItem = $this->bytesPerItem;
-        $lastItemIndexToCheck = $firstItemIndexToCheck + $howManyToCheck;
-        for ($index = $firstItemIndexToCheck; $index < $lastItemIndexToCheck; ++$index) {
+        $lastItemIndexToCheck = $firstIndexToCheck + $howManyToCheck;
+        for ($index = $firstIndexToCheck; $index < $lastItemIndexToCheck; ++$index) {
             if (!\is_string($item = $this->map[$index])) {
-                $this->delete($firstItemIndexToRollBack, $howManyToRollBack);
+                $this->delete($firstIndexToRollBack, $howManyToRollBack);
 
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be of type string, '.\gettype($item).' given');
             }
             if (\strlen($item) !== $bytesPerItem) {
-                $this->delete($firstItemIndexToRollBack, $howManyToRollBack);
+                $this->delete($firstIndexToRollBack, $howManyToRollBack);
 
                 throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerItem.' bytes, '.\strlen($item).' given');
             }

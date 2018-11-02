@@ -107,29 +107,29 @@ final class SplBytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public function insert(iterable $items, int $firstItemIndex = -1): void
+    public function insert(iterable $items, int $firstIndex = -1): void
     {
-        $originalFirstItemIndex = $firstItemIndex;
+        $originalFirstIndex = $firstIndex;
         $itemCountBeforeResizing = $this->itemCount;
 
         // Resize the bytemap if the positive first item index is greater than the item count.
-        if ($firstItemIndex > $this->itemCount) {
-            $this[$firstItemIndex - 1] = $this->defaultItem;
+        if ($firstIndex > $this->itemCount) {
+            $this[$firstIndex - 1] = $this->defaultItem;
         }
 
         // Allocate the memory.
-        $newSize = $this->calculateNewSize($items, $firstItemIndex);
+        $newSize = $this->calculateNewSize($items, $firstIndex);
         if (null !== $newSize) {
             $this->map->setSize($newSize);
         }
 
         // Calculate the positive index corresponding to the negative one.
-        if ($firstItemIndex < 0) {
-            $firstItemIndex += $this->itemCount;
+        if ($firstIndex < 0) {
+            $firstIndex += $this->itemCount;
 
             // Keep the indices within the bounds.
-            if ($firstItemIndex < 0) {
-                $firstItemIndex = 0;
+            if ($firstIndex < 0) {
+                $firstIndex = 0;
             }
         }
 
@@ -166,20 +166,20 @@ final class SplBytemap extends AbstractBytemap
         }
 
         // Resize the bytemap if the negative first item index is greater than the new item count.
-        if (-$originalFirstItemIndex > $this->itemCount) {
-            $lastItemIndex = -$originalFirstItemIndex - ($this->itemCount > $originalItemCount ? 1 : 2);
+        if (-$originalFirstIndex > $this->itemCount) {
+            $lastItemIndex = -$originalFirstIndex - ($this->itemCount > $originalItemCount ? 1 : 2);
             if ($lastItemIndex >= $this->itemCount) {
                 $this[$lastItemIndex] = $this->defaultItem;
             }
         }
 
         // The juggling algorithm.
-        $n = $this->itemCount - $firstItemIndex;
+        $n = $this->itemCount - $firstIndex;
         $shift = $n - $this->itemCount + $originalItemCount;
         $gcd = self::calculateGreatestCommonDivisor($n, $shift);
 
         for ($i = 0; $i < $gcd; ++$i) {
-            $tmp = $this->map[$firstItemIndex + $i];
+            $tmp = $this->map[$firstIndex + $i];
             $j = $i;
             while (true) {
                 $k = $j + $shift;
@@ -189,10 +189,10 @@ final class SplBytemap extends AbstractBytemap
                 if ($k === $i) {
                     break;
                 }
-                $this->map[$firstItemIndex + $j] = $this->map[$firstItemIndex + $k];
+                $this->map[$firstIndex + $j] = $this->map[$firstIndex + $k];
                 $j = $k;
             }
-            $this->map[$firstItemIndex + $j] = $tmp;
+            $this->map[$firstIndex + $j] = $tmp;
         }
     }
 
@@ -251,13 +251,13 @@ final class SplBytemap extends AbstractBytemap
         $this->map = new \SplFixedArray(0);
     }
 
-    protected function deleteWithNonNegativeIndex(int $firstItemIndex, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $itemCount): void
     {
         // Keep the indices within the bounds.
-        $howMany = \min($howMany, $itemCount - $firstItemIndex);
+        $howMany = \min($howMany, $itemCount - $firstIndex);
 
         // Shift all the subsequent items left by the number of items deleted.
-        for ($i = $firstItemIndex + $howMany; $i < $itemCount; ++$i) {
+        for ($i = $firstIndex + $howMany; $i < $itemCount; ++$i) {
             $this->map[$i - $howMany] = $this->map[$i];
         }
 

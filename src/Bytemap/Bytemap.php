@@ -122,7 +122,7 @@ class Bytemap extends AbstractBytemap
     }
 
     // `BytemapInterface`
-    public function insert(iterable $items, int $firstItemIndex = -1): void
+    public function insert(iterable $items, int $firstIndex = -1): void
     {
         $substring = '';
 
@@ -137,33 +137,33 @@ class Bytemap extends AbstractBytemap
             }
         }
 
-        if (-1 === $firstItemIndex || $firstItemIndex > $this->itemCount - 1) {
+        if (-1 === $firstIndex || $firstIndex > $this->itemCount - 1) {
             // Insert the items.
-            $padLength = \strlen($substring) + \max(0, $firstItemIndex - $this->itemCount) * $this->bytesPerItem;
+            $padLength = \strlen($substring) + \max(0, $firstIndex - $this->itemCount) * $this->bytesPerItem;
             $this->map .= \str_pad($substring, $padLength, $this->defaultItem, \STR_PAD_LEFT);
         } else {
-            $originalFirstItemIndex = $firstItemIndex;
+            $originalFirstIndex = $firstIndex;
             // Calculate the positive index corresponding to the negative one.
-            if ($firstItemIndex < 0) {
-                $firstItemIndex += $this->itemCount;
+            if ($firstIndex < 0) {
+                $firstIndex += $this->itemCount;
 
                 // Keep the indices within the bounds.
-                if ($firstItemIndex < 0) {
-                    $firstItemIndex = 0;
+                if ($firstIndex < 0) {
+                    $firstIndex = 0;
                 }
             }
 
             // Resize the bytemap if the negative first item index is greater than the new item count.
             $insertedItemCount = (int) (\strlen($substring) / $this->bytesPerItem);
             $newItemCount = $this->itemCount + $insertedItemCount;
-            if (-$originalFirstItemIndex > $newItemCount) {
-                $overflow = -$originalFirstItemIndex - $newItemCount - ($insertedItemCount > 0 ? 0 : 1);
+            if (-$originalFirstIndex > $newItemCount) {
+                $overflow = -$originalFirstIndex - $newItemCount - ($insertedItemCount > 0 ? 0 : 1);
                 $padLength = ($overflow + $insertedItemCount) * $this->bytesPerItem;
                 $substring = \str_pad($substring, $padLength, $this->defaultItem, \STR_PAD_RIGHT);
             }
 
             // Insert the items.
-            $this->map = \substr_replace($this->map, $substring, $firstItemIndex * $this->bytesPerItem, 0);
+            $this->map = \substr_replace($this->map, $substring, $firstIndex * $this->bytesPerItem, 0);
         }
 
         $this->deriveProperties();
@@ -244,13 +244,13 @@ class Bytemap extends AbstractBytemap
         $this->map = '';
     }
 
-    protected function deleteWithNonNegativeIndex(int $firstItemIndex, int $howMany, int $itemCount): void
+    protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $itemCount): void
     {
-        $maximumRange = $itemCount - $firstItemIndex;
+        $maximumRange = $itemCount - $firstIndex;
         if ($howMany >= $maximumRange) {
-            $this->map = \substr($this->map, 0, $firstItemIndex * $this->bytesPerItem);
+            $this->map = \substr($this->map, 0, $firstIndex * $this->bytesPerItem);
         } else {
-            $this->map = \substr_replace($this->map, '', $firstItemIndex * $this->bytesPerItem, $howMany * $this->bytesPerItem);
+            $this->map = \substr_replace($this->map, '', $firstIndex * $this->bytesPerItem, $howMany * $this->bytesPerItem);
         }
 
         $this->deriveProperties();

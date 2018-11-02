@@ -196,7 +196,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    final public function delete(int $firstItemIndex = -1, int $howMany = \PHP_INT_MAX): void
+    final public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void
     {
         $itemCount = $this->itemCount;
 
@@ -206,12 +206,12 @@ abstract class AbstractBytemap implements BytemapInterface
         }
 
         // Calculate the positive index corresponding to the negative one.
-        if ($firstItemIndex < 0) {
-            $firstItemIndex += $itemCount;
+        if ($firstIndex < 0) {
+            $firstIndex += $itemCount;
         }
 
         // Delete the items.
-        $this->deleteWithNonNegativeIndex(\max(0, $firstItemIndex), $howMany, $itemCount);
+        $this->deleteWithNonNegativeIndex(\max(0, $firstIndex), $howMany, $itemCount);
     }
 
     // `AbstractBytemap`
@@ -232,9 +232,9 @@ abstract class AbstractBytemap implements BytemapInterface
         return $startAfter > 0 ? \max(0, $this->itemCount - $startAfter) : null;
     }
 
-    final protected function calculateNewSize(iterable $additionalItems, int $firstItemIndex = -1): ?int
+    final protected function calculateNewSize(iterable $additionalItems, int $firstIndex = -1): ?int
     {
-        // Assume that no gap exists between the tail of the bytemap and `$firstItemIndex`.
+        // Assume that no gap exists between the tail of the bytemap and `$firstIndex`.
 
         if (\is_array($additionalItems) || $additionalItems instanceof \Countable) {
             return $this->itemCount + \count($additionalItems);
@@ -419,7 +419,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     abstract protected function createEmptyMap(): void;
 
-    abstract protected function deleteWithNonNegativeIndex(int $firstItemIndex, int $howMany, int $itemCount): void;
+    abstract protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $itemCount): void;
 
     abstract protected function findArrayItems(
         array $items,

@@ -45,7 +45,7 @@ final class MutationTest extends AbstractTestOfBytemap
         bool $useGenerator,
         array $sequence,
         array $inserted,
-        int $firstItemOffset
+        int $firstIndex
     ): void {
         $bytemap = self::instantiate($impl, $items[0]);
         $expectedSequence = [];
@@ -60,7 +60,7 @@ final class MutationTest extends AbstractTestOfBytemap
         })();
 
         try {
-            $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstItemOffset);
+            $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstIndex);
         } catch (\TypeError $e) {
         }
         self::assertTrue(isset($e), 'Failed asserting that exception of type "\\TypeError" is thrown.');
@@ -85,7 +85,7 @@ final class MutationTest extends AbstractTestOfBytemap
         bool $useGenerator,
         array $sequence,
         array $inserted,
-        int $firstItemOffset
+        int $firstIndex
     ): void {
         $bytemap = self::instantiate($impl, $items[0]);
         $expectedSequence = [];
@@ -99,7 +99,7 @@ final class MutationTest extends AbstractTestOfBytemap
         })();
 
         try {
-            $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstItemOffset);
+            $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstIndex);
         } catch (\DomainException $e) {
         }
         self::assertTrue(isset($e), 'Failed asserting that exception of type "\\DomainException" is thrown.');
@@ -128,8 +128,8 @@ final class MutationTest extends AbstractTestOfBytemap
                     [[], [1], 1, [0, 1]],
                     [[0, 1, 2, 3, 0, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
                     [[0, 1, 2, 3, null, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
-                ] as [$sequence, $inserted, $firstItemOffset, $expected]) {
-                    yield [$impl, $items, $useGenerator, $sequence, $inserted, $firstItemOffset, $expected];
+                ] as [$sequence, $inserted, $firstIndex, $expected]) {
+                    yield [$impl, $items, $useGenerator, $sequence, $inserted, $firstIndex, $expected];
                 }
             }
         }
@@ -148,7 +148,7 @@ final class MutationTest extends AbstractTestOfBytemap
         bool $useGenerator,
         array $sequence,
         array $inserted,
-        int $firstItemOffset,
+        int $firstIndex,
         array $expected
     ): void {
         $expectedSequence = [];
@@ -166,7 +166,7 @@ final class MutationTest extends AbstractTestOfBytemap
                 yield $items[$key];
             }
         })();
-        $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstItemOffset);
+        $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstIndex);
         self::assertSequence($expectedSequence, $bytemap);
     }
 
@@ -213,8 +213,8 @@ final class MutationTest extends AbstractTestOfBytemap
                 [[0, 1, 2, 3, 4, 5], -6, 3, [3, 4, 5]],
                 [[1, 2, 1, 2, 1, 2], 2, 3, [1, 2, 2]],
                 [[1, null, 1, 2, 1, 0], 2, 3, [1, 0, 0]],
-            ] as [$sequence, $firstItemOffset, $howMany, $expected]) {
-                yield [$impl, $items, $sequence, $firstItemOffset, $howMany, $expected];
+            ] as [$sequence, $firstIndex, $howMany, $expected]) {
+                yield [$impl, $items, $sequence, $firstIndex, $howMany, $expected];
             }
         }
     }
@@ -227,7 +227,7 @@ final class MutationTest extends AbstractTestOfBytemap
         string $impl,
         array $items,
         array $sequence,
-        int $firstItemOffset,
+        int $firstIndex,
         int $howMany,
         array $expected
     ): void {
@@ -241,7 +241,7 @@ final class MutationTest extends AbstractTestOfBytemap
                 $bytemap[$index] = $items[$key];
             }
         }
-        $bytemap->delete($firstItemOffset, $howMany);
+        $bytemap->delete($firstIndex, $howMany);
         self::assertSequence($expectedSequence, $bytemap);
     }
 
@@ -266,8 +266,8 @@ final class MutationTest extends AbstractTestOfBytemap
                     $size - 1,
                     $size,
                     $size + 1,
-                ]) as $firstItemOffset) {
-                    yield [$impl, $items, $invalidItem, $useGenerator, $sequence, $inserted, $firstItemOffset];
+                ]) as $firstIndex) {
+                    yield [$impl, $items, $invalidItem, $useGenerator, $sequence, $inserted, $firstIndex];
                 }
             }
         }
