@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Bytemap\Proxy;
 
 use Bytemap\BytemapInterface;
+use PhpParser\Node\Stmt\If_;
 
 interface ArrayProxyInterface extends ProxyInterface
 {
@@ -278,9 +279,19 @@ interface ArrayProxyInterface extends ProxyInterface
     public function reverse(bool $preserveKeys = false): \Generator;
 
     /**
-     * `\rsort`.
+     * `\rSort` (sorts the bytemap in the descending order).
      *
-     * @param int $sortFlags
+     * @param int $sortFlags if `\SORT_NUMERIC`, elements are converted to floating point numbers
+     *                       before being compared, otherwise,
+     *                       if `\SORT_LOCALE_STRING`, the comparison is locale-based and
+     *                       case-sensitive (`\strcoll`), otherwise,
+     *                       if `\SORT_NATURAL`, the bytemap is sorted in natural order
+     *                       (case-sensitively if not combined with `\SORT_FLAG_CASE`), otherwise,
+     *                       if `\SORT_REGULAR`, numeric elements are converted to floating point
+     *                       numbers are then to strings before being compared, whereas other
+     *                       elements are compared unchanged (case sensitively), otherwise,
+     *                       elements are compared in a binary safe fashion (case-sensitively if
+     *                       not combined with `\SORT_FLAG_CASE`)
      */
     public function rSort(int $sortFlags = \SORT_REGULAR): void;
 
@@ -328,9 +339,21 @@ interface ArrayProxyInterface extends ProxyInterface
     public function slice(int $index, ?int $length = null, bool $preserveKeys = false): \Generator;
 
     /**
-     * `\sort`.
+     * `\sort` (sorts the bytemap in the ascending order).
      *
-     * @param int $sortFlags
+     * @param int $sortFlags if `\SORT_NUMERIC`, elements are converted to floating point numbers
+     *                       before being compared, otherwise,
+     *                       if `\SORT_LOCALE_STRING`, the comparison is locale-based and
+     *                       in a case-sensitive fashion (`\strcoll`), otherwise,
+     *                       if `\SORT_NATURAL`, the bytemap is sorted in natural order
+     *                       (in a case sensitive fashion if not combined with `\SORT_FLAG_CASE`),
+     *                       otherwise,
+     *                       if `\SORT_REGULAR`, numeric elements are converted to floating point
+     *                       numbers are then to strings before being compared, whereas other
+     *                       elements are compared unchanged (in a case sensitve fashion),
+     *                       otherwise,
+     *                       elements are compared in a binary safe fashion (case-sensitively if
+     *                       not combined with `\SORT_FLAG_CASE`)
      */
     public function sort(int $sortFlags = \SORT_REGULAR): void;
 
@@ -360,11 +383,21 @@ interface ArrayProxyInterface extends ProxyInterface
     public function union(iterable ...$iterables): self;
 
     /**
-     * `\array_unique`.
+     * `\array_unique` (generates unique values of elements in the order they first appear).
      *
-     * @param int $sortFlags
+     * @param int $sortFlags if `\SORT_NUMERIC`, elements are converted to floating point numbers
+     *                       before being compared, otherwise,
+     *                       if `\SORT_LOCALE_STRING`, the comparison is locale-based and
+     *                       case-sensitive (`\strcoll`), otherwise,
+     *                       if `\SORT_REGULAR`, numeric elements are converted to floating point
+     *                       numbers are then to strings before being compared, whereas other
+     *                       elements are compared unchanged (in a case-sensitive fashion),
+     *                       otherwise,
+     *                       elements are compared as strings (in a case-sensitive fashion)
      *
-     * @return \Generator
+     * @return \Generator A generator whose values are unique bytemap elements and whose keys are
+     *                    the indices of their first appearance in the bytemap. Keys are generated
+     *                    in the ascending order.
      */
     public function unique(int $sortFlags = \SORT_STRING): \Generator;
 
