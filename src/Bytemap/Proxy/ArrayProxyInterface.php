@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Bytemap\Proxy;
 
 use Bytemap\BytemapInterface;
-use PhpParser\Node\Stmt\If_;
 
 interface ArrayProxyInterface extends ProxyInterface
 {
@@ -286,12 +285,14 @@ interface ArrayProxyInterface extends ProxyInterface
      *                       if `\SORT_LOCALE_STRING`, the comparison is locale-based and
      *                       case-sensitive (`\strcoll`), otherwise,
      *                       if `\SORT_NATURAL`, the bytemap is sorted in natural order
-     *                       (case-sensitively if not combined with `\SORT_FLAG_CASE`), otherwise,
+     *                       (in a case-sensitive fashion if not combined with `\SORT_FLAG_CASE`),
+     *                       otherwise,
      *                       if `\SORT_REGULAR`, numeric elements are converted to floating point
      *                       numbers are then to strings before being compared, whereas other
-     *                       elements are compared unchanged (case sensitively), otherwise,
-     *                       elements are compared in a binary safe fashion (case-sensitively if
-     *                       not combined with `\SORT_FLAG_CASE`)
+     *                       elements are compared unchanged (in a case-sensitive fashion),
+     *                       otherwise,
+     *                       elements are compared in a binary safe fashion (and also in a
+     *                       case-sensitive fashion if not combined with `\SORT_FLAG_CASE`)
      */
     public function rSort(int $sortFlags = \SORT_REGULAR): void;
 
@@ -346,14 +347,14 @@ interface ArrayProxyInterface extends ProxyInterface
      *                       if `\SORT_LOCALE_STRING`, the comparison is locale-based and
      *                       in a case-sensitive fashion (`\strcoll`), otherwise,
      *                       if `\SORT_NATURAL`, the bytemap is sorted in natural order
-     *                       (in a case sensitive fashion if not combined with `\SORT_FLAG_CASE`),
+     *                       (in a case-sensitive fashion if not combined with `\SORT_FLAG_CASE`),
      *                       otherwise,
      *                       if `\SORT_REGULAR`, numeric elements are converted to floating point
      *                       numbers are then to strings before being compared, whereas other
      *                       elements are compared unchanged (in a case sensitve fashion),
      *                       otherwise,
-     *                       elements are compared in a binary safe fashion (case-sensitively if
-     *                       not combined with `\SORT_FLAG_CASE`)
+     *                       elements are compared in a binary safe fashion (and also in a
+     *                       case-sensitive fashion if not combined with `\SORT_FLAG_CASE`)
      */
     public function sort(int $sortFlags = \SORT_REGULAR): void;
 
@@ -416,12 +417,12 @@ interface ArrayProxyInterface extends ProxyInterface
      * Sorting is not stable.
      *
      * @param callable $valueCompareFunc a function whose parameters are two strings (the elements
-     *                                   being compared) and whose return value will be cast to
-     *                                   an integer and interpreted as follows: negative integers
-     *                                   indicate that the first element should appear before the
-     *                                   second one, positive integers indicate that the first
-     *                                   element should appear after the second one, and 0
-     *                                   indicates that neither of these cases applies
+     *                                   being compared) and whose return value will be converted
+     *                                   to an integer and interpreted as follows: negative
+     *                                   integers indicate that the first element should appear
+     *                                   before the second one, positive integers indicate that
+     *                                   the first element should appear after the second one, and
+     *                                   `0` indicates that neither of these cases applies
      */
     public function uSort(callable $valueCompareFunc): void;
 
