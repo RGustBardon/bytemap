@@ -15,6 +15,9 @@ namespace Bytemap\Proxy;
 
 use Bytemap\BytemapInterface;
 
+/**
+ * A proxy implementing part of the API found in the PHP core for native arrays.
+ */
 interface ArrayProxyInterface extends ProxyInterface
 {
     // Bytemap encapsulation
@@ -248,12 +251,15 @@ interface ArrayProxyInterface extends ProxyInterface
     public function rand(int $num = 1);
 
     /**
-     * `\array_reduce`.
+     * `\array_reduce` (reduces the bytemap to a single value with an iteratively applied callback).
      *
-     * @param callable $callback
-     * @param mixed    $initial
+     * @param callable $callback a callable whose first argument is the return value from the
+     *                           previous iteration and whose second argument is the current element
+     *                           of the bytemap
+     * @param mixed    $initial  the value to pass to the callback when it receives the element with
+     *                           index `0`
      *
-     * @return mixed
+     * @return mixed the value returned by the last call to the callback
      */
     public function reduce(callable $callback, $initial = null);
 
