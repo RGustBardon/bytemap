@@ -62,11 +62,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
         $chunk = [];
         $elementCount = 0;
-        foreach ($this->bytemap as $key => $value) {
+        foreach ($this->bytemap as $index => $element) {
             if ($preserveKeys) {
-                $chunk[$key] = $value;
+                $chunk[$index] = $element;
             } else {
-                $chunk[] = $value;
+                $chunk[] = $element;
             }
             ++$elementCount;
             if ($size === $elementCount) {
@@ -83,11 +83,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function countValues(): array
     {
         $values = [];
-        foreach ($this->bytemap as $value) {
-            if (!isset($values[$value])) {
-                $values[$value] = 0;
+        foreach ($this->bytemap as $element) {
+            if (!isset($values[$element])) {
+                $values[$element] = 0;
             }
-            ++$values[$value];
+            ++$values[$element];
         }
 
         return $values;
@@ -102,9 +102,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             }
         }
 
-        foreach ($this->bytemap as $index => $value) {
-            if (!isset($blacklist[$value])) {
-                yield $index => $value;
+        foreach ($this->bytemap as $index => $element) {
+            if (!isset($blacklist[$element])) {
+                yield $index => $element;
             }
         }
     }
@@ -180,8 +180,8 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 yield $i;
             }
         } else {
-            foreach ($this->bytemap->find([$searchValue]) as $key => $value) {
-                yield $key;
+            foreach ($this->bytemap->find([$searchValue]) as $index => $element) {
+                yield $index;
             }
         }
     }
@@ -226,12 +226,12 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 }
             }
         } elseif (null === $callback) {
-            foreach ($this->bytemap as $value) {
-                yield $value;
+            foreach ($this->bytemap as $element) {
+                yield $element;
             }
         } else {
-            foreach ($this->bytemap as $value) {
-                yield $callback($value);
+            foreach ($this->bytemap as $element) {
+                yield $callback($element);
             }
         }
     }
@@ -288,8 +288,8 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 yield $i => $value;
             }
 
-            foreach ($clone as $index => $bytemapValue) {
-                yield $index + $i => $bytemapValue;
+            foreach ($clone as $index => $element) {
+                yield $index + $i => $element;
             }
         }
     }
@@ -339,8 +339,8 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
     public function reduce(callable $callback, $initial = null)
     {
-        foreach ($this->bytemap as $value) {
-            $initial = $callback($initial, $value);
+        foreach ($this->bytemap as $element) {
+            $initial = $callback($initial, $element);
         }
 
         return $initial;
@@ -485,30 +485,30 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             $seen = [];
             switch ($sortFlags) {
                 case \SORT_NUMERIC:
-                    foreach ($this->bytemap as $key => $value) {
-                        $mapKey = ' '.(float) $value;
+                    foreach ($this->bytemap as $index => $element) {
+                        $mapKey = ' '.(float) $element;
                         if (!isset($seen[$mapKey])) {
-                            yield $key => $value;
+                            yield $index => $element;
                             $seen[$mapKey] = true;
                         }
                     }
 
                     break;
                 case \SORT_REGULAR:
-                    foreach ($this->bytemap as $key => $value) {
-                        $mapKey = ' '.(\is_numeric($value) ? (float) $value : $value);
+                    foreach ($this->bytemap as $index => $element) {
+                        $mapKey = ' '.(\is_numeric($element) ? (float) $element : $element);
                         if (!isset($seen[$mapKey])) {
-                            yield $key => $value;
+                            yield $index => $element;
                             $seen[$mapKey] = true;
                         }
                     }
 
                     break;
                 default:
-                    foreach ($this->bytemap as $key => $value) {
-                        if (!isset($seen[$value])) {
-                            yield $key => $value;
-                            $seen[$value] = true;
+                    foreach ($this->bytemap as $index => $element) {
+                        if (!isset($seen[$element])) {
+                            yield $index => $element;
+                            $seen[$element] = true;
                         }
                     }
 
