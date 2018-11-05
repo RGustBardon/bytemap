@@ -156,6 +156,36 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         return (bool) \iterator_to_array($this->bytemap->find([$needle], true, 1));
     }
 
+    public function intersect(iterable ...$iterables): \Generator
+    {
+        $clone = $this->bytemap;
+        $uniqueValues = [];
+        foreach ($clone as $element) {
+            $uniqueValues[$element] = 0;
+        }
+
+        $iteration = 0;
+        foreach ($iterables as $iterable) {
+            ++$iteration;
+            $previousIteration = $iteration - 1;
+            foreach ($iterable as $value) {
+                if (null !== ($valueCount = $uniqueValues[$value] ?? null)) {
+                    if ($previousIteration === $valueCount) {
+                        $uniqueValues[$value] = $iteration;
+                    } else {
+                        unset($uniqueValues[$value]);
+                    }
+                }
+            }
+        }
+
+        foreach ($clone as $index => $element) {
+            if ($iteration === $uniqueValues[$element] ?? 0) {
+                yield $index => $element;
+            }
+        }
+    }
+
     public function keyExists(int $key): bool
     {
         return $key >= 0 && $key < \count($this->bytemap);

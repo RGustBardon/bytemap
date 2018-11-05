@@ -214,6 +214,40 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertTrue($arrayProxy->inArray('ef'));
     }
 
+    public static function intersectProvider(): \Generator
+    {
+        foreach ([
+            [[], [], []],
+            [['a'], [], ['a']],
+            [['a'], [[]], []],
+            [[], [['a']], []],
+            [['a'], [['a']], ['a']],
+            [['a'], [['b']], []],
+            [['a'], [['a'], ['a']], ['a']],
+            [['a'], [['a'], ['b']], []],
+            [['100'], [['100']], ['100']],
+            [['100'], [[100]], ['100']],
+            [['100'], [[100.]], ['100']],
+            [['100'], [[1e2]], ['100']],
+            [['100'], [['100.']], []],
+            [['100'], [['1e2']], []],
+            [['a', 'b', 'c', 'x', 'a'], [['x', 'a', 'b', 'd'], ['a', 'x', 'b', 'f']], ['a', 'b', 3 => 'x', 'a']],
+            [['100', '1e2', "\u{2010}", "\u{2011}"], [["\u{2010}", '100', '1e2', "\u{2011}"]], ['100', '1e2', "\u{2010}", "\u{2011}"]],
+        ] as [$elements, $iterables, $expected]) {
+            yield [$elements, $iterables, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider intersectProvider
+     */
+    public function testIntersect(array $elements, array $iterables, array $expected): void
+    {
+        $arrayProxy = new ArrayProxy($elements[0] ?? 'a', ...$elements);
+        self::assertSame($expected, \iterator_to_array($arrayProxy->intersect(...$iterables)));
+        self::assertSame($elements, $arrayProxy->exportArray());
+    }
+
     public function testKeyExists(): void
     {
         $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');

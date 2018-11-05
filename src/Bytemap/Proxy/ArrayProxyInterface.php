@@ -122,6 +122,22 @@ interface ArrayProxyInterface extends ProxyInterface
     public function inArray(string $needle): bool;
 
     /**
+     * `array_intersect` (generates values that appear in the bytemap and in every argument).
+     *
+     * Values are compared as strings.
+     *
+     * If a value is to be generated and it appears more than once in the bytemap, it will be
+     * generated that many times with the indices of the elements who are equal to that value.
+     *
+     * @param iterable ...$iterables iterables whose values are to be intersected with the elements
+     *
+     * @return \Generator a generator whose values are the values of the bytemap which appear in all
+     *                    the iterables and whose keys are the corresponding indices these values
+     *                    are associated with in the bytemap
+     */
+    public function intersect(iterable ...$iterables): \Generator;
+
+    /**
      * `\array_key_exists` (checks if an index exists in the bytemap).
      *
      * @param int $key the index to look for
