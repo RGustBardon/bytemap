@@ -22,10 +22,10 @@ use Bytemap\BytemapInterface;
  * other data structures have been modified. For instance, when it comes to the API of native PHP
  * arrays, the corresponding proxy does not feature an equivalent of the `\krsort` function as the
  * indices of a bytemap must be sorted in the ascending order. `array_chunk` has become
- * `ArrayProxyInterface::chunk` with its first parameter (`$array`) removed since instances of that
- * proxy already contain bytemaps. Moreover, the method generates chunks instead of returning an
- * array of them (to make it more generic and require less memory) and throws an exception instead
- * of emitting a warning if `$size` is less than one.
+ * `ArrayProxyInterface::chunk` with its first parameter (`$array`) removed (since any instance of
+ * that proxy already contains a bytemap). Moreover, the method generates chunks instead of
+ * returning their array (to make it more generic and require less memory) and throws an exception
+ * instead of emitting a warning if `$size` is less than one.
  *
  * Unless indicated otherwise, when the bytemap is iterated, the iteration takes place from the
  * element with index `0` to the element with the greatest index.
@@ -35,7 +35,7 @@ interface ProxyInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \
     /**
      * Instantiates a bytemap and a proxy to it.
      *
-     * @param string   $defaultValue the default value of the underyling bytemap that is to be
+     * @param string   $defaultValue the default value of the underlying bytemap that is to be
      *                               constructed
      * @param iterable $elements     the elements that are to be inserted into the bytemap
      *

@@ -34,9 +34,9 @@ interface ArrayProxyInterface extends ProxyInterface
     // Array conversion
 
     /**
-     * Returns an array corresponding to the underyling bytemap.
+     * Returns an array corresponding to the underlying bytemap.
      *
-     * @return string[] an array whose keys are the indicies of a bytemap and whose values are
+     * @return string[] an array whose keys are the indices of a bytemap and whose values are
      *                  their corresponding elements
      */
     public function exportArray(): array;
@@ -44,7 +44,7 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * Instantiates a bytemap and a proxy to it.
      *
-     * @param string   $defaultValue the default value of the underyling bytemap that is to be
+     * @param string   $defaultValue the default value of the underlying bytemap that is to be
      *                               constructed
      * @param iterable $elements     the elements that are to be inserted into the bytemap
      *
@@ -147,8 +147,9 @@ interface ArrayProxyInterface extends ProxyInterface
      *                                 `null` if all the indices are to be returned
      *
      * @return \Generator if a search value has been specified, only the indices whose
-     *                    elements are stricly equal to that value are generated (sorted ascending),
-     *                    otherwise all the indices are generated (sorted ascending)
+     *                    elements are strictly equal to that value are generated (sorted
+     *                    ascending), otherwise all the indices are generated (sorted
+     *                    ascending)
      */
     public function keys(?string $searchValue = null): \Generator;
 
@@ -357,7 +358,7 @@ interface ArrayProxyInterface extends ProxyInterface
      *                       otherwise,
      *                       if `\SORT_REGULAR`, numeric elements are converted to floating point
      *                       numbers are then to strings before being compared, whereas other
-     *                       elements are compared unchanged (in a case sensitve fashion),
+     *                       elements are compared unchanged (in a case-sensitive fashion),
      *                       otherwise,
      *                       elements are compared in a binary safe fashion (and also in a
      *                       case-sensitive fashion if not combined with `\SORT_FLAG_CASE`)
@@ -456,7 +457,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * `\array_combine` (creates a bytemap by using one iterable for indices and another for its elements).
      *
      * @param string   $defaultValue the default value of the underlying bytemap
-     * @param iterable $keys         inidices to be used.
+     * @param iterable $keys         indices to be used.
      *                               They need not be consecutive. All the missing elements between 0
      *                               and the maximum index will be assigned the default value.
      * @param iterable $values       values to be used
