@@ -105,6 +105,14 @@ interface ArrayProxyInterface extends ProxyInterface
     public function filter(?callable $callback = null, int $flag = 0): \Generator;
 
     /**
+     * `array_flip` (generates indices as values and their corresponding elements as keys).
+     *
+     * @return \Generator a generator whose values are the indices of the bytemap and whose keys
+     *                    are its corresponding elements
+     */
+    public function flip(): \Generator;
+
+    /**
      * `\in_array` (checks if an element exists in the bytemap).
      *
      * @param string $needle the value to look for

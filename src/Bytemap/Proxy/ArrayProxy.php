@@ -144,6 +144,13 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
+    public function flip(): \Generator
+    {
+        foreach ($this->bytemap as $index => $element) {
+            yield $element => $index;
+        }
+    }
+
     public function inArray(string $needle): bool
     {
         return (bool) \iterator_to_array($this->bytemap->find([$needle], true, 1));

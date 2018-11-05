@@ -181,6 +181,31 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($elements, $arrayProxy->exportArray());
     }
 
+    public static function flipProvider(): \Generator
+    {
+        foreach ([
+            [[], []],
+            [['cd'], [['cd', 0]]],
+            [['cd', 'xy', 'ef', 'ef'], [['cd', 0], ['xy', 1], ['ef', 2], ['ef', 3]]],
+        ] as [$elements, $expected]) {
+            yield [$elements, $expected];
+        }
+    }
+
+    /**
+     * @dataProvider flipProvider
+     */
+    public function testFlip(array $elements, array $expected): void
+    {
+        $arrayProxy = new ArrayProxy($elements[0] ?? 'cd', ...$elements);
+        $actual = [];
+        foreach ($arrayProxy->flip() as $element => $index) {
+            $actual[] = [$element, $index];
+        }
+        self::assertSame($expected, $actual);
+        self::assertSame($elements, $arrayProxy->exportArray());
+    }
+
     public function testInArray(): void
     {
         self::assertFalse(self::instantiate()->inArray('ab'));
