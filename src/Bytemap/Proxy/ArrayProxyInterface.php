@@ -289,11 +289,15 @@ interface ArrayProxyInterface extends ProxyInterface
     public function reduce(callable $callback, $initial = null);
 
     /**
-     * `\array_replace`.
+     * `\array_replace` (returns the bytemap with its elements overwritten by iterables).
      *
-     * @param iterable ...$iterables
+     * An iterable passed after another iterable overwrites its value when their keys match.
      *
-     * @return self
+     * @param iterable ...$iterables iterables whose values are to overwrite the values in a
+     *                               clone of the bytemap
+     *
+     * @return self a clone of the bytemap who has had its elements overwritten by the values
+     *              found in the iterables in cases where indices matched the keys
      */
     public function replace(iterable ...$iterables): self;
 
@@ -328,11 +332,12 @@ interface ArrayProxyInterface extends ProxyInterface
     public function rSort(int $sortFlags = \SORT_REGULAR): void;
 
     /**
-     * `\array_search`.
+     * `\array_search` (returns the first index of a given value).
      *
-     * @param string $needle
+     * @param string $needle the value to look for in the bytemap
      *
-     * @return false|int
+     * @return false|int `false` if the bytemap does not contain the value,
+     *                   the index of the first match otherwise
      */
     public function search(string $needle);
 
@@ -401,16 +406,22 @@ interface ArrayProxyInterface extends ProxyInterface
     public function splice(int $index, ?int $length = null, $replacement = []): self;
 
     /**
-     * The equivalent of the array `+` operator.
+     * The equivalent of the array `+` operator (appends elements to a clone of the bytemap).
      *
-     * @param iterable ...$iterables
+     * Every iterable whose greatest key is greater than the greatest index of the bytemap expands
+     * the bytemap. Subsequent iterables must then contain values with keys greater than the
+     * new greatest index in order to be appended to the result.
+     *
+     * @param iterable ...$iterables iterables whose values are to be appended to those of the
+     *                               clone when their keys are greater than the greatest index
+     *                               of the clone in the current iteration
      *
      * @throws \TypeError           if any of the provided iterables contains an element whose
      *                              key is not an integer
      * @throws \OutOfRangeException if any of the provided iterables contains an element whose
      *                              index is negative
      *
-     * @return self
+     * @return self a clone of the bytemap with potentially new elements but none overwritten
      */
     public function union(iterable ...$iterables): self;
 

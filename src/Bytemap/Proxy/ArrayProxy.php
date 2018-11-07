@@ -153,7 +153,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
     public function inArray(string $needle): bool
     {
-        return (bool) \iterator_to_array($this->bytemap->find([$needle], true, 1));
+        foreach ($this->bytemap->find([$needle], true, 1) as $element) {
+            return true;
+        }
+
+        return false;
     }
 
     public function intersect(iterable ...$iterables): \Generator
@@ -418,7 +422,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
     public function search(string $needle)
     {
-        return \array_keys(\iterator_to_array($this->bytemap->find([$needle], true, 1)))[0] ?? false;
+        foreach ($this->bytemap->find([$needle], true, 1) as $index => $element) {
+            return $index;
+        }
+
+        return false;
     }
 
     public function shift(): string
