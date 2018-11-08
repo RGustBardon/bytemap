@@ -365,13 +365,20 @@ interface ArrayProxyInterface extends ProxyInterface
     public function sizeOf(): int;
 
     /**
-     * `\array_slice`.
+     * `\array_slice` (generates a slice of the bytemap).
      *
-     * @param int      $index
-     * @param null|int $length
-     * @param bool     $preserveKeys
+     * @param int      $index        the index at which the slicing should commence (if negative,
+     *                               it will start that far from the end of the bytemap)
+     * @param null|int $length       if `null`, slicing will stop after the last element, otherwise,
+     *                               if negative, slicing will stop that far from the end of the
+     *                               bytemap,
+     *                               otherwise, it is the maximum number of elements in the slice
+     * @param bool     $preserveKeys `true` if the elements are to be generated with their indices,
+     *                               `false` if keys should start from `0`
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are the elements included in the slice and whose
+     *                    keys are either their indices or a sequence of natural numbers starting
+     *                    from `0`
      */
     public function slice(int $index, ?int $length = null, bool $preserveKeys = false): \Generator;
 
@@ -395,13 +402,18 @@ interface ArrayProxyInterface extends ProxyInterface
     public function sort(int $sortFlags = \SORT_REGULAR): void;
 
     /**
-     * `\array_splice`.
+     * `\array_splice` (replaces a slice of the bytemap).
      *
-     * @param int      $index
-     * @param null|int $length
-     * @param mixed    $replacement
+     * @param int      $index       the index at which the slicing should commence (if negative,
+     *                              it will start that far from the end of the bytemap)
+     * @param null|int $length      if `null`, slicing will stop after the last element, otherwise,
+     *                              if negative, slicing will stop that far from the end of the
+     *                              bytemap,
+     *                              otherwise, it is the maximum number of elements in the slice
+     * @param mixed    $replacement values to replace the slice with (if something other than an
+     *                              iterable is passed, it will be converted to an array)
      *
-     * @return self
+     * @return self the extracted elements (indices are not preserved)
      */
     public function splice(int $index, ?int $length = null, $replacement = []): self;
 
@@ -479,10 +491,16 @@ interface ArrayProxyInterface extends ProxyInterface
     public function values(): \Generator;
 
     /**
-     * `\array_walk`.
+     * `\array_walk` (applies a callback to every element of the bytemap).
      *
-     * @param callable $callback
-     * @param mixed    $userdata
+     * If the callback receives the element as reference, any change to the element will be
+     * reflected in the bytemap.
+     *
+     * @param callable $callback a callback that will be passed an element (as the first argument),
+     *                           its index (as the second argument), and, optionally, `$userdata`
+     *                           as the third argument (if the third parameter had been declared)
+     * @param mixed    $userdata an additional value to be passed to the callback if it expects
+     *                           three arguments
      *
      * @throws \ArgumentCountError if the callback expects more arguments than it actually gets
      */
