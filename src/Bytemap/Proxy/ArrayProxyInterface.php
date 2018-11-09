@@ -549,21 +549,26 @@ interface ArrayProxyInterface extends ProxyInterface
     // PCRE API
 
     /**
-     * `\preg_filter`.
+     * `\preg_filter` (generates those elements who have been replaced after matching a pattern).
      *
-     * @param iterable|string $pattern
-     * @param iterable|string $replacement
-     * @param int             $limit
-     * @param null|int        $count
+     * @param iterable|string $pattern     PCRE pattern(s) to search for
+     * @param iterable|string $replacement a string defining a replacement or an iterable of such
+     *                                     strings (can contain backreferences such as `${1}`)
+     * @param int             $limit       the maximum number of replacements of each match in a
+     *                                     single element (`-1` corresponds to no limit)
+     * @param null|int        $count       the total number of all the replacements performed in
+     *                                     in all the elements that matched
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are the matching elements of the bytemap after
+     *                    replacements, after replacements otherwise) and whose keys are the indices
+     *                    of those elements
      */
     public function pregFilter($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator;
 
     /**
-     * `\preg_grep` (returns bytemap elements that match the pattern).
+     * `\preg_grep` (generates bytemap elements that match a pattern).
      *
-     * @param string $pattern the pattern to search for
+     * @param string $pattern a PCRE pattern to search for
      * @param int    $flags   if set to `PREG_GREP_INVERT`, returns the elements that do NOT match
      *                        the given pattern
      *
@@ -572,14 +577,19 @@ interface ArrayProxyInterface extends ProxyInterface
     public function pregGrep(string $pattern, int $flags = 0): \Generator;
 
     /**
-     * `\preg_replace`.
+     * `\preg_replace` (generates all the elements, replacing the ones matching a pattern).
      *
-     * @param iterable|string $pattern
-     * @param iterable|string $replacement
-     * @param int             $limit
-     * @param null|int        $count
+     * @param iterable|string $pattern     PCRE pattern(s) to search for
+     * @param iterable|string $replacement a string defining a replacement or an iterable of such
+     *                                     strings (can contain backreferences such as `${1}`)
+     * @param int             $limit       the maximum number of replacements of each match in a
+     *                                     single element (`-1` corresponds to no limit)
+     * @param null|int        $count       the total number of all the replacements performed in
+     *                                     in all the elements that matched
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are the elements of the bytemap (unchanged if not
+     *                    matching, after replacements otherwise) and whose keys are the indices of
+     *                    those elements
      */
     public function pregReplace($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator;
 
