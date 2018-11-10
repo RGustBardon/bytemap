@@ -549,7 +549,7 @@ interface ArrayProxyInterface extends ProxyInterface
     // PCRE API
 
     /**
-     * `\preg_filter` (generates those elements who have been replaced after matching a pattern).
+     * `\preg_filter` (generates pattern matching elements, transforming generated values).
      *
      * @param iterable|string $pattern     PCRE pattern(s) to search for
      * @param iterable|string $replacement a string defining a replacement or an iterable of such
@@ -577,7 +577,7 @@ interface ArrayProxyInterface extends ProxyInterface
     public function pregGrep(string $pattern, int $flags = 0): \Generator;
 
     /**
-     * `\preg_replace` (generates all the elements, replacing the ones matching a pattern).
+     * `\preg_replace` (generates all the elements, transforming matching values).
      *
      * @param iterable|string $pattern     PCRE pattern(s) to search for
      * @param iterable|string $replacement a string defining a replacement or an iterable of such
@@ -594,25 +594,40 @@ interface ArrayProxyInterface extends ProxyInterface
     public function pregReplace($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator;
 
     /**
-     * `\preg_replace_callback`.
+     * `\preg_replace_callback` (generates all the elements, transforming matching values).
      *
-     * @param iterable|string $pattern
-     * @param callable        $callback
-     * @param int             $limit
-     * @param null|int        $count
+     * @param iterable|string $pattern  PCRE pattern(s) to search for
+     * @param callable        $callback a callback called whenever an element matches any of the
+     *                                  patterns, which is passed an array of matches pertaining to
+     *                                  that particular pattern and element and is expected to
+     *                                  return a replacement value
+     * @param int             $limit    the maximum number of replacements of each match in a
+     *                                  single element (`-1` corresponds to no limit)
+     * @param null|int        $count    the total number of all the replacements performed in
+     *                                  in all the elements that matched
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are the elements of the bytemap (unchanged if not
+     *                    matching, after replacements otherwise) and whose keys are the indices of
+     *                    those elements
      */
     public function pregReplaceCallback($pattern, callable $callback, int $limit = -1, ?int &$count = 0): \Generator;
 
     /**
-     * `\preg_replace_callback_array`.
+     * `\preg_replace_callback_array` (generates all the elements, transforming matching values).
      *
-     * @param iterable $patternsAndCallbacks
-     * @param int      $limit
-     * @param null|int $count
+     * @param iterable $patternsAndCallbacks an iterable whose keys are PCRE patterns and whose
+     *                                       values are callbacks called whenever an element matches
+     *                                       their corresponding pattern, which are passed an array
+     *                                       of matches pertaining to that particular pattern and
+     *                                       element and is expected to return a replacement value
+     * @param int      $limit                the maximum number of replacements of each match in a
+     *                                       single element (`-1` corresponds to no limit)
+     * @param null|int $count                the total number of all the replacements performed in
+     *                                       in all the elements that matched
      *
-     * @return \Generator
+     * @return \Generator a generator whose values are the elements of the bytemap (unchanged if not
+     *                    matching, after replacements otherwise) and whose keys are the indices of
+     *                    those elements
      */
     public function pregReplaceCallbackArray(iterable $patternsAndCallbacks, int $limit = -1, ?int &$count = 0): \Generator;
 
