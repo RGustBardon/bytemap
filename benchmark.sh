@@ -23,23 +23,27 @@ else
 fi
 
 mkdir -p \
-    "$LOG_DIR/DsPolyfill" \
+    "$LOG_DIR/DsDequePolyfill" \
+    "$LOG_DIR/DsVectorPolyfill" \
     "$LOG_DIR/ArrayBytemap" \
     "$LOG_DIR/SplBytemap" \
-    "$LOG_DIR/DsExtension" \
+    "$LOG_DIR/DsDequeExtension" \
+    "$LOG_DIR/DsVectorExtension" \
     "$LOG_DIR/Bytemap"
 
 for benchmark in $BENCHMARKS
 do
     php benchmark.php 'Bytemap\Benchmark\ArrayBytemap' $benchmark | tee "$LOG_DIR/ArrayBytemap/$benchmark.json"
     php benchmark.php 'Bytemap\Benchmark\SplBytemap' $benchmark | tee "$LOG_DIR/SplBytemap/$benchmark.json"
-    php benchmark.php 'Bytemap\Benchmark\DsBytemap' $benchmark | tee "$LOG_DIR/DsPolyfill/$benchmark.json"
+    php benchmark.php 'Bytemap\Benchmark\DsDequeBytemap' $benchmark | tee "$LOG_DIR/DsDequePolyfill/$benchmark.json"
+    php benchmark.php 'Bytemap\Benchmark\DsVectorBytemap' $benchmark | tee "$LOG_DIR/DsVectorPolyfill/$benchmark.json"
 done
 
 docker-php-ext-enable ds
 
 for benchmark in $BENCHMARKS
 do
-    php benchmark.php 'Bytemap\Benchmark\DsBytemap' $benchmark | tee "$LOG_DIR/DsExtension/$benchmark.json"
+    php benchmark.php 'Bytemap\Benchmark\DsDequeBytemap' $benchmark | tee "$LOG_DIR/DsDequeExtension/$benchmark.json"
+    php benchmark.php 'Bytemap\Benchmark\DsVectorBytemap' $benchmark | tee "$LOG_DIR/DsVectorExtension/$benchmark.json"
     php benchmark.php 'Bytemap\Bytemap' $benchmark | tee "$LOG_DIR/Bytemap/$benchmark.json"
 done

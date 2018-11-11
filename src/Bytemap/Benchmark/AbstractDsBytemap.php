@@ -18,16 +18,14 @@ use Bytemap\BytemapInterface;
 use Bytemap\JsonListener\BytemapListener;
 
 /**
- * An implementation of the `BytemapInterface` using `\Ds\Vector`.
+ * An abstract implementation of the `BytemapInterface` using `\Ds\Sequence`.
  *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
  * @internal
  */
-final class DsBytemap extends AbstractBytemap
+abstract class AbstractDsBytemap extends AbstractBytemap
 {
-    protected const UNSERIALIZED_CLASSES = ['Ds\\Vector'];
-
     public function __clone()
     {
         $this->map = clone $this->map;
@@ -172,7 +170,7 @@ final class DsBytemap extends AbstractBytemap
     {
         self::ensureStream($jsonStream);
 
-        $bytemap = new self($defaultValue);
+        $bytemap = new static($defaultValue);
         if (self::hasStreamingParser()) {
             $maxKey = -1;
             $listener = new BytemapListener(function (string $value, ?int $key) use ($bytemap, &$maxKey) {
@@ -223,11 +221,6 @@ final class DsBytemap extends AbstractBytemap
     }
 
     // `AbstractBytemap`
-    protected function createEmptyMap(): void
-    {
-        $this->map = new \Ds\Vector();
-    }
-
     protected function deleteWithNonNegativeIndex(int $firstIndex, int $howMany, int $elementCount): void
     {
         $maximumRange = $elementCount - $firstIndex;
@@ -238,7 +231,11 @@ final class DsBytemap extends AbstractBytemap
             }
         } else {
             $this->elementCount -= $howMany;
-            $this->map = $this->map->slice(0, $firstIndex)->merge($this->map->slice($firstIndex + $howMany));
+            if (0 === $firstIndex) {
+                $this->deleteFromHead($howMany);
+            } else {
+                $this->map = $this->map->slice(0, $firstIndex)->merge($this->map->slice($firstIndex + $howMany));
+            }
         }
     }
 
@@ -349,11 +346,7 @@ final class DsBytemap extends AbstractBytemap
 
     protected function validateUnserializedElements(): void
     {
-        if (!\is_object($this->map) || !($this->map instanceof \Ds\Vector)) {
-            $reason = 'Failed to unserialize (the internal representation of a bytemap must be a Ds\\Vector, '.\gettype($this->map).' given)';
-
-            throw new \TypeError(self::EXCEPTION_PREFIX.$reason);
-        }
+        $this->validateUnserializedMap();
 
         $bytesPerElement = \strlen($this->defaultValue);
         foreach ($this->map as $element) {
@@ -366,7 +359,12 @@ final class DsBytemap extends AbstractBytemap
         }
     }
 
-    // `DsBytemap`
+    // `AbstractDsBytemap`
+    protected function deleteFromHead(int $howMany): void
+    {
+        $this->map = $this->map->slice($howMany);
+    }
+
     protected function validateInsertedElements(
         int $firstIndexToCheck,
         int $howManyToCheck,
@@ -388,4 +386,6 @@ final class DsBytemap extends AbstractBytemap
             }
         }
     }
+
+    abstract protected function validateUnserializedMap(): void;
 }

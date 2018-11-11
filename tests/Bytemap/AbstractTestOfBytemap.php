@@ -14,7 +14,8 @@ declare(strict_types=1);
 namespace Bytemap;
 
 use Bytemap\Benchmark\ArrayBytemap;
-use Bytemap\Benchmark\DsBytemap;
+use Bytemap\Benchmark\DsDequeBytemap;
+use Bytemap\Benchmark\DsVectorBytemap;
 use Bytemap\Benchmark\SplBytemap;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +30,8 @@ abstract class AbstractTestOfBytemap extends TestCase
     {
         foreach ([
             ArrayBytemap::class,
-            DsBytemap::class,
+            DsDequeBytemap::class,
+            DsVectorBytemap::class,
             SplBytemap::class,
             Bytemap::class,
         ] as $impl) {

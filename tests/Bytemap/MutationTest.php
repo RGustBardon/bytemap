@@ -18,8 +18,10 @@ namespace Bytemap;
  *
  * @internal
  * @covers \Bytemap\AbstractBytemap
+ * @covers \Bytemap\Benchmark\AbstractDsBytemap
  * @covers \Bytemap\Benchmark\ArrayBytemap
- * @covers \Bytemap\Benchmark\DsBytemap
+ * @covers \Bytemap\Benchmark\DsDequeBytemap
+ * @covers \Bytemap\Benchmark\DsVectorBytemap
  * @covers \Bytemap\Benchmark\SplBytemap
  * @covers \Bytemap\Bytemap
  */
@@ -136,8 +138,8 @@ final class MutationTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\Benchmark\AbstractDsBytemap::insert
      * @covers \Bytemap\Benchmark\ArrayBytemap::insert
-     * @covers \Bytemap\Benchmark\DsBytemap::insert
      * @covers \Bytemap\Benchmark\SplBytemap::insert
      * @covers \Bytemap\Bytemap::insert
      * @dataProvider insertionProvider

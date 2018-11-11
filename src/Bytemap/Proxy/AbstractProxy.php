@@ -261,8 +261,4 @@ abstract class AbstractProxy implements ArrayProxyInterface
 
         return $proxy;
     }
-
-    private static function heapify(BytemapInterface $bytemap, callable $comparator, $swappers, &...$iterables): void
-    {
-    }
 }

@@ -18,8 +18,8 @@ namespace Bytemap;
  *
  * @internal
  * @covers \Bytemap\AbstractBytemap
+ * @covers \Bytemap\Benchmark\AbstractDsBytemap
  * @covers \Bytemap\Benchmark\ArrayBytemap
- * @covers \Bytemap\Benchmark\DsBytemap
  * @covers \Bytemap\Benchmark\SplBytemap
  * @covers \Bytemap\Bytemap
  * @covers \Bytemap\JsonListener\BytemapListener
@@ -83,8 +83,8 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\Benchmark\AbstractDsBytemap::parseJsonStream
      * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
-     * @covers \Bytemap\Benchmark\DsBytemap::parseJsonStream
      * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
      * @covers \Bytemap\Bytemap::parseJsonStream
      * @covers \Bytemap\JsonListener\BytemapListener
@@ -129,8 +129,8 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\Benchmark\AbstractDsBytemap::parseJsonStream
      * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
-     * @covers \Bytemap\Benchmark\DsBytemap::parseJsonStream
      * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
      * @covers \Bytemap\Bytemap::parseJsonStream
      * @covers \Bytemap\JsonListener\BytemapListener
@@ -189,8 +189,8 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     }
 
     /**
+     * @covers \Bytemap\Benchmark\AbstractDsBytemap::streamJson
      * @covers \Bytemap\Benchmark\ArrayBytemap::streamJson
-     * @covers \Bytemap\Benchmark\DsBytemap::streamJson
      * @covers \Bytemap\Benchmark\SplBytemap::streamJson
      * @covers \Bytemap\Bytemap::streamJson
      * @dataProvider arrayAccessProvider
