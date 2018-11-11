@@ -241,6 +241,17 @@ abstract class AbstractProxy implements ArrayProxyInterface
         return $bytemap;
     }
 
+    protected static function sortBytemapByElementAndReorder(
+        BytemapInterface $bytemap,
+        callable $comparator,
+        array $swappers,
+        &...$iterables
+    ): BytemapInterface {
+        // TODO: Implement.
+
+        return $bytemap;
+    }
+
     protected static function wrapGenerically(BytemapInterface $bytemap): ProxyInterface
     {
         $class = new \ReflectionClass(static::class);
@@ -249,5 +260,9 @@ abstract class AbstractProxy implements ArrayProxyInterface
         $proxy->bytemap = $bytemap;
 
         return $proxy;
+    }
+
+    private static function heapify(BytemapInterface $bytemap, callable $comparator, $swappers, &...$iterables): void
+    {
     }
 }

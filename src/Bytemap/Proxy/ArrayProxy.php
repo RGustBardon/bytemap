@@ -290,6 +290,47 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
+    public function multiSort(int $sortFlags = \SORT_REGULAR, bool $reverse = false, &...$supportedIterables): void
+    {
+        $itemCount = \count($this->bytemap);
+        $swappers = [];
+        $format = 'Expected an array, a bytemap, a \Ds\Collection, or an \SplFixedArray; %s passed as argument %d';
+        foreach ($supportedIterables as $index => $iterable) {
+            if (\is_object($iterable)) {
+                if (
+                    $iterable instanceof BytemapInterface ||
+                    $iterable instanceof \Ds\Collection ||
+                    $iterable instanceof \SplFixedArray
+                ) {
+                    $swappers[$index] = function ($vector, int $index1, int $index2) {
+                        $temporary = $vector[$index1];
+                        $vector[$index1] = $vector[$index2];
+                        $vector[$index2] = $temporary;
+                    };
+                } else {
+                    throw new \TypeError(\sprintf($format, \get_class($iterable), $index));
+                }
+            } elseif (\is_array($iterable)) {
+                $swappers[$index] = function (array &$array, int $position1, int $position2) {
+                    // TODO: Implement.
+                };
+            } else {
+                throw new \TypeError(\sprintf($format, \gettype($iterable), $index));
+            }
+
+            if (\count($iterable) !== $itemCount) {
+                throw new \UnderflowException('The bytemap and argument '.$index.' do not have the same number of elements');
+            }
+        }
+
+        if ($itemCount < 2) {
+            return;
+        }
+
+        $comparator = self::getComparator($sortFlags, $reverse);
+        self::sortBytemapByElementAndReorder($this->bytemap, $comparator, $swappers, $supportedIterables);
+    }
+
     public function natCaseSort(): void
     {
         if (!\defined('\\SORT_NATURAL') || !\is_callable('\\strnatcasecmp')) {

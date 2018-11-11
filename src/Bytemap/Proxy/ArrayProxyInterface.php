@@ -210,6 +210,36 @@ interface ArrayProxyInterface extends ProxyInterface
     public function merge(iterable ...$iterables): \Generator;
 
     /**
+     * `array_multisort` (sort the bytemap and reorder array-likes the same way).
+     *
+     * @param int                                                  $sortFlags             if `\SORT_NUMERIC`, elements are converted to
+     *                                                                                    floating point numbers before being compared,
+     *                                                                                    otherwise,
+     *                                                                                    if `\SORT_LOCALE_STRING`, the comparison is
+     *                                                                                    locale-based and case-sensitive (`\strcoll`),
+     *                                                                                    otherwise,
+     *                                                                                    if `\SORT_NATURAL`, the bytemap is sorted in
+     *                                                                                    natural order (in a case-sensitive fashion if not
+     *                                                                                    combined with `\SORT_FLAG_CASE`), otherwise,
+     *                                                                                    if `\SORT_REGULAR`, numeric elements are converted
+     *                                                                                    to floating point numbers are then to strings before
+     *                                                                                    being compared, whereas other elements are compared
+     *                                                                                    unchanged (in a case-sensitive fashion), otherwise,
+     *                                                                                    elements are compared in a binary safe fashion (and
+     *                                                                                    also in a case-sensitive fashion if not combined
+     *                                                                                    with `\SORT_FLAG_CASE`);
+     * @param bool                                                 $reverse               `true` if sorting descending, `false` otherwise
+     * @param array|BytemapInterface|\Ds\Collection|\SplFixedArray ...$supportedIterables iterables that are to be reordered the way the
+     *                                                                                    elements of the bytemap are going to be during
+     *                                                                                    sorting
+     *
+     * @throws \TypeError          if any iterable passed to the method is of an unsupported type
+     * @throws \UnderflowException if the bytemap and all the iterables do not have the same number
+     *                             of elements
+     */
+    public function multiSort(int $sortFlags = \SORT_REGULAR, bool $reverse = false, &...$supportedIterables): void;
+
+    /**
      * `\natcasesort` (sorts the bytemap in natural order, ignoring the case).
      *
      * @see https://github.com/sourcefrog/natsort The description of the algorithm.
