@@ -290,35 +290,59 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
-    public function multiSort(int $sortFlags = \SORT_REGULAR, bool $reverse = false, &...$supportedIterables): void
+    public function multiSort(int $sortFlags = \SORT_REGULAR, bool $ascending = true, &...$iterablesToReorder): void
     {
         $itemCount = \count($this->bytemap);
+        $keysToReorder = [];
         $swappers = [];
         $format = 'Expected an array, a bytemap, a \Ds\Collection, or an \SplFixedArray; %s passed as argument %d';
-        foreach ($supportedIterables as $index => $iterable) {
-            if (\is_object($iterable)) {
+        foreach ($iterablesToReorder as $index => $iterableToReorder) {
+            if (\is_object($iterableToReorder)) {
                 if (
-                    $iterable instanceof BytemapInterface ||
-                    $iterable instanceof \Ds\Collection ||
-                    $iterable instanceof \SplFixedArray
+                    $iterableToReorder instanceof BytemapInterface ||
+                    $iterableToReorder instanceof \Ds\Collection ||
+                    $iterableToReorder instanceof \SplFixedArray
                 ) {
-                    $swappers[$index] = function ($vector, int $index1, int $index2) {
-                        $temporary = $vector[$index1];
-                        $vector[$index1] = $vector[$index2];
-                        $vector[$index2] = $temporary;
+                    $swappers[$index] = function (
+                        $vectorToReorder,
+                        int $index1,
+                        int $index2,
+                        ?array &$keysToReorder = null
+                    ): void {
+                        $swapped = $vectorToReorder[$index1];
+                        $vectorToReorder[$index1] = $vectorToReorder[$index2];
+                        $vectorToReorder[$index2] = $swapped;
                     };
                 } else {
-                    throw new \TypeError(\sprintf($format, \get_class($iterable), $index));
+                    throw new \TypeError(\sprintf($format, \get_class($iterableToReorder), $index));
                 }
-            } elseif (\is_array($iterable)) {
-                $swappers[$index] = function (array &$array, int $position1, int $position2) {
-                    // TODO: Implement.
+            } elseif (\is_array($iterableToReorder)) {
+                foreach ($iterableToReorder as $key => $value) {
+                    if (!\is_int($key)) {
+                        $keysToReorder[$index] = \array_keys($iterableToReorder);
+
+                        break;
+                    }
+                }
+
+                $swappers[$index] = function (
+                    &$arrayToReorder,
+                    int $position1,
+                    int $position2,
+                    ?array &$keysToReorder = null
+                ): void {
+                    if (isset($keysToReorder)) {
+                        $swapped = \array_slice($keysToReorder, $position2, 1);
+                        \array_splice($keysToReorder, $position2, 1, \array_splice($keysToReorder, $position1, 1, $swapped));
+                    }
+                    $swapped = \array_slice($arrayToReorder, $position2, 1);
+                    \array_splice($arrayToReorder, $position2, 1, \array_splice($arrayToReorder, $position1, 1, $swapped));
                 };
             } else {
-                throw new \TypeError(\sprintf($format, \gettype($iterable), $index));
+                throw new \TypeError(\sprintf($format, \gettype($iterableToReorder), $index));
             }
 
-            if (\count($iterable) !== $itemCount) {
+            if (\count($iterableToReorder) !== $itemCount) {
                 throw new \UnderflowException('The bytemap and argument '.$index.' do not have the same number of elements');
             }
         }
@@ -327,8 +351,17 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             return;
         }
 
-        $comparator = self::getComparator($sortFlags, $reverse);
-        self::sortBytemapByElementAndReorder($this->bytemap, $comparator, $swappers, $supportedIterables);
+        $comparator = self::getComparator($sortFlags, $ascending);
+        self::sortElements($this->bytemap, $comparator, $keysToReorder, $iterablesToReorder, $swappers);
+
+        foreach ($iterablesToReorder as $index => &$iterableToReorder) {
+            if (\is_array($iterableToReorder)) {
+                if (isset($keysToReorder[$index])) {
+                    $iterableToReorder = \array_combine($keysToReorder[$index], $iterableToReorder);
+                }
+                $iterableToReorder = \array_merge($iterableToReorder);  // Re-index numeric keys.
+            }
+        }
     }
 
     public function natCaseSort(): void
@@ -338,7 +371,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             throw new \RuntimeException('Natural order comparator is not available');
             // @codeCoverageIgnoreEnd
         }
-        self::sortBytemapByElement($this->bytemap, self::getComparator(\SORT_NATURAL | \SORT_FLAG_CASE));
+        self::sortElements($this->bytemap, self::getComparator(\SORT_NATURAL | \SORT_FLAG_CASE));
     }
 
     public function natSort(): void
@@ -348,7 +381,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             throw new \RuntimeException('Natural order comparator is not available');
             // @codeCoverageIgnoreEnd
         }
-        self::sortBytemapByElement($this->bytemap, self::getComparator(\SORT_NATURAL));
+        self::sortElements($this->bytemap, self::getComparator(\SORT_NATURAL));
     }
 
     public function pad(int $size, string $value): \Generator
@@ -458,7 +491,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
     public function rSort(int $sortFlags = \SORT_REGULAR): void
     {
-        self::sortBytemapByElement($this->bytemap, self::getComparator($sortFlags, true));
+        self::sortElements($this->bytemap, self::getComparator($sortFlags, false));
     }
 
     public function search(string $needle)
@@ -514,7 +547,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
     public function sort(int $sortFlags = \SORT_REGULAR): void
     {
-        self::sortBytemapByElement($this->bytemap, self::getComparator($sortFlags));
+        self::sortElements($this->bytemap, self::getComparator($sortFlags));
     }
 
     public function splice(int $index, ?int $length = null, $replacement = []): ArrayProxyInterface
@@ -612,7 +645,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
     public function uSort(callable $valueCompareFunc): void
     {
-        self::sortBytemapByElement($this->bytemap, $valueCompareFunc);
+        self::sortElements($this->bytemap, $valueCompareFunc);
     }
 
     public function values(): \Generator

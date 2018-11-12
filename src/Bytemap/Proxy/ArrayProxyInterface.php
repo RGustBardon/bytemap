@@ -212,6 +212,9 @@ interface ArrayProxyInterface extends ProxyInterface
     /**
      * `array_multisort` (sort the bytemap and reorder array-likes the same way).
      *
+     * Any key of any array passed to this method is going to be re-indexed if it is a natural
+     * number.
+     *
      * @param int                                                  $sortFlags             if `\SORT_NUMERIC`, elements are converted to
      *                                                                                    floating point numbers before being compared,
      *                                                                                    otherwise,
@@ -228,8 +231,8 @@ interface ArrayProxyInterface extends ProxyInterface
      *                                                                                    elements are compared in a binary safe fashion (and
      *                                                                                    also in a case-sensitive fashion if not combined
      *                                                                                    with `\SORT_FLAG_CASE`);
-     * @param bool                                                 $reverse               `true` if sorting descending, `false` otherwise
-     * @param array|BytemapInterface|\Ds\Collection|\SplFixedArray ...$supportedIterables iterables that are to be reordered the way the
+     * @param bool                                                 $ascending             `true` if sorting ascending, `false` otherwise
+     * @param array|BytemapInterface|\Ds\Collection|\SplFixedArray ...$iterablesToReorder iterables that are to be reordered the way the
      *                                                                                    elements of the bytemap are going to be during
      *                                                                                    sorting
      *
@@ -237,7 +240,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * @throws \UnderflowException if the bytemap and all the iterables do not have the same number
      *                             of elements
      */
-    public function multiSort(int $sortFlags = \SORT_REGULAR, bool $reverse = false, &...$supportedIterables): void;
+    public function multiSort(int $sortFlags = \SORT_REGULAR, bool $ascending = true, &...$iterablesToReorder): void;
 
     /**
      * `\natcasesort` (sorts the bytemap in natural order, ignoring the case).

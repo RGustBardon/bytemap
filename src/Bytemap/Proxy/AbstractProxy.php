@@ -128,128 +128,110 @@ abstract class AbstractProxy implements ArrayProxyInterface
         return clone $this->bytemap;
     }
 
-    protected static function getComparator(int $sortFlags, bool $reverse = false): callable
+    protected static function getComparator(int $sortFlags, bool $ascending = true): callable
     {
         $caseInsensitive = ($sortFlags & \SORT_FLAG_CASE);
         $sortFlags &= ~\SORT_FLAG_CASE;
 
         if (\SORT_NUMERIC === $sortFlags) {
-            if ($reverse) {
+            if ($ascending) {
                 return function (string $a, string $b): int {
-                    return (float) $b <=> (float) $a;
+                    return (float) $a <=> (float) $b;
                 };
             }
 
             return function (string $a, string $b): int {
-                return (float) $a <=> (float) $b;
+                return (float) $b <=> (float) $a;
             };
         }
 
         if (\defined('\\SORT_LOCALE_STRING') && \is_callable('\\strcoll') && \SORT_LOCALE_STRING === $sortFlags) {
-            if ($reverse) {
-                return function (string $a, string $b): int {
-                    return \strcoll($b, $a);
-                };
+            if ($ascending) {
+                return '\\strcoll';
             }
 
-            return '\\strcoll';
+            return function (string $a, string $b): int {
+                return \strcoll($b, $a);
+            };
         }
 
         if (\defined('\\SORT_NATURAL') && \SORT_NATURAL === $sortFlags) {
             if ($caseInsensitive) {
                 if (\is_callable('\\strnatcasecmp')) {
-                    if ($reverse) {
-                        return function (string $a, string $b): int {
-                            return \strnatcasecmp($b, $a);
-                        };
+                    if ($ascending) {
+                        return '\\strnatcasecmp';
                     }
 
-                    return '\\strnatcasecmp';
-                }
-            } elseif (\is_callable('\\strnatcmp')) {
-                if ($reverse) {
                     return function (string $a, string $b): int {
-                        return \strnatcmp($b, $a);
+                        return \strnatcasecmp($b, $a);
                     };
                 }
+            } elseif (\is_callable('\\strnatcmp')) {
+                if ($ascending) {
+                    return '\\strnatcmp';
+                }
 
-                return '\\strnatcmp';
+                return function (string $a, string $b): int {
+                    return \strnatcmp($b, $a);
+                };
             }
         }
 
         if (\SORT_REGULAR === $sortFlags) {
-            if ($reverse) {
+            if ($ascending) {
                 return function (string $a, string $b): int {
-                    return (\is_numeric($b) ? (string) (float) $b : $b) <=> (\is_numeric($a) ? (string) (float) $a : $a);
+                    return (\is_numeric($a) ? (string) (float) $a : $a) <=> (\is_numeric($b) ? (string) (float) $b : $b);
                 };
             }
 
             return function (string $a, string $b): int {
-                return (\is_numeric($a) ? (string) (float) $a : $a) <=> (\is_numeric($b) ? (string) (float) $b : $b);
+                return (\is_numeric($b) ? (string) (float) $b : $b) <=> (\is_numeric($a) ? (string) (float) $a : $a);
             };
         }
 
         if ($caseInsensitive) {
-            if ($reverse) {
-                return function (string $a, string $b): int {
-                    return \strcasecmp($b, $a);
-                };
+            if ($ascending) {
+                return '\\strcasecmp';
             }
 
-            return '\\strcasecmp';
-        }
-        if ($reverse) {
             return function (string $a, string $b): int {
-                return \strcmp($b, $a);
+                return \strcasecmp($b, $a);
             };
         }
 
-        return '\\strcmp';
-    }
-
-    protected static function sortBytemapByElement(BytemapInterface $bytemap, callable $comparator): BytemapInterface
-    {
-        // Quicksort.
-        $elementCount = \count($bytemap);
-        if ($elementCount > 1) {
-            foreach ($bytemap as $element) {
-                if (isset($pivot)) {
-                    if ((int) $comparator($element, $pivot) < 0) {
-                        $left[] = $element;
-                    } else {
-                        $right[] = $element;
-                    }
-                } else {
-                    $pivot = $bytemap[0];
-                    $left = new Bytemap($pivot);
-                    $right = clone $left;
-                }
-            }
-
-            $bytemap->delete(0);
-            if (isset($left) && $left instanceof BytemapInterface) {
-                $bytemap->insert(self::sortBytemapByElement($left, $comparator));
-            }
-            if (isset($pivot)) {
-                $bytemap[] = $pivot;
-            }
-            if (isset($right) && $right instanceof BytemapInterface) {
-                $bytemap->insert(self::sortBytemapByElement($right, $comparator));
-            }
+        if ($ascending) {
+            return '\\strcmp';
         }
 
-        return $bytemap;
+        return function (string $a, string $b): int {
+            return \strcmp($b, $a);
+        };
     }
 
-    protected static function sortBytemapByElementAndReorder(
+    protected static function sortElements(
         BytemapInterface $bytemap,
         callable $comparator,
-        array $swappers,
-        &...$iterables
-    ): BytemapInterface {
-        // TODO: Implement.
+        array &$keysToReorder = [],
+        array $iterablesToReorder = [],
+        array $swappers = []
+    ): void {
+        // Heapsort.
+        $elementCount = \count($bytemap);
+        for ($i = (int) ($elementCount / 2) - 1; $i >= 0; --$i) {
+            self::heapify($bytemap, $comparator, $keysToReorder, $iterablesToReorder, $swappers, $elementCount, $i);
+        }
 
-        return $bytemap;
+        for ($i = $elementCount - 1; $i >= 0; --$i) {
+            $swapped = $bytemap[0];
+            $bytemap[0] = $bytemap[$i];
+            $bytemap[$i] = $swapped;
+
+            foreach ($swappers as $index => $swapper) {
+                $swapper($iterablesToReorder[$index], 0, $i, $keysToReorder[$index]);
+            }
+
+            self::heapify($bytemap, $comparator, $keysToReorder, $iterablesToReorder, $swappers, $i, 0);
+        }
     }
 
     protected static function wrapGenerically(BytemapInterface $bytemap): ProxyInterface
@@ -260,5 +242,39 @@ abstract class AbstractProxy implements ArrayProxyInterface
         $proxy->bytemap = $bytemap;
 
         return $proxy;
+    }
+
+    private static function heapify(
+        BytemapInterface $bytemap,
+        callable $comparator,
+        array &$keysToReorder,
+        array $iterablesToReorder,
+        array $swappers,
+        int $elementCount,
+        int $subtreeRoot
+    ): void {
+        $greatest = $subtreeRoot;
+
+        $left = 2 * $subtreeRoot + 1;
+        if ($left < $elementCount && $comparator($bytemap[$left], $bytemap[$greatest]) > 0) {
+            $greatest = $left;
+        }
+
+        $right = 2 * $subtreeRoot + 2;
+        if ($right < $elementCount && $comparator($bytemap[$right], $bytemap[$greatest]) > 0) {
+            $greatest = $right;
+        }
+
+        if ($greatest !== $subtreeRoot) {
+            $swapped = $bytemap[$subtreeRoot];
+            $bytemap[$subtreeRoot] = $bytemap[$greatest];
+            $bytemap[$greatest] = $swapped;
+
+            foreach ($swappers as $index => $swapper) {
+                $swapper($iterablesToReorder[$index], $subtreeRoot, $greatest, $keysToReorder[$index]);
+            }
+
+            self::heapify($bytemap, $comparator, $keysToReorder, $iterablesToReorder, $swappers, $elementCount, $greatest);
+        }
     }
 }
