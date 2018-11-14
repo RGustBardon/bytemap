@@ -295,16 +295,16 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $itemCount = \count($this->bytemap);
         $keysToReorder = [];
         $swappers = [];
-        $format = 'Expected an array, a bytemap, a \Ds\Collection, or an \SplFixedArray; %s passed as argument %d';
+        $format = 'Expected an array, a bytemap, a \\Ds\\Sequence, or an \\SplFixedArray; %s passed as argument %d';
         foreach ($iterablesToReorder as $index => $iterableToReorder) {
             if (\is_object($iterableToReorder)) {
                 if (
                     $iterableToReorder instanceof BytemapInterface ||
-                    $iterableToReorder instanceof \Ds\Collection ||
+                    $iterableToReorder instanceof \Ds\Sequence ||
                     $iterableToReorder instanceof \SplFixedArray
                 ) {
-                    $swappers[$index] = function (
-                        $vectorToReorder,
+                    $swappers[$index] = static function (
+                        iterable $vectorToReorder,
                         int $index1,
                         int $index2,
                         ?array &$keysToReorder = null
@@ -325,8 +325,8 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                     }
                 }
 
-                $swappers[$index] = function (
-                    &$arrayToReorder,
+                $swappers[$index] = static function (
+                    array &$arrayToReorder,
                     int $position1,
                     int $position2,
                     ?array &$keysToReorder = null

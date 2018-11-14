@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Bytemap\Proxy;
 
 use Bytemap\Bytemap;
+use Bytemap\BytemapInterface;
 
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
@@ -409,6 +410,83 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             'g1', 'g2', 'g3',
         ], \iterator_to_array($arrayProxy->merge($array, $bytemap, $generator())));
         self::assertSame($elements, $arrayProxy->exportArray());
+    }
+
+    /**
+     * @expectedException \TypeError
+     */
+    public function testMultiSortTypeError(): void
+    {
+        $heap = new \SplMaxHeap();
+        $heap->insert('xy');
+        $heap->insert('zz');
+        self::instantiate('cd', 'ef')->multiSort(\SORT_STRING, true, $heap);
+    }
+
+    public static function multiSortProvider(): \Generator
+    {
+        foreach (self::sortProvider() as [$defaultValue, $elements, $sortFlagsClosure, $expectedBeforeOrientation]) {
+            $iterables = [\array_map('\\strval', range(10, 10 * \count($elements), 10))];
+
+            $expectedIterableBeforeOrientation = [];
+            foreach ($expectedBeforeOrientation as $value) {
+                if (null !== $value) {
+                    $value = $iterables[0][\array_search($value, $elements, true)];
+                }
+                $expectedIterableBeforeOrientation[] = $value;
+            }
+
+            foreach ([false, true] as $ascending) {
+                $iterables[1] = new Bytemap('00');
+                $iterables[1]->insert($iterables[0]);
+
+                $iterables[2] = new \Ds\Deque();
+                $iterables[2]->push(...$iterables[0]);
+
+                $iterables[3] = new \Ds\Vector();
+                $iterables[3]->push(...$iterables[0]);
+
+                $iterables[4] = \SplFixedArray::fromArray($iterables[0]);
+
+                $expected = $ascending ? $expectedBeforeOrientation : \array_reverse($expectedBeforeOrientation);
+                $expectedIterable = $ascending ? $expectedIterableBeforeOrientation : \array_reverse($expectedIterableBeforeOrientation);
+
+                yield [$defaultValue, $elements, $sortFlagsClosure, $ascending, $expected, $iterables, $expectedIterable];
+            }
+        }
+    }
+
+    /**
+     * @dataProvider multiSortProvider
+     */
+    public function testMultiSort(
+        string $defaultValue,
+        array $elements,
+        \Closure $sortFlagsClosure,
+        bool $ascending,
+        array $expected,
+        array $iterables,
+        array $expectedIterable
+    ): void {
+        $arrayProxy = new ArrayProxy($defaultValue, ...$elements);
+        $arrayProxy->multiSort($sortFlagsClosure($this), $ascending, ...$iterables);
+        self::assertArrayMask($expected, $arrayProxy->exportArray());
+        foreach ($iterables as $iterable) {
+            $array = null;
+            if (\is_array($iterable)) {
+                $array = $iterable;
+            } elseif (\is_object($iterable)) {
+                if ($iterable instanceof BytemapInterface) {
+                    $array = [];
+                    foreach ($iterable as $element) {
+                        $array[] = $element;
+                    }
+                } elseif ($iterable instanceof \Ds\Collection || $iterable instanceof \SplFixedArray) {
+                    $array = $iterable->toArray();
+                }
+            }
+            self::assertArrayMask($expectedIterable, $array);
+        }
     }
 
     public function testNatCaseSort(): void

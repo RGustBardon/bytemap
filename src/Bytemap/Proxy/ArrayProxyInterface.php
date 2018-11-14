@@ -210,31 +210,33 @@ interface ArrayProxyInterface extends ProxyInterface
     public function merge(iterable ...$iterables): \Generator;
 
     /**
-     * `array_multisort` (sort the bytemap and reorder array-likes the same way).
+     * `array_multisort` (sorts the bytemap and reorders supported iterables the same way).
+     *
+     * The sorting being performed is not stable.
      *
      * Any key of any array passed to this method is going to be re-indexed if it is a natural
      * number.
      *
-     * @param int                                                  $sortFlags             if `\SORT_NUMERIC`, elements are converted to
-     *                                                                                    floating point numbers before being compared,
-     *                                                                                    otherwise,
-     *                                                                                    if `\SORT_LOCALE_STRING`, the comparison is
-     *                                                                                    locale-based and case-sensitive (`\strcoll`),
-     *                                                                                    otherwise,
-     *                                                                                    if `\SORT_NATURAL`, the bytemap is sorted in
-     *                                                                                    natural order (in a case-sensitive fashion if not
-     *                                                                                    combined with `\SORT_FLAG_CASE`), otherwise,
-     *                                                                                    if `\SORT_REGULAR`, numeric elements are converted
-     *                                                                                    to floating point numbers are then to strings before
-     *                                                                                    being compared, whereas other elements are compared
-     *                                                                                    unchanged (in a case-sensitive fashion), otherwise,
-     *                                                                                    elements are compared in a binary safe fashion (and
-     *                                                                                    also in a case-sensitive fashion if not combined
-     *                                                                                    with `\SORT_FLAG_CASE`);
-     * @param bool                                                 $ascending             `true` if sorting ascending, `false` otherwise
-     * @param array|BytemapInterface|\Ds\Collection|\SplFixedArray ...$iterablesToReorder iterables that are to be reordered the way the
-     *                                                                                    elements of the bytemap are going to be during
-     *                                                                                    sorting
+     * @param int                                                  $sortFlags           if `\SORT_NUMERIC`, elements are converted to
+     *                                                                                  floating point numbers before being compared,
+     *                                                                                  otherwise,
+     *                                                                                  if `\SORT_LOCALE_STRING`, the comparison is
+     *                                                                                  locale-based and case-sensitive (`\strcoll`),
+     *                                                                                  otherwise,
+     *                                                                                  if `\SORT_NATURAL`, the bytemap is sorted in
+     *                                                                                  natural order (in a case-sensitive fashion if not
+     *                                                                                  combined with `\SORT_FLAG_CASE`), otherwise,
+     *                                                                                  if `\SORT_REGULAR`, numeric elements are converted
+     *                                                                                  to floating point numbers are then to strings before
+     *                                                                                  being compared, whereas other elements are compared
+     *                                                                                  unchanged (in a case-sensitive fashion), otherwise,
+     *                                                                                  elements are compared in a binary safe fashion (and
+     *                                                                                  also in a case-sensitive fashion if not combined
+     *                                                                                  with `\SORT_FLAG_CASE`);
+     * @param bool                                                 $ascending           `true` if sorting ascending, `false` otherwise
+     * @param array|BytemapInterface|\Ds\Sequence|\SplFixedArray ...$iterablesToReorder iterables that are to be reordered the way the
+     *                                                                                  elements of the bytemap are going to be during
+     *                                                                                  sorting
      *
      * @throws \TypeError          if any iterable passed to the method is of an unsupported type
      * @throws \UnderflowException if the bytemap and all the iterables do not have the same number
