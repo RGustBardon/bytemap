@@ -304,7 +304,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                     $iterableToReorder instanceof \SplFixedArray
                 ) {
                     $swappers[$index] = static function (
-                        iterable $vectorToReorder,
+                        $vectorToReorder,
                         int $index1,
                         int $index2,
                         ?array &$keysToReorder = null

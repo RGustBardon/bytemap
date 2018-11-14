@@ -423,10 +423,19 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::instantiate('cd', 'ef')->multiSort(\SORT_STRING, true, $heap);
     }
 
+    /**
+     * @expectedException \UnderflowException
+     */
+    public function testMultiSortUnderflowException(): void
+    {
+        $array = ['xy'];
+        self::instantiate('cd', 'ef')->multiSort(\SORT_STRING, true, $array);
+    }
+
     public static function multiSortProvider(): \Generator
     {
         foreach (self::sortProvider() as [$defaultValue, $elements, $sortFlagsClosure, $expectedBeforeOrientation]) {
-            $iterables = [\array_map('\\strval', range(10, 10 * \count($elements), 10))];
+            $iterables = [\array_map('\\strval', \range(10, 10 * \count($elements), 10))];
 
             $expectedIterableBeforeOrientation = [];
             foreach ($expectedBeforeOrientation as $value) {
@@ -454,6 +463,13 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 yield [$defaultValue, $elements, $sortFlagsClosure, $ascending, $expected, $iterables, $expectedIterable];
             }
         }
+
+        $sortFlagsClosure = static function (): int { return \SORT_STRING; };
+        yield from [
+            ['cd', ['cd'], $sortFlagsClosure, true, ['cd'], [], []],
+            ['cd', [], $sortFlagsClosure, true, [], [], []],
+            ['cd', ['cd', 'ab', 'xy'], $sortFlagsClosure, true, ['ab', 'cd', 'xy'], [['foo' => 10, 20, 'bar' => 30]], [20, 'foo' => 10, 'bar' => 30]],
+        ];
     }
 
     /**
@@ -485,6 +501,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                     $array = $iterable->toArray();
                 }
             }
+            \assert(null !== $array);
             self::assertArrayMask($expectedIterable, $array);
         }
     }
@@ -598,7 +615,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public function testReduce(): void
     {
         $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
-        self::assertSame('barcd2xy2ef2ef2', $arrayProxy->reduce(function (string $initial, string $element): string {
+        self::assertSame('barcd2xy2ef2ef2', $arrayProxy->reduce(static function (string $initial, string $element): string {
             return $initial.$element.\strlen($element);
         }, 'bar'));
     }
@@ -654,7 +671,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             yield [
                 $defaultValue,
                 $elements,
-                function (self $that) use ($sortFlags): int {
+                static function () use ($sortFlags): int {
                     return $sortFlags;
                 },
                 $expected,
@@ -663,35 +680,35 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
         $errorMessage = self::getSortLocaleErrorMessage();
         if (null === $errorMessage) {
-            $sortFlagsClosure = function (self $that): int {
+            $sortFlagsClosure = static function (): int {
                 return \SORT_LOCALE_STRING;
             };
         } else {
-            $sortFlagsClosure = function (self $that) use ($errorMessage): int {
-                $that->markTestSkipped($errorMessage);
+            $sortFlagsClosure = static function () use ($errorMessage): int {
+                self::markTestSkipped($errorMessage);
             };
         }
 
         yield [$defaultValue, $elements, $sortFlagsClosure, ['100', '12 ', "\u{d6} ", 'ooo', 'PPP']];
 
-        $sortFlagsClosure = function (self $that): void {
-            $that->markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatcmp');
+        $sortFlagsClosure = static function (): void {
+            self::markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatcmp');
         };
 
         if (\defined('\\SORT_NATURAL') && \is_callable('\\strnatcmp')) {
-            $sortFlagsClosure = function (self $that): int {
+            $sortFlagsClosure = static function (): int {
                 return \SORT_NATURAL;
             };
         }
 
         yield [$defaultValue, $elements, $sortFlagsClosure, ['12 ', '100', 'PPP', 'ooo', "\u{d6} "]];
 
-        $sortFlagsClosure = function (self $that): void {
-            $that->markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatbasecmp');
+        $sortFlagsClosure = static function (): void {
+            self::markTestSkipped('This test requires \\SORT_NATURAL and a callable \\strnatbasecmp');
         };
 
         if (\defined('\\SORT_NATURAL') && \is_callable('\\strnatcasecmp')) {
-            $sortFlagsClosure = function (self $that): int {
+            $sortFlagsClosure = static function (): int {
                 return \SORT_NATURAL | \SORT_FLAG_CASE;
             };
         }
@@ -705,7 +722,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public function testRSort(string $defaultValue, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
         $arrayProxy = new ArrayProxy($defaultValue, ...$elements);
-        $arrayProxy->rSort($sortFlagsClosure($this));
+        $arrayProxy->rSort($sortFlagsClosure());
         self::assertArrayMask(\array_reverse($expected), $arrayProxy->exportArray());
     }
 
@@ -786,7 +803,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public function testSort(string $defaultValue, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
         $arrayProxy = new ArrayProxy($defaultValue, ...$elements);
-        $arrayProxy->sort($sortFlagsClosure($this));
+        $arrayProxy->sort($sortFlagsClosure());
         self::assertArrayMask($expected, $arrayProxy->exportArray());
     }
 
@@ -893,7 +910,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             yield [
                 $defaultValue,
                 $elements,
-                function (self $that) use ($sortFlags): int {
+                function () use ($sortFlags): int {
                     return $sortFlags;
                 },
                 $expected,
@@ -902,12 +919,12 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
         $errorMessage = self::getUniqueLocaleErrorMessage();
         if (null === $errorMessage) {
-            $sortFlagsClosure = function (self $that): int {
+            $sortFlagsClosure = static function (): int {
                 return \SORT_LOCALE_STRING;
             };
         } else {
-            $sortFlagsClosure = function (self $that) use ($errorMessage): int {
-                $that->markTestSkipped($errorMessage);
+            $sortFlagsClosure = static function () use ($errorMessage): int {
+                self::markTestSkipped($errorMessage);
             };
         }
 
@@ -920,7 +937,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public function testUnique(string $defaultValue, array $elements, \Closure $sortFlagsClosure, array $expected): void
     {
         $arrayProxy = new ArrayProxy($defaultValue, ...$elements);
-        self::assertSame($expected, \iterator_to_array($arrayProxy->unique($sortFlagsClosure($this))));
+        self::assertSame($expected, \iterator_to_array($arrayProxy->unique($sortFlagsClosure())));
         self::assertSame($elements, $arrayProxy->exportArray());
     }
 

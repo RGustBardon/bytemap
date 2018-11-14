@@ -217,7 +217,7 @@ interface ArrayProxyInterface extends ProxyInterface
      * Any key of any array passed to this method is going to be re-indexed if it is a natural
      * number.
      *
-     * @param int                                                  $sortFlags           if `\SORT_NUMERIC`, elements are converted to
+     * @param int                                                $sortFlags             if `\SORT_NUMERIC`, elements are converted to
      *                                                                                  floating point numbers before being compared,
      *                                                                                  otherwise,
      *                                                                                  if `\SORT_LOCALE_STRING`, the comparison is
@@ -233,7 +233,7 @@ interface ArrayProxyInterface extends ProxyInterface
      *                                                                                  elements are compared in a binary safe fashion (and
      *                                                                                  also in a case-sensitive fashion if not combined
      *                                                                                  with `\SORT_FLAG_CASE`);
-     * @param bool                                                 $ascending           `true` if sorting ascending, `false` otherwise
+     * @param bool                                               $ascending             `true` if sorting ascending, `false` otherwise
      * @param array|BytemapInterface|\Ds\Sequence|\SplFixedArray ...$iterablesToReorder iterables that are to be reordered the way the
      *                                                                                  elements of the bytemap are going to be during
      *                                                                                  sorting
