@@ -218,7 +218,43 @@ abstract class AbstractProxy implements ArrayProxyInterface
         // Heapsort.
         $elementCount = \count($bytemap);
         for ($i = (int) ($elementCount / 2) - 1; $i >= 0; --$i) {
-            self::heapify($bytemap, $comparator, $keysToReorder, $iterablesToReorder, $swappers, $elementCount, $i);
+            $subtreeRoot = $i;
+            while (true) {
+                $greatest = $subtreeRoot;
+
+                $left = 2 * $subtreeRoot + 1;
+                $subtreeRootElement = $bytemap[$subtreeRoot];
+                $greatestElement = $subtreeRootElement;
+                if ($left < $elementCount) {
+                    $leftElement = $bytemap[$left];
+                    if ($comparator($leftElement, $greatestElement) > 0) {
+                        $greatest = $left;
+                        $greatestElement = $leftElement;
+                    }
+                }
+
+                $right = $left + 1;
+                if ($right < $elementCount) {
+                    $rightElement = $bytemap[$right];
+                    if ($comparator($rightElement, $greatestElement) > 0) {
+                        $greatest = $right;
+                        $greatestElement = $rightElement;
+                    }
+                }
+
+                if ($greatest === $subtreeRoot) {
+                    break;
+                }
+
+                $bytemap[$subtreeRoot] = $greatestElement;
+                $bytemap[$greatest] = $subtreeRootElement;
+
+                foreach ($swappers as $index => $swapper) {
+                    $swapper($iterablesToReorder[$index], $subtreeRoot, $greatest, $keysToReorder[$index]);
+                }
+
+                $subtreeRoot = $greatest;
+            }
         }
 
         for ($i = $elementCount - 1; $i >= 0; --$i) {
@@ -230,7 +266,43 @@ abstract class AbstractProxy implements ArrayProxyInterface
                 $swapper($iterablesToReorder[$index], 0, $i, $keysToReorder[$index]);
             }
 
-            self::heapify($bytemap, $comparator, $keysToReorder, $iterablesToReorder, $swappers, $i, 0);
+            $subtreeRoot = 0;
+            while (true) {
+                $greatest = $subtreeRoot;
+
+                $left = 2 * $subtreeRoot + 1;
+                $subtreeRootElement = $bytemap[$subtreeRoot];
+                $greatestElement = $subtreeRootElement;
+                if ($left < $i) {
+                    $leftElement = $bytemap[$left];
+                    if ($comparator($leftElement, $greatestElement) > 0) {
+                        $greatest = $left;
+                        $greatestElement = $leftElement;
+                    }
+                }
+
+                $right = $left + 1;
+                if ($right < $i) {
+                    $rightElement = $bytemap[$right];
+                    if ($comparator($rightElement, $greatestElement) > 0) {
+                        $greatest = $right;
+                        $greatestElement = $rightElement;
+                    }
+                }
+
+                if ($greatest === $subtreeRoot) {
+                    break;
+                }
+
+                $bytemap[$subtreeRoot] = $greatestElement;
+                $bytemap[$greatest] = $subtreeRootElement;
+
+                foreach ($swappers as $index => $swapper) {
+                    $swapper($iterablesToReorder[$index], $subtreeRoot, $greatest, $keysToReorder[$index]);
+                }
+
+                $subtreeRoot = $greatest;
+            }
         }
     }
 
@@ -242,39 +314,5 @@ abstract class AbstractProxy implements ArrayProxyInterface
         $proxy->bytemap = $bytemap;
 
         return $proxy;
-    }
-
-    private static function heapify(
-        BytemapInterface $bytemap,
-        callable $comparator,
-        array &$keysToReorder,
-        array $iterablesToReorder,
-        array $swappers,
-        int $elementCount,
-        int $subtreeRoot
-    ): void {
-        $greatest = $subtreeRoot;
-
-        $left = 2 * $subtreeRoot + 1;
-        if ($left < $elementCount && $comparator($bytemap[$left], $bytemap[$greatest]) > 0) {
-            $greatest = $left;
-        }
-
-        $right = 2 * $subtreeRoot + 2;
-        if ($right < $elementCount && $comparator($bytemap[$right], $bytemap[$greatest]) > 0) {
-            $greatest = $right;
-        }
-
-        if ($greatest !== $subtreeRoot) {
-            $swapped = $bytemap[$subtreeRoot];
-            $bytemap[$subtreeRoot] = $bytemap[$greatest];
-            $bytemap[$greatest] = $swapped;
-
-            foreach ($swappers as $index => $swapper) {
-                $swapper($iterablesToReorder[$index], $subtreeRoot, $greatest, $keysToReorder[$index]);
-            }
-
-            self::heapify($bytemap, $comparator, $keysToReorder, $iterablesToReorder, $swappers, $elementCount, $greatest);
-        }
     }
 }
