@@ -22,6 +22,9 @@ cache:
   - vendor -> composer.json
 
 install:
+  - choco upgrade chocolatey -y
+  - sc config wuauserv start= auto
+  - net start wuauserv
   - cinst -y OpenSSL.Light
   - ps: appveyor-retry cinst --params '""/InstallDir:C:\php""' --ignore-checksums --no-progress -y php --version ((choco search php --exact --all-versions -r | select-string -pattern $env:PHP_VERSION | sort { [version]($_ -split '\|' | select -last 1) } -Descending | Select-Object -first 1) -replace '[php|]','')
   - cd c:\php
