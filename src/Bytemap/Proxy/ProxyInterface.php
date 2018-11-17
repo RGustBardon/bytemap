@@ -29,6 +29,25 @@ use Bytemap\BytemapInterface;
  *
  * Unless indicated otherwise, when the bytemap is iterated, the iteration takes place from the
  * element with index `0` to the element with the greatest index.
+ *
+ * In addition to the exceptions thrown by the documented methods,
+ * the following exceptions may be thrown:
+ * - `\ErrorException` (when referring to undefined properties)
+ *   thrown by `__isset`, `__get`, `__set`, `__unset`;
+ * - `\TypeError` (when attempting to use a value other than an integer as an index)
+ *   thrown by `offsetGet`, `offsetSet`;
+ * - `\OutOfRangeException` (when attempting to use a negative integer as an index)
+ *   thrown by `offsetGet`, `offsetSet`;
+ * - `\TypeError` (when the type of a value is not the one of the data domain)
+ *   thrown by `offsetSet`, `unserialize`;
+ * - `\DomainException` (when a value lies outside of the data domain despite its type)
+ *   thrown by `offsetSet`, `unserialize`;
+ * - `\UnexpectedValueException` (when it is not possible to unserialize a value)
+ *   thrown by `unserialize`;
+ * - `\UnexpectedValueException` (when an unserialized value has an unexpected structure)
+ *   thrown by `unserialize`.
+ *
+ * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
 interface ProxyInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
 {
@@ -37,7 +56,13 @@ interface ProxyInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \
      *
      * @param string   $defaultValue the default value of the underlying bytemap that is to be
      *                               constructed
-     * @param iterable $elements     the elements that are to be inserted into the bytemap
+     * @param iterable $elements     the elements that are to be inserted into the bytemap (keys are
+     *                               ignored)
+     *
+     * @throws \DomainException if the default value is an empty string
+     * @throws \TypeError       if any element that is to be inserted is not of the expected type
+     * @throws \DomainException if any element that is to be inserted is of the expected type,
+     *                          but does not belong to the data domain of the bytemap
      *
      * @return self a proxy to a bytemap that has been constructed based on the arguments
      */

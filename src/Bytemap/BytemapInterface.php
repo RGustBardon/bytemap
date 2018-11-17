@@ -84,7 +84,7 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *                             If negative, `-1` represents the last element, `-2` the element preceding it, etc
      *
      * @throws \TypeError       if any element that is to be inserted is not of the expected type
-     * @throws \DomainException if any element found in the JSON stream is of the expected type,
+     * @throws \DomainException if any element that is to be inserted is of the expected type,
      *                          but does not belong to the data domain of the bytemap
      */
     public function insert(iterable $elements, int $firstIndex = -1): void;

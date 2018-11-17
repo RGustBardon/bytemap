@@ -17,6 +17,8 @@ use Bytemap\BytemapInterface;
 
 /**
  * A proxy implementing part of the API found in the PHP core for native arrays.
+ *
+ * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
 interface ArrayProxyInterface extends ProxyInterface
 {
@@ -47,6 +49,11 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param string   $defaultValue the default value of the underlying bytemap that is to be
      *                               constructed
      * @param iterable $elements     the elements that are to be inserted into the bytemap
+     *
+     * @throws \DomainException if the default value is an empty string
+     * @throws \TypeError       if any element that is to be inserted is not of the expected type
+     * @throws \DomainException if any element that is to be inserted is of the expected type,
+     *                          but does not belong to the data domain of the bytemap
      *
      * @return self a proxy to a bytemap that has been constructed based on the arguments
      */
@@ -292,6 +299,10 @@ interface ArrayProxyInterface extends ProxyInterface
      *
      * @param string ...$values The elements to be pushed.
      *
+     * @throws \TypeError       if any element that is to be inserted is not of the expected type
+     * @throws \DomainException if any element that is to be inserted is of the expected type,
+     *                          but does not belong to the data domain of the bytemap
+     *
      * @return int the new number of the elements in the bytemap
      */
     public function push(string ...$values): int;
@@ -330,6 +341,11 @@ interface ArrayProxyInterface extends ProxyInterface
      *
      * @param iterable ...$iterables iterables whose values are to overwrite the values in a
      *                               clone of the bytemap
+     *
+     * @throws \TypeError       if any element that is to overwrite an existing one is not of the
+     *                          expected type
+     * @throws \DomainException if any element that is to overwrite an existing one is of the
+     *                          expected type, but does not belong to the data domain of the bytemap
      *
      * @return self a clone of the bytemap who has had its elements overwritten by the values
      *              found in the iterables in cases where indices matched the keys
@@ -448,6 +464,10 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param mixed    $replacement values to replace the slice with (if something other than an
      *                              iterable is passed, it will be converted to an array)
      *
+     * @throws \TypeError       if any element that is to be inserted is not of the expected type
+     * @throws \DomainException if any element that is to be inserted is of the expected type,
+     *                          but does not belong to the data domain of the bytemap
+     *
      * @return self the extracted elements (indices are not preserved)
      */
     public function splice(int $index, ?int $length = null, $replacement = []): self;
@@ -463,10 +483,15 @@ interface ArrayProxyInterface extends ProxyInterface
      *                               clone when their keys are greater than the greatest index
      *                               of the clone in the current iteration
      *
-     * @throws \TypeError           if any of the provided iterables contains an element whose
-     *                              key is not an integer
-     * @throws \OutOfRangeException if any of the provided iterables contains an element whose
-     *                              index is negative
+     * @throws \TypeError           if any of the provided iterables contains a value whose key is
+     *                              is not an integer
+     * @throws \OutOfRangeException if any of the provided iterables contains a value whose key is
+     *                              negative
+     * @throws \TypeError           if any of the provided iterables contains a value that is not
+     *                              of the expected type
+     * @throws \DomainException     if any of the provided iterables contains a value that is of
+     *                              the expected type, but does not belong to the data domain of
+     *                              the bytemap
      *
      * @return self a clone of the bytemap with potentially new elements but none overwritten
      */
@@ -495,6 +520,10 @@ interface ArrayProxyInterface extends ProxyInterface
      * `\array_unshift` (prepends elements to the beginning of the bytemap).
      *
      * @param string ...$values the elements to prepend
+     *
+     * @throws \TypeError       if any element that is to be inserted is not of the expected type
+     * @throws \DomainException if any element that is to be inserted is of the expected type,
+     *                          but does not belong to the data domain of the bytemap
      *
      * @return int the new number of elements in the bytemap
      */
@@ -538,6 +567,9 @@ interface ArrayProxyInterface extends ProxyInterface
      *                           three arguments
      *
      * @throws \ArgumentCountError if the callback expects more arguments than it actually gets
+     * @throws \TypeError          if the callback returns a value that is not of the expected type
+     * @throws \DomainException    if the callback returns a value that is of the expected type,
+     *                             but does not belong to the data domain of the bytemap
      */
     public function walk(callable $callback, $userdata = null): void;
 
@@ -550,8 +582,14 @@ interface ArrayProxyInterface extends ProxyInterface
      *                               and the maximum index will be assigned the default value.
      * @param iterable $values       values to be used
      *
-     * @throws \UnderflowException if `$keys` and `$values` do not contain the same number of
-     *                             elements
+     * @throws \DomainException     if the default value is an empty string
+     * @throws \UnderflowException  if `$keys` and `$values` do not contain the same number of
+     *                              elements
+     * @throws \TypeError           if `$keys` contain a value that is is not an integer
+     * @throws \OutOfRangeException if `$keys` contain a value that is negative
+     * @throws \TypeError           if `$values` contain a value that is not of the expected type
+     * @throws \DomainException     if `$values` contain a value that is of the expected type, but
+     *                              does not belong to the data domain of the bytemap
      *
      * @return self the combined bytemap
      */
@@ -566,8 +604,12 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param null|string $value        the value to use for filling.
      *                                  `null` means that the default value will be used
      *
+     * @throws \DomainException     if the default value is an empty string
      * @throws \OutOfRangeException if `$startIndex` is negative
      * @throws \OutOfRangeException if `$num` is negative
+     * @throws \TypeError           if the value that is to be inserted is not of the expected type
+     * @throws \DomainException     if the value that is to be inserted is of the expected type,
+     *                              but does not belong to the data domain of the bytemap
      */
     public static function fill(string $defaultValue, int $startIndex, int $num, ?string $value = null): self;
 
@@ -578,6 +620,13 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param iterable    $keys         values that will be used as indices
      * @param null|string $value        value to use for filling
      *                                  `null` means that the default value will be used
+     *
+     * @throws \DomainException     if the default value is an empty string
+     * @throws \TypeError           if `$keys` contain a value that is is not an integer
+     * @throws \OutOfRangeException if `$keys` contain a value that is negative
+     * @throws \TypeError           if the value that is to be inserted is not of the expected type
+     * @throws \DomainException     if the value that is to be inserted is of the expected type,
+     *                              but does not belong to the data domain of the bytemap
      */
     public static function fillKeys(string $defaultValue, iterable $keys, ?string $value = null): self;
 
@@ -594,6 +643,8 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param null|int        $count       the total number of all the replacements performed in
      *                                     in all the elements that matched
      *
+     * @throws \UnexpectedValueException if any pattern fails to compile
+     *
      * @return \Generator a generator whose values are the matching elements of the bytemap after
      *                    replacements, after replacements otherwise) and whose keys are the indices
      *                    of those elements
@@ -606,6 +657,8 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param string $pattern a PCRE pattern to search for
      * @param int    $flags   if set to `PREG_GREP_INVERT`, returns the elements that do NOT match
      *                        the given pattern
+     *
+     * @throws \UnexpectedValueException if any pattern fails to compile
      *
      * @return \Generator the elements indexed using the indices from the bytemap
      */
@@ -621,6 +674,8 @@ interface ArrayProxyInterface extends ProxyInterface
      *                                     single element (`-1` corresponds to no limit)
      * @param null|int        $count       the total number of all the replacements performed in
      *                                     in all the elements that matched
+     *
+     * @throws \UnexpectedValueException if any pattern fails to compile
      *
      * @return \Generator a generator whose values are the elements of the bytemap (unchanged if not
      *                    matching, after replacements otherwise) and whose keys are the indices of
@@ -641,6 +696,8 @@ interface ArrayProxyInterface extends ProxyInterface
      * @param null|int        $count    the total number of all the replacements performed in
      *                                  in all the elements that matched
      *
+     * @throws \UnexpectedValueException if any pattern fails to compile
+     *
      * @return \Generator a generator whose values are the elements of the bytemap (unchanged if not
      *                    matching, after replacements otherwise) and whose keys are the indices of
      *                    those elements
@@ -659,6 +716,8 @@ interface ArrayProxyInterface extends ProxyInterface
      *                                       single element (`-1` corresponds to no limit)
      * @param null|int $count                the total number of all the replacements performed in
      *                                       in all the elements that matched
+     *
+     * @throws \UnexpectedValueException if any pattern fails to compile
      *
      * @return \Generator a generator whose values are the elements of the bytemap (unchanged if not
      *                    matching, after replacements otherwise) and whose keys are the indices of

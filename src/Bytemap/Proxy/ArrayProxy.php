@@ -16,6 +16,9 @@ namespace Bytemap\Proxy;
 use Bytemap\Bytemap;
 use Bytemap\BytemapInterface;
 
+/**
+ * @author Robert Gust-Bardon <robert@gust-bardon.org>
+ */
 class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 {
     public function __construct(string $defaultValue, string ...$values)

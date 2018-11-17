@@ -16,6 +16,9 @@ namespace Bytemap\Proxy;
 use Bytemap\Bytemap;
 use Bytemap\BytemapInterface;
 
+/**
+ * @author Robert Gust-Bardon <robert@gust-bardon.org>
+ */
 abstract class AbstractProxy implements ArrayProxyInterface
 {
     /** @var BytemapInterface */
