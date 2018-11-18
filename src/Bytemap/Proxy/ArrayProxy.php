@@ -21,6 +21,20 @@ use Bytemap\BytemapInterface;
  */
 class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 {
+    /**
+     * Creates a new bytemap, and wraps it in a proxy.
+     *
+     * @param string   $defaultValue the default value has two purposes: it determines the length of
+     *                               every element of the bytemap (as it has to have the same
+     *                               length), and it is used to fill the gap between the element
+     *                               with the highest index and the element being inserted
+     * @param string[] $values       The elements to be inserted. Keys are ignored.
+     *
+     * @throws \DomainException if the default value is an empty string
+     * @throws \TypeError       if any element that is to be inserted is not of the expected type
+     * @throws \DomainException if any element that is to be inserted is of the expected type,
+     *                          but does not belong to the data domain of the bytemap
+     */
     public function __construct(string $defaultValue, string ...$values)
     {
         $this->bytemap = new Bytemap($defaultValue);

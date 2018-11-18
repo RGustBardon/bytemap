@@ -122,6 +122,7 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      * @param resource $jsonStream   a stream with JSON data
      * @param string   $defaultValue the default value of the resulting bytemap
      *
+     * @throws \DomainException          if the default value is an empty string
      * @throws \TypeError                if `$jsonStream` is not an open resource
      * @throws \InvalidArgumentException if `$jsonStream` is an open resource that is not a stream
      * @throws \RuntimeException         if the stream cannot be read

@@ -38,6 +38,16 @@ abstract class AbstractBytemap implements BytemapInterface
     protected $elementCount = 0;
     protected $map;
 
+    /**
+     * Creates a new bytemap.
+     *
+     * @param string $defaultValue the default value has two purposes: it determines the length of
+     *                             every element of the bytemap (as it has to have the same length),
+     *                             and it is used to fill the gap between the element with the
+     *                             highest index and the element being inserted
+     *
+     * @throws \DomainException if the default value is an empty string
+     */
     public function __construct(string $defaultValue)
     {
         if ('' === $defaultValue) {
