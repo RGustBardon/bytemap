@@ -22,6 +22,8 @@ use Bytemap\JsonListener\BytemapListener;
  */
 class Bytemap extends AbstractBytemap
 {
+    protected const BATCH_ELEMENT_COUNT = 256;
+
     /** @var int */
     private $bytesInTotal;
     /** @var bool */
@@ -97,8 +99,12 @@ class Bytemap extends AbstractBytemap
             }
         } else {
             $bytesPerElement = $this->bytesPerElement;
-            for ($i = 0, $index = 0; $i < $elementCount; ++$i, $index += $bytesPerElement) {
-                yield $i => \substr($map, $index, $bytesPerElement);
+            $batchSize = self::BATCH_ELEMENT_COUNT * $bytesPerElement;
+            for ($index = 0; $index < $elementCount; $index += self::BATCH_ELEMENT_COUNT) {
+                yield from \array_combine(
+                    \range($index, \min($elementCount, $index + self::BATCH_ELEMENT_COUNT) - 1),
+                    \str_split(\substr($map, $index * $bytesPerElement, $batchSize), $bytesPerElement)
+                );
             }
         }
     }
