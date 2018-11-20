@@ -180,30 +180,20 @@ class Bytemap extends AbstractBytemap
         self::ensureStream($stream);
 
         $bytesPerElement = $this->bytesPerElement;
-
         $buffer = '[';
-        $map = $this->map;
         $index = 0;
-        $penultimate = $this->bytesInTotal - $bytesPerElement;
-        if ($this->singleByte) {
-            for (; $index < $penultimate; ++$index) {
-                $buffer .= \json_encode($map[$index]).',';
-                if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
-                    self::stream($stream, $buffer);
-                    $buffer = '';
-                }
-            }
-        } else {
-            $batchSize = self::BATCH_ELEMENT_COUNT * $bytesPerElement;
-            $bytesInTotalExceptLast = $this->bytesInTotal - $bytesPerElement;
-            for ($index = 0; $index < $this->elementCount - 1; $index += self::BATCH_ELEMENT_COUNT) {
-                $start = $index * $bytesPerElement;
-                $length = \min($batchSize, $bytesInTotalExceptLast - $start);
-                $buffer .= \implode(',', \array_map('\\json_encode', (array) \str_split(\substr($map, $start, $length), $bytesPerElement))).',';
-                if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
-                    self::stream($stream, $buffer);
-                    $buffer = '';
-                }
+        $map = $this->map;
+
+        $batchSize = self::BATCH_ELEMENT_COUNT * $bytesPerElement;
+        $bytesInTotalExceptLast = $this->bytesInTotal - $bytesPerElement;
+        for ($index = 0; $index < $this->elementCount - 1; $index += self::BATCH_ELEMENT_COUNT) {
+            $start = $index * $bytesPerElement;
+            $length = \min($batchSize, $bytesInTotalExceptLast - $start);
+            $slice = (array) \str_split(\substr($map, $start, $length), $bytesPerElement);
+            $buffer .= \implode(',', \array_map('\\json_encode', $slice)).',';
+            if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
+                self::stream($stream, $buffer);
+                $buffer = '';
             }
         }
         $buffer .= ($this->elementCount > 0 ? \json_encode(\substr($map, -$bytesPerElement)) : '').']';
