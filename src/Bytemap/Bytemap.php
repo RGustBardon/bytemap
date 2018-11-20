@@ -103,7 +103,7 @@ class Bytemap extends AbstractBytemap
             for ($index = 0; $index < $elementCount; $index += self::BATCH_ELEMENT_COUNT) {
                 yield from \array_combine(
                     \range($index, \min($elementCount, $index + self::BATCH_ELEMENT_COUNT) - 1),
-                    \str_split(\substr($map, $index * $bytesPerElement, $batchSize), $bytesPerElement)
+                    (array) \str_split(\substr($map, $index * $bytesPerElement, $batchSize), $bytesPerElement)
                 );
             }
         }
@@ -194,15 +194,19 @@ class Bytemap extends AbstractBytemap
                 }
             }
         } else {
-            for (; $index < $penultimate; $index += $bytesPerElement) {
-                $buffer .= \json_encode(\substr($map, $index, $bytesPerElement)).',';
+            $batchSize = self::BATCH_ELEMENT_COUNT * $bytesPerElement;
+            $bytesInTotalExceptLast = $this->bytesInTotal - $bytesPerElement;
+            for ($index = 0; $index < $this->elementCount - 1; $index += self::BATCH_ELEMENT_COUNT) {
+                $start = $index * $bytesPerElement;
+                $length = \min($batchSize, $bytesInTotalExceptLast - $start);
+                $buffer .= \implode(',', \array_map('\\json_encode', (array) \str_split(\substr($map, $start, $length), $bytesPerElement))).',';
                 if (\strlen($buffer) > self::STREAM_BUFFER_SIZE) {
                     self::stream($stream, $buffer);
                     $buffer = '';
                 }
             }
         }
-        $buffer .= ($this->elementCount > 0 ? \json_encode(\substr($map, $index)) : '').']';
+        $buffer .= ($this->elementCount > 0 ? \json_encode(\substr($map, -$bytesPerElement)) : '').']';
         self::stream($stream, $buffer);
     }
 
