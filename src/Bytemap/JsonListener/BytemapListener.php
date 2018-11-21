@@ -32,14 +32,14 @@ class BytemapListener implements Listener
         self::STATE_DOCUMENT_ENDED => self::STATE_INITIAL,
     ];
 
-    private $closure;
+    private $setter;
 
     private $key;
     private $state = self::STATE_INITIAL;
 
-    public function __construct(\Closure $closure)
+    public function __construct(callable $setter)
     {
-        $this->closure = $closure;
+        $this->setter = $setter;
     }
 
     public function startDocument()
@@ -80,7 +80,7 @@ class BytemapListener implements Listener
 
     public function value($value)
     {
-        ($this->closure)($value, $this->key);
+        ($this->setter)($this->key, $value);
         $this->key = null;
     }
 

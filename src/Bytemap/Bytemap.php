@@ -206,14 +206,7 @@ class Bytemap extends AbstractBytemap
 
         $bytemap = new self($defaultValue);
         if (self::hasStreamingParser()) {
-            $listener = new BytemapListener(static function (string $element, ?int $index) use ($bytemap) {
-                if (null === $index) {
-                    $bytemap[] = $element;
-                } else {
-                    $bytemap[$index] = $element;
-                }
-            });
-            self::parseJsonStreamOnline($jsonStream, $listener);
+            self::parseJsonStreamOnline($jsonStream, new BytemapListener([$bytemap, 'offsetSet']));
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
             [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultValue);

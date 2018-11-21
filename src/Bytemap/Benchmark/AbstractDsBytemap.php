@@ -173,7 +173,7 @@ abstract class AbstractDsBytemap extends AbstractBytemap
         $bytemap = new static($defaultValue);
         if (self::hasStreamingParser()) {
             $maxKey = -1;
-            $listener = new BytemapListener(function (string $value, ?int $key) use ($bytemap, &$maxKey) {
+            $listener = new BytemapListener(function (?int $key, string $value) use ($bytemap, &$maxKey): void {
                 if (null === $key) {
                     $bytemap[] = $value;
                 } else {
