@@ -206,60 +206,7 @@ class Bytemap extends AbstractBytemap
 
         $bytemap = new self($defaultValue);
         if (self::hasStreamingParser()) {
-            $elementCount = 0;
-            $range = [];
-            $rangeFirstIndex = null;
-            $rangeLastIndex = null;
-            $listener = new BytemapListener(static function (?int $index, string $element) use (
-                $bytemap,
-                &$elementCount,
-                &$range,
-                &$rangeFirstIndex,
-                &$rangeLastIndex
-                ): void {
-                if (null === $index) {
-                    $index = $elementCount;
-                } elseif ($index < 0) {
-                    throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Negative index: '.$index);
-                }
-                if ($index >= $elementCount) {
-                    $elementCount = $index + 1;
-                }
-
-                if ($range) {
-                    if ($index < $rangeFirstIndex || $index > $rangeLastIndex) {
-                        if ($rangeFirstIndex - 1 === $index) {
-                            $rangeFirstIndex = $index;
-                        } elseif ($rangeLastIndex + 1 === $index) {
-                            $rangeLastIndex = $index;
-                        } else {
-                            \ksort($range, \SORT_NUMERIC);
-                            $bytemap->delete($rangeFirstIndex, \count($range));
-                            $bytemap->insert($range, $rangeFirstIndex);
-                            $range = [$index => $element];
-                            $rangeFirstIndex = $rangeLastIndex = $index;
-                        }
-                    }
-                    $range[$index] = $element;
-                    if (\count($range) === self::BATCH_ELEMENT_COUNT) {
-                        \ksort($range, \SORT_NUMERIC);
-                        $bytemap->delete($rangeFirstIndex, \count($range));
-                        $bytemap->insert($range, $rangeFirstIndex);
-                        $range = [];
-                        $rangeFirstIndex = $rangeLastIndex = null;
-                    }
-                } else {
-                    $range = [$index => $element];
-                    $rangeFirstIndex = $rangeLastIndex = $index;
-                }
-            });
-            self::parseJsonStreamOnline($jsonStream, $listener);
-
-            if ($range && null !== $rangeFirstIndex) {
-                \ksort($range, \SORT_NUMERIC);
-                $bytemap->delete($rangeFirstIndex, \count($range));
-                $bytemap->insert($range, $rangeFirstIndex);
-            }
+            self::parseJsonStreamOnline($jsonStream, new BytemapListener([$bytemap, 'offsetSet']));
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
             [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultValue);
