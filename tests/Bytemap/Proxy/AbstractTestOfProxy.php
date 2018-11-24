@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Bytemap\Proxy;
 
+use Bytemap\MagicPropertiesTestTrait;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,4 +23,5 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class AbstractTestOfProxy extends TestCase
 {
+    use MagicPropertiesTestTrait;
 }

@@ -93,6 +93,13 @@ abstract class AbstractTestOfBytemap extends TestCase
         }
     }
 
+    public static function instanceProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            yield [self::instantiate($impl, 'a')];
+        }
+    }
+
     protected static function instantiate(string $impl, ...$args): BytemapInterface
     {
         return new $impl(...$args);

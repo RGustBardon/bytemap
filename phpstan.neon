@@ -3,6 +3,5 @@ includes:
 
 parameters:
     ignoreErrors:
-        - '~\$undefinedProperty~'
         - '~assertFalse\(\) with true will always evaluate to false~'
         - '~Casting to string something~'

@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
-use Bytemap\Benchmark\DsVectorBytemap;
-
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
@@ -29,6 +27,8 @@ use Bytemap\Benchmark\DsVectorBytemap;
  */
 final class NativeFunctionalityTest extends AbstractTestOfBytemap
 {
+    use MagicPropertiesTestTrait;
+
     /**
      * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider
@@ -37,46 +37,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     public function testConstructorEmptyString(string $impl): void
     {
         self::instantiate($impl, '');
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap
-     * @dataProvider implementationProvider
-     * @expectedException \ErrorException
-     */
-    public function testMagicGet(string $impl): void
-    {
-        (self::instantiate($impl, 'a'))->undefinedProperty;
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap
-     * @dataProvider implementationProvider
-     * @expectedException \ErrorException
-     */
-    public function testMagicSet(string $impl): void
-    {
-        (self::instantiate($impl, 'a'))->undefinedProperty = 42;
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap
-     * @dataProvider implementationProvider
-     * @expectedException \ErrorException
-     */
-    public function testMagicIsset(string $impl): void
-    {
-        isset((self::instantiate($impl, 'a'))->undefinedProperty);
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap
-     * @dataProvider implementationProvider
-     * @expectedException \ErrorException
-     */
-    public function testMagicUnset(string $impl): void
-    {
-        unset((self::instantiate($impl, 'a'))->undefinedProperty);
     }
 
     public static function nullIndexProvider(): \Generator

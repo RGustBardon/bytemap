@@ -39,6 +39,11 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         \setlocale(\LC_COLLATE, $this->originalCollation);
     }
 
+    public static function instanceProvider(): \Generator
+    {
+        yield [new ArrayProxy('a')];
+    }
+
     public function testConstructor(): void
     {
         $elements = ['cd', 'xy', 'ef', 'ef'];
@@ -412,7 +417,6 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         ], \iterator_to_array($arrayProxy->merge($array, $bytemap, $generator())));
         self::assertSame($elements, $arrayProxy->exportArray());
     }
-
 
     /**
      * @expectedException \TypeError
