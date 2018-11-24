@@ -161,7 +161,7 @@ abstract class AbstractBytemap implements BytemapInterface
         $patterns = \array_unique($patterns);
 
         $errorMessage = null;
-        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
+        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage): void {
             $errorMessage = $errstr;
         });
         if (null === \preg_filter($patterns, '', $this->defaultValue)) {
@@ -274,7 +274,7 @@ abstract class AbstractBytemap implements BytemapInterface
     protected function unserializeAndValidate(string $serialized): void
     {
         $errorMessage = 'details unavailable';
-        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
+        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage): void {
             $errorMessage = $errstr;
         });
         $result = \unserialize($serialized, ['allowed_classes' => static::UNSERIALIZED_CLASSES]);

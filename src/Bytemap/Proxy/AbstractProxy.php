@@ -93,7 +93,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
     public function unserialize($serialized)
     {
         $errorMessage = 'details unavailable';
-        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage) {
+        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage): void {
             $errorMessage = $errstr;
         });
         $result = \unserialize($serialized, ['allowed_classes' => [Bytemap::class]]);
@@ -149,6 +149,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
         }
 
         if (\defined('\\SORT_LOCALE_STRING') && \is_callable('\\strcoll') && \SORT_LOCALE_STRING === $sortFlags) {
+            // @codeCoverageIgnoreStart
             if ($ascending) {
                 return '\\strcoll';
             }
@@ -156,9 +157,11 @@ abstract class AbstractProxy implements ArrayProxyInterface
             return function (string $a, string $b): int {
                 return \strcoll($b, $a);
             };
+            // @codeCoverageIgnoreEnd
         }
 
         if (\defined('\\SORT_NATURAL') && \SORT_NATURAL === $sortFlags) {
+            // @codeCoverageIgnoreStart
             if ($caseInsensitive) {
                 if (\is_callable('\\strnatcasecmp')) {
                     if ($ascending) {
@@ -178,6 +181,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
                     return \strnatcmp($b, $a);
                 };
             }
+            // @codeCoverageIgnoreEnd
         }
 
         if (\SORT_REGULAR === $sortFlags) {

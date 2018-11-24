@@ -20,6 +20,7 @@ use Bytemap\BytemapInterface;
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
  * @internal
+ * @covers \Bytemap\Proxy\AbstractProxy
  * @covers \Bytemap\Proxy\ArrayProxy
  */
 final class ArrayProxyTest extends AbstractTestOfProxy
@@ -412,10 +413,20 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($elements, $arrayProxy->exportArray());
     }
 
+
     /**
      * @expectedException \TypeError
      */
     public function testMultiSortTypeError(): void
+    {
+        $number = 42;
+        self::instantiate('cd', 'ef')->multiSort(\SORT_STRING, true, $number);
+    }
+
+    /**
+     * @expectedException \TypeError
+     */
+    public function testMultiSortInstanceError(): void
     {
         $heap = new \SplMaxHeap();
         $heap->insert('xy');
