@@ -240,6 +240,24 @@ trait ArrayAccessTestTrait
         $arrayAccessObject[0] = $defaultElement;
         self::assertFalse(isset($arrayAccessObject[$originalElementCount]));
         self::assertSame($defaultElement, $arrayAccessObject[0]);
+
+        $arrayAccessObject[] = $defaultElement;
+        $arrayAccessObject[] = $defaultElement;
+        unset($arrayAccessObject[$originalElementCount]);
+        self::assertSame($defaultElement, $arrayAccessObject[$originalElementCount]);
+    }
+
+    /**
+     * @dataProvider arrayAccessInstanceProvider
+     * @depends testArrayAccess
+     * @expectedException \OutOfRangeException
+     */
+    public function testGetFromEmpty(\ArrayAccess $arrayAccessObject, string $defaultElement, array $elements): void
+    {
+        for ($i = \count($elements) - 1; $i >= 0; --$i) {
+            unset($arrayAccessObject[$i]);
+        }
+        $arrayAccessObject[0];
     }
 
     abstract public static function arrayAccessInstanceProvider(): \Generator;
