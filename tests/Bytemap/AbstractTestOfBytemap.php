@@ -51,55 +51,6 @@ abstract class AbstractTestOfBytemap extends TestCase
         }
     }
 
-    public static function invalidElementTypeProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
-            foreach ([
-                false, true,
-                0, 1, 10, 42,
-                0., 1., 10., 42.,
-                [], [0], [1],
-                new \stdClass(), new class() {
-                    public function __toString(): string
-                    {
-                        return '0';
-                    }
-                },
-                \fopen('php://memory', 'rb'),
-                function (): int { return 0; },
-                function (): \Generator { yield 0; },
-            ] as $invalidElement) {
-                yield [$impl, $elements, $invalidElement];
-            }
-        }
-    }
-
-    public static function invalidLengthProvider(): \Generator
-    {
-        foreach (self::implementationProvider() as [$impl]) {
-            foreach ([
-                ['a', ''],
-                ['a', 'ab'],
-                ['a', 'a '],
-                ['a', ' a'],
-                ['ab', ''],
-                ['ab', 'a'],
-                ['ab', 'abc'],
-                ['ab', 'ab '],
-                ['ab', ' ab'],
-            ] as [$defaultValue, $invalidElement]) {
-                yield [$impl, $defaultValue, $invalidElement];
-            }
-        }
-    }
-
-    public static function instanceProvider(): \Generator
-    {
-        foreach (self::implementationProvider() as [$impl]) {
-            yield [self::instantiate($impl, 'a')];
-        }
-    }
-
     protected static function instantiate(string $impl, ...$args): BytemapInterface
     {
         return new $impl(...$args);

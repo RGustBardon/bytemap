@@ -21,7 +21,7 @@ namespace Bytemap;
 trait MagicPropertiesTestTrait
 {
     /**
-     * @dataProvider instanceProvider
+     * @dataProvider magicPropertiesInstanceProvider
      * @expectedException \ErrorException
      *
      * @param mixed $instance
@@ -32,7 +32,7 @@ trait MagicPropertiesTestTrait
     }
 
     /**
-     * @dataProvider instanceProvider
+     * @dataProvider magicPropertiesInstanceProvider
      * @expectedException \ErrorException
      *
      * @param mixed $instance
@@ -43,7 +43,7 @@ trait MagicPropertiesTestTrait
     }
 
     /**
-     * @dataProvider instanceProvider
+     * @dataProvider magicPropertiesInstanceProvider
      * @expectedException \ErrorException
      *
      * @param mixed $instance
@@ -54,7 +54,7 @@ trait MagicPropertiesTestTrait
     }
 
     /**
-     * @dataProvider instanceProvider
+     * @dataProvider magicPropertiesInstanceProvider
      * @expectedException \ErrorException
      *
      * @param mixed $instance
@@ -64,5 +64,5 @@ trait MagicPropertiesTestTrait
         unset($instance->undefinedProperty);
     }
 
-    abstract public static function instanceProvider(): \Generator;
+    abstract public static function magicPropertiesInstanceProvider(): \Generator;
 }

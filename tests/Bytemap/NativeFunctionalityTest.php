@@ -27,7 +27,36 @@ namespace Bytemap;
  */
 final class NativeFunctionalityTest extends AbstractTestOfBytemap
 {
+    use ArrayAccessTestTrait;
     use MagicPropertiesTestTrait;
+
+    // `ArrayAccessTestTrait`
+    public static function arrayAccessInstanceProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([
+                ['b', 'd', 'f'],
+                ['bd', 'df', 'gg'],
+            ] as $elements) {
+                $defaultElement = \str_repeat("\x0", \strlen($elements[0]));
+                $bytemap = new $impl($defaultElement);
+                foreach ($elements as $element) {
+                    $bytemap[] = $element;
+                }
+                yield [$bytemap, $defaultElement, $elements];
+            }
+        }
+    }
+
+    // `MagicPropertiesTestTrait`
+    public static function magicPropertiesInstanceProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            yield [self::instantiate($impl, 'a')];
+        }
+    }
+
+    // `NativeFunctionalityTest`
 
     /**
      * @covers \Bytemap\AbstractBytemap
@@ -39,258 +68,10 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::instantiate($impl, '');
     }
 
-    public static function nullIndexProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
-            yield [$impl, $elements, null];
-        }
-    }
-
-    public static function invalidIndexTypeProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
-            foreach ([
-                false, true,
-                0., 1.,
-                '', '+0', '00', '01', '0e0', '0a', 'a0', '01', '1e0', '1a', 'a1',
-                [], [0], [1],
-                new \stdClass(), new class() {
-                    public function __toString(): string
-                    {
-                        return '0';
-                    }
-                },
-                \fopen('php://memory', 'rb'),
-                function (): int { return 0; },
-                function (): \Generator { yield 0; },
-            ] as $index) {
-                yield [$impl, $elements, $index];
-            }
-        }
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::offsetExists
-     * @dataProvider nullIndexProvider
-     * @dataProvider invalidIndexTypeProvider
-     *
-     * @param mixed $index
-     */
-    public function testExistsInvalidType(string $impl, array $elements, $index): void
-    {
-        self::assertFalse(isset(self::instantiate($impl, $elements[0])[$index]));
-    }
-
-    public static function negativeIndexProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
-            yield [$impl, $elements, 0, -1];
-        }
-    }
-
-    public static function outOfRangeIndexProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
-            foreach ([
-                [0, 0],
-                [1, 1],
-            ] as [$elementCount, $index]) {
-                yield [$impl, $elements, $elementCount, $index];
-            }
-        }
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::offsetExists
-     * @dataProvider negativeIndexProvider
-     * @dataProvider outOfRangeIndexProvider
-     */
-    public function testExistsOutOfRange(string $impl, array $elements, int $elementCount, int $index): void
-    {
-        self::assertFalse(isset(self::instantiateWithSize($impl, $elements, $elementCount)[$index]));
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetGet
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetGet
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
-     * @covers \Bytemap\Bytemap::offsetGet
-     * @dataProvider nullIndexProvider
-     * @dataProvider invalidIndexTypeProvider
-     * @expectedException \TypeError
-     *
-     * @param mixed $index
-     */
-    public function testGetInvalidType(string $impl, array $elements, $index): void
-    {
-        self::instantiate($impl, $elements[0])[$index];
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetGet
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetGet
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
-     * @covers \Bytemap\Bytemap::offsetGet
-     * @dataProvider negativeIndexProvider
-     * @dataProvider outOfRangeIndexProvider
-     * @expectedException \OutOfRangeException
-     */
-    public function testGetOutOfRange(string $impl, array $elements, int $elementCount, int $index): void
-    {
-        self::instantiateWithSize($impl, $elements, $elementCount)[$index];
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
-     * @covers \Bytemap\Bytemap::offsetSet
-     * @dataProvider invalidIndexTypeProvider
-     * @expectedException \TypeError
-     *
-     * @param mixed $index
-     */
-    public function testSetInvalidIndexType(string $impl, array $elements, $index): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-        $bytemap[$index] = $elements[0];
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
-     * @covers \Bytemap\Bytemap::offsetSet
-     * @dataProvider negativeIndexProvider
-     * @expectedException \OutOfRangeException
-     */
-    public function testSetNegativeIndex(string $impl, array $elements, int $elementCount, int $index): void
-    {
-        $bytemap = self::instantiateWithSize($impl, $elements, $elementCount);
-        $bytemap[$index] = $elements[0];
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
-     * @covers \Bytemap\Bytemap::offsetSet
-     * @dataProvider invalidElementTypeProvider
-     * @expectedException \TypeError
-     *
-     * @param mixed $invalidElement
-     */
-    public function testSetInvalidElementType(string $impl, array $elements, $invalidElement): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-        $bytemap[] = $invalidElement;
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
-     * @covers \Bytemap\Bytemap::offsetSet
-     * @dataProvider invalidLengthProvider
-     * @expectedException \DomainException
-     */
-    public function testSetInvalidLength(string $impl, string $defaultValue, string $invalidElement): void
-    {
-        $bytemap = self::instantiate($impl, $defaultValue);
-        $bytemap[] = $invalidElement;
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
-     * @covers \Bytemap\Bytemap::offsetUnset
-     * @dataProvider nullIndexProvider
-     * @dataProvider invalidIndexTypeProvider
-     * @doesNotPerformAssertions
-     *
-     * @param mixed $index
-     */
-    public function testUnsetInvalidType(string $impl, array $elements, $index): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-        unset($bytemap[$index]);
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
-     * @covers \Bytemap\Bytemap::offsetUnset
-     * @dataProvider negativeIndexProvider
-     * @dataProvider outOfRangeIndexProvider
-     * @doesNotPerformAssertions
-     */
-    public function testUnsetOutOfRange(string $impl, array $elements, int $elementCount, int $index): void
-    {
-        $bytemap = self::instantiateWithSize($impl, $elements, $elementCount);
-        unset($bytemap[$index]);
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::offsetExists
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetGet
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetGet
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\ArrayBytemap::offsetUnset
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetGet
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetSet
-     * @covers \Bytemap\Benchmark\SplBytemap::offsetUnset
-     * @covers \Bytemap\Bytemap::offsetGet
-     * @covers \Bytemap\Bytemap::offsetSet
-     * @covers \Bytemap\Bytemap::offsetUnset
-     * @dataProvider arrayAccessProvider
-     */
-    public function testArrayAccess(string $impl, array $elements): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-        self::assertFalse(isset($bytemap[0]));
-        self::assertFalse(isset($bytemap[2]));
-
-        $bytemap[2] = $elements[1];
-        self::assertTrue(isset($bytemap[0]));
-        self::assertTrue(isset($bytemap[2]));
-        self::assertSame($elements[0], $bytemap[0]);
-        self::assertSame($elements[0], $bytemap[1]);
-        self::assertSame($elements[1], $bytemap[2]);
-
-        $bytemap[2] = $elements[2];
-        self::assertSame($elements[2], $bytemap[2]);
-
-        unset($bytemap[2]);
-        self::assertFalse(isset($bytemap[2]));
-
-        unset($bytemap[0]);
-        self::assertTrue(isset($bytemap[0]));
-        self::assertSame($elements[0], $bytemap[0]);
-
-        $bytemap = self::instantiate($impl, $elements[0]);
-        $bytemap[] = $elements[1];
-        $bytemap[] = $elements[2];
-
-        self::assertTrue(isset($bytemap[0]));
-        self::assertTrue(isset($bytemap[1]));
-        self::assertFalse(isset($bytemap[2]));
-        self::assertSame($elements[1], $bytemap[0]);
-        self::assertSame($elements[2], $bytemap[1]);
-
-        unset($bytemap[0]);
-        self::assertSame($elements[2], $bytemap[0]);
-        self::assertFalse(isset($bytemap[1]));
-    }
-
     /**
      * @covers \Bytemap\AbstractBytemap::count
      * @covers \Bytemap\Bytemap::count
      * @dataProvider arrayAccessProvider
-     * @depends testArrayAccess
      */
     public function testCountable(string $impl, array $elements): void
     {
@@ -351,7 +132,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\SplBytemap::getIterator
      * @covers \Bytemap\Bytemap::getIterator
      * @dataProvider arrayAccessProvider
-     * @depends testArrayAccess
      */
     public function testIteratorAggregate(string $impl, array $elements): void
     {

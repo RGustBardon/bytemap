@@ -27,10 +27,15 @@ namespace Bytemap;
  */
 final class MutationTest extends AbstractTestOfBytemap
 {
+    use InvalidLengthGeneratorTrait;
+    use InvalidTypeGeneratorsTrait;
+
     public static function invalidElementTypeProvider(): \Generator
     {
-        foreach (parent::invalidElementTypeProvider() as [$impl, $elements, $invalidElement]) {
-            yield from self::invalidElementGenerator($impl, $elements, $invalidElement);
+        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
+            foreach (self::generateElementsOfInvalidType() as $invalidElement) {
+                yield from self::generateInvalidElements($impl, $elements, $invalidElement);
+            }
         }
     }
 
@@ -71,8 +76,10 @@ final class MutationTest extends AbstractTestOfBytemap
 
     public static function invalidLengthProvider(): \Generator
     {
-        foreach (parent::invalidLengthProvider() as [$impl, $defaultValue, $invalidElement]) {
-            yield from self::invalidElementGenerator($impl, \array_fill(0, 6, $defaultValue), $invalidElement);
+        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
+            foreach (self::generateElementsOfInvalidLength(\strlen($elements[0])) as $invalidElement) {
+                yield from self::generateInvalidElements($impl, \array_fill(0, 6, $elements[0]), $invalidElement);
+            }
         }
     }
 
@@ -250,7 +257,7 @@ final class MutationTest extends AbstractTestOfBytemap
     /**
      * @param mixed $invalidElement
      */
-    private static function invalidElementGenerator(string $impl, array $elements, $invalidElement): \Generator
+    private static function generateInvalidElements(string $impl, array $elements, $invalidElement): \Generator
     {
         foreach ([false, true] as $useGenerator) {
             foreach ([

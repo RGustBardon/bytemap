@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace Bytemap\Proxy;
 
+use Bytemap\ArrayAccessTestTrait;
 use Bytemap\Bytemap;
 use Bytemap\BytemapInterface;
+use Bytemap\MagicPropertiesTestTrait;
 
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
@@ -25,6 +27,9 @@ use Bytemap\BytemapInterface;
  */
 final class ArrayProxyTest extends AbstractTestOfProxy
 {
+    use ArrayAccessTestTrait;
+    use MagicPropertiesTestTrait;
+
     private const WALK_NO_USERDATA = 'void';
 
     private $originalCollation;
@@ -39,7 +44,20 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         \setlocale(\LC_COLLATE, $this->originalCollation);
     }
 
-    public static function instanceProvider(): \Generator
+    // `ArrayAccessPropertiesTrait`
+    public static function arrayAccessInstanceProvider(): \Generator
+    {
+        foreach ([
+            ['b', 'd', 'f'],
+            ['bd', 'df', 'gg'],
+        ] as $elements) {
+            $defaultElement = \str_repeat("\x0", \strlen($elements[0]));
+            yield [new ArrayProxy($defaultElement, ...$elements), $defaultElement, $elements];
+        }
+    }
+
+    // `MagicPropertiesTestTrait`
+    public static function magicPropertiesInstanceProvider(): \Generator
     {
         yield [new ArrayProxy('a')];
     }
