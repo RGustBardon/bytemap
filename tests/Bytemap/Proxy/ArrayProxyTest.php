@@ -16,6 +16,7 @@ namespace Bytemap\Proxy;
 use Bytemap\ArrayAccessTestTrait;
 use Bytemap\Bytemap;
 use Bytemap\BytemapInterface;
+use Bytemap\IterableTestTrait;
 use Bytemap\MagicPropertiesTestTrait;
 
 /**
@@ -28,6 +29,7 @@ use Bytemap\MagicPropertiesTestTrait;
 final class ArrayProxyTest extends AbstractTestOfProxy
 {
     use ArrayAccessTestTrait;
+    use IterableTestTrait;
     use MagicPropertiesTestTrait;
 
     private const WALK_NO_USERDATA = 'void';
@@ -53,6 +55,17 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         ] as $elements) {
             $defaultElement = \str_repeat("\x0", \strlen($elements[0]));
             yield [new ArrayProxy($defaultElement, ...$elements), $defaultElement, $elements];
+        }
+    }
+
+    // `IterableTestTrait`
+    public static function iterableInstanceProvider(): \Generator
+    {
+        foreach ([
+            ['b', 'd', 'f'],
+            ['bd', 'df', 'gg'],
+        ] as $elements) {
+            yield [new ArrayProxy(\str_repeat("\x0", \strlen($elements[0]))), $elements];
         }
     }
 

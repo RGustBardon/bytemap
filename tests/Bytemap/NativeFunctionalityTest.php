@@ -28,6 +28,7 @@ namespace Bytemap;
 final class NativeFunctionalityTest extends AbstractTestOfBytemap
 {
     use ArrayAccessTestTrait;
+    use IterableTestTrait;
     use MagicPropertiesTestTrait;
 
     // `ArrayAccessTestTrait`
@@ -44,6 +45,19 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                     $bytemap[] = $element;
                 }
                 yield [$bytemap, $defaultElement, $elements];
+            }
+        }
+    }
+
+    // `IterableTestTrait`
+    public static function iterableInstanceProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([
+                ['b', 'd', 'f'],
+                ['bd', 'df', 'gg'],
+            ] as $elements) {
+                yield [new $impl($defaultElement = \str_repeat("\x0", \strlen($elements[0]))), $elements];
             }
         }
     }
@@ -124,50 +138,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
 
         self::assertDefaultValue($elements[0], $clone, $elements[1]);
         self::assertDefaultValue($elements[0], $bytemap, $elements[2]);
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::getIterator
-     * @covers \Bytemap\Benchmark\ArrayBytemap::getIterator
-     * @covers \Bytemap\Benchmark\SplBytemap::getIterator
-     * @covers \Bytemap\Bytemap::getIterator
-     * @dataProvider arrayAccessProvider
-     */
-    public function testIteratorAggregate(string $impl, array $elements): void
-    {
-        $sequence = [$elements[1], $elements[2], $elements[1]];
-
-        $bytemap = self::instantiate($impl, $elements[0]);
-        foreach ($bytemap as $element) {
-            self::fail();
-        }
-
-        self::pushElements($bytemap, ...$sequence);
-        self::assertSequence($sequence, $bytemap);
-
-        $iterations = [];
-        foreach ($bytemap as $outerIndex => $outerElement) {
-            if (1 === $outerIndex) {
-                $bytemap[] = $elements[2];
-            }
-            $innerIteration = [];
-            foreach ($bytemap as $innerIndex => $innerElement) {
-                if (1 === $innerIndex) {
-                    $bytemap[2] = $elements[0];
-                }
-                $innerIteration[] = [$innerIndex, $innerElement];
-            }
-            $iterations[] = $innerIteration;
-            $iterations[] = [$outerIndex, $outerElement];
-        }
-        self::assertSame([
-            [[0, $elements[1]], [1, $elements[2]], [2, $elements[1]]],
-            [0, $elements[1]],
-            [[0, $elements[1]], [1, $elements[2]], [2, $elements[0]], [3, $elements[2]]],
-            [1, $elements[2]],
-            [[0, $elements[1]], [1, $elements[2]], [2, $elements[0]], [3, $elements[2]]],
-            [2, $elements[1]],
-        ], $iterations);
     }
 
     /**
