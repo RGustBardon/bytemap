@@ -39,12 +39,12 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 ['b', 'd', 'f'],
                 ['bd', 'df', 'gg'],
             ] as $elements) {
-                $defaultElement = \str_repeat("\x0", \strlen($elements[0]));
-                $bytemap = new $impl($defaultElement);
+                $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
+                $bytemap = new $impl($defaultValue);
                 foreach ($elements as $element) {
                     $bytemap[] = $element;
                 }
-                yield [$bytemap, $defaultElement, $elements];
+                yield [$bytemap, $defaultValue, $elements];
             }
         }
     }
@@ -57,7 +57,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 ['b', 'd', 'f'],
                 ['bd', 'df', 'gg'],
             ] as $elements) {
-                yield [new $impl($defaultElement = \str_repeat("\x0", \strlen($elements[0]))), $elements];
+                yield [new $impl(\str_repeat("\x0", \strlen($elements[0]))), $elements];
             }
         }
     }

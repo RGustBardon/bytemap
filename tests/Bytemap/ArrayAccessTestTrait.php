@@ -25,14 +25,14 @@ trait ArrayAccessTestTrait
 
     public static function nullIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultElement, $elements]) {
+        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             yield [$arrayAccessObject, $elements, null];
         }
     }
 
     public static function invalidIndexTypeProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultElement, $elements]) {
+        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             foreach (self::generateIndicesOfInvalidType() as $index) {
                 yield [$arrayAccessObject, $elements, $index];
             }
@@ -41,21 +41,21 @@ trait ArrayAccessTestTrait
 
     public static function negativeIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultElement, $elements]) {
+        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             yield [$arrayAccessObject, $elements, -1];
         }
     }
 
     public static function outOfRangeIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultElement, $elements]) {
+        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             yield [$arrayAccessObject, $elements, \count($elements)];
         }
     }
 
     public static function invalidElementTypeProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultElement, $elements]) {
+        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             foreach (self::generateElementsOfInvalidType() as $invalidElement) {
                 yield [$arrayAccessObject, $elements, $invalidElement];
             }
@@ -64,7 +64,7 @@ trait ArrayAccessTestTrait
 
     public static function invalidLengthProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultElement, $elements]) {
+        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             foreach (self::generateElementsOfInvalidLength(\strlen($elements[0])) as $invalidElement) {
                 yield [$arrayAccessObject, $invalidElement];
             }
@@ -178,7 +178,7 @@ trait ArrayAccessTestTrait
     /**
      * @dataProvider arrayAccessInstanceProvider
      */
-    public function testArrayAccess(\ArrayAccess $arrayAccessObject, string $defaultElement, array $elements): void
+    public function testArrayAccess(\ArrayAccess $arrayAccessObject, string $defaultValue, array $elements): void
     {
         $originalElementCount = \count($elements);
 
@@ -233,18 +233,18 @@ trait ArrayAccessTestTrait
             }
             self::assertFalse(isset($arrayAccessObject[$originalElementCount]));
             foreach ($elements as $originalIndex => $originalElement) {
-                self::assertSame($index > $originalIndex ? $defaultElement : $originalElement, $arrayAccessObject[$originalIndex]);
+                self::assertSame($index > $originalIndex ? $defaultValue : $originalElement, $arrayAccessObject[$originalIndex]);
             }
         }
 
-        $arrayAccessObject[0] = $defaultElement;
+        $arrayAccessObject[0] = $defaultValue;
         self::assertFalse(isset($arrayAccessObject[$originalElementCount]));
-        self::assertSame($defaultElement, $arrayAccessObject[0]);
+        self::assertSame($defaultValue, $arrayAccessObject[0]);
 
-        $arrayAccessObject[] = $defaultElement;
-        $arrayAccessObject[] = $defaultElement;
+        $arrayAccessObject[] = $defaultValue;
+        $arrayAccessObject[] = $defaultValue;
         unset($arrayAccessObject[$originalElementCount]);
-        self::assertSame($defaultElement, $arrayAccessObject[$originalElementCount]);
+        self::assertSame($defaultValue, $arrayAccessObject[$originalElementCount]);
     }
 
     /**
@@ -252,7 +252,7 @@ trait ArrayAccessTestTrait
      * @depends testArrayAccess
      * @expectedException \OutOfRangeException
      */
-    public function testGetFromEmpty(\ArrayAccess $arrayAccessObject, string $defaultElement, array $elements): void
+    public function testGetFromEmpty(\ArrayAccess $arrayAccessObject, string $defaultValue, array $elements): void
     {
         for ($i = \count($elements) - 1; $i >= 0; --$i) {
             unset($arrayAccessObject[$i]);

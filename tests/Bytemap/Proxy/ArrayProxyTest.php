@@ -53,8 +53,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ['b', 'd', 'f'],
             ['bd', 'df', 'gg'],
         ] as $elements) {
-            $defaultElement = \str_repeat("\x0", \strlen($elements[0]));
-            yield [new ArrayProxy($defaultElement, ...$elements), $defaultElement, $elements];
+            $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
+            yield [new ArrayProxy($defaultValue, ...$elements), $defaultValue, $elements];
         }
     }
 
@@ -81,7 +81,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($elements, self::instantiate(...$elements)->exportArray());
     }
 
-    public function testClone(): void
+    public function testCloning(): void
     {
         $elements = ['cd', 'xy', 'ef', 'ef'];
         $arrayProxy = self::instantiate(...$elements);
@@ -90,6 +90,60 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         $clone[] = 'bb';
         self::assertSame($elements, $arrayProxy->exportArray());
         self::assertSame(\array_merge($elements, ['bb']), $clone->exportArray());
+    }
+
+    /**
+     * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessage Error at offset
+     */
+    public function testUnserializeErrorAtOffset(): void
+    {
+        // C:24:"Bytemap\Proxy\ArrayProxy":62:{C:15:"Bytemap\Bytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}}}
+        \unserialize('C:24:"Bytemap\\Proxy\\ArrayProxy":61:{C:15:"Bytemap\\Bytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}}}');
+    }
+
+    /**
+     * @expectedException \UnexpectedValueException
+     * @expectedExceptionMessage expected a bytemap
+     */
+    public function testUnserializeUnexpectedType(): void
+    {
+        // C:24:"Bytemap\Proxy\ArrayProxy":62:{C:15:"Bytemap\Bytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}}}
+        \unserialize('C:24:"Bytemap\\Proxy\\ArrayProxy":20:{a:1:{i:0;s:3:"foo";}}');
+    }
+
+    /**
+     * @expectedException \DomainException
+     * @expectedExceptionMessage default value
+     */
+    public function testUnserializeInvalidElementLength(): void
+    {
+        // C:24:"Bytemap\Proxy\ArrayProxy":62:{C:15:"Bytemap\Bytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}}}
+        \unserialize('C:24:"Bytemap\\Proxy\\ArrayProxy":61:{C:15:"Bytemap\\Bytemap":33:{a:2:{i:0;s:2:"fo";i:1;s:3:"bar";}}}');
+    }
+
+    public function testSerializable(): void
+    {
+        $elements = ['cd', 'xy', 'cd', 'ef', 'ef'];
+        $arrayProxy = self::instantiate(...$elements);
+        $arrayProxy[6] = 'bb';
+        $defaultValue = $arrayProxy[5];
+        unset($arrayProxy[6]);
+        unset($arrayProxy[5]);
+        $unserializedArrayProxy = \unserialize(\serialize($arrayProxy), ['allowed_classes' => [ArrayProxy::class]]);
+        self::assertSame($elements, $unserializedArrayProxy->exportArray());
+        $unserializedArrayProxy[6] = 'bb';
+        self::assertSame($defaultValue, $unserializedArrayProxy[5]);
+    }
+
+    /**
+     * @expectedException \DomainException
+     * @expectedExceptionMessage default value
+     */
+    public function testUnserializeUnexpectedValue(): void
+    {
+        // C:24:"Bytemap\Proxy\ArrayProxy":62:{C:15:"Bytemap\Bytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}}}
+        \unserialize('C:24:"Bytemap\\Proxy\\ArrayProxy":61:{C:15:"Bytemap\\Bytemap":33:{a:2:{i:0;s:2:"fo";i:1;s:3:"bar";}}}');
     }
 
     public function testWrapUnwrap(): void
