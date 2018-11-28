@@ -29,6 +29,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
 {
     use ArrayAccessTestTrait;
     use IterableTestTrait;
+    use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
 
     // `ArrayAccessTestTrait`
@@ -58,6 +59,21 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 ['bd', 'df', 'gg'],
             ] as $elements) {
                 yield [new $impl(\str_repeat("\x0", \strlen($elements[0]))), $elements];
+            }
+        }
+    }
+
+    // `JsonSerializableTestTrait`
+    public static function jsonSerializableInstanceProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([
+                ['b', 'd', 'f'],
+                ['bd', 'df', 'gg'],
+            ] as $elements) {
+                $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
+                $bytemap = new $impl($defaultValue);
+                yield [$bytemap, $defaultValue, $elements];
             }
         }
     }
@@ -138,26 +154,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
 
         self::assertDefaultValue($elements[0], $clone, $elements[1]);
         self::assertDefaultValue($elements[0], $bytemap, $elements[2]);
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::jsonSerialize
-     * @covers \Bytemap\Benchmark\ArrayBytemap::jsonSerialize
-     * @covers \Bytemap\Benchmark\SplBytemap::jsonSerialize
-     * @covers \Bytemap\Bytemap::jsonSerialize
-     * @dataProvider arrayAccessProvider
-     * @depends testCountable
-     */
-    public function testJsonSerializable(string $impl, array $elements): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-        self::assertNativeJson([], $bytemap);
-
-        $sequence = [$elements[1], $elements[2], $elements[1]];
-        self::pushElements($bytemap, ...$sequence);
-        $bytemap[4] = $elements[0];
-        \array_push($sequence, $elements[0], $elements[0]);
-        self::assertNativeJson($sequence, $bytemap);
     }
 
     public static function invalidSerializedDataProvider(): \Generator
@@ -308,16 +304,5 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         self::assertSequence($sequence, $copy);
         self::assertDefaultValue($elements[0], $copy, $elements[1]);
         self::assertDefaultValue($elements[0], $bytemap, $elements[2]);
-    }
-
-    private static function assertNativeJson($expected, $actual): void
-    {
-        $expectedJson = \json_encode($expected);
-        self::assertSame(\JSON_ERROR_NONE, \json_last_error());
-
-        $actualJson = \json_encode($actual);
-        self::assertSame(\JSON_ERROR_NONE, \json_last_error());
-
-        self::assertSame($expectedJson, $actualJson);
     }
 }

@@ -17,6 +17,7 @@ use Bytemap\ArrayAccessTestTrait;
 use Bytemap\Bytemap;
 use Bytemap\BytemapInterface;
 use Bytemap\IterableTestTrait;
+use Bytemap\JsonSerializableTestTrait;
 use Bytemap\MagicPropertiesTestTrait;
 
 /**
@@ -30,6 +31,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 {
     use ArrayAccessTestTrait;
     use IterableTestTrait;
+    use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
 
     private const WALK_NO_USERDATA = 'void';
@@ -66,6 +68,18 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ['bd', 'df', 'gg'],
         ] as $elements) {
             yield [new ArrayProxy(\str_repeat("\x0", \strlen($elements[0]))), $elements];
+        }
+    }
+
+    // `JsonSerializableTestTrait`
+    public static function jsonSerializableInstanceProvider(): \Generator
+    {
+        foreach ([
+            ['b', 'd', 'f'],
+            ['bd', 'df', 'gg'],
+        ] as $elements) {
+            $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
+            yield [new ArrayProxy($defaultValue), $defaultValue, $elements];
         }
     }
 
