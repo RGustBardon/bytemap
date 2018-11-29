@@ -16,6 +16,7 @@ namespace Bytemap\Proxy;
 use Bytemap\ArrayAccessTestTrait;
 use Bytemap\Bytemap;
 use Bytemap\BytemapInterface;
+use Bytemap\CountableTestTrait;
 use Bytemap\IterableTestTrait;
 use Bytemap\JsonSerializableTestTrait;
 use Bytemap\MagicPropertiesTestTrait;
@@ -30,6 +31,7 @@ use Bytemap\MagicPropertiesTestTrait;
 final class ArrayProxyTest extends AbstractTestOfProxy
 {
     use ArrayAccessTestTrait;
+    use CountableTestTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
@@ -48,7 +50,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         \setlocale(\LC_COLLATE, $this->originalCollation);
     }
 
-    // `ArrayAccessPropertiesTrait`
+    // `ArrayAccessTestTrait`
     public static function arrayAccessInstanceProvider(): \Generator
     {
         foreach ([
@@ -58,6 +60,12 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
             yield [new ArrayProxy($defaultValue, ...$elements), $defaultValue, $elements];
         }
+    }
+
+    // `CountableTestTrait`
+    public static function countableInstanceProvider(): \Generator
+    {
+        yield [new ArrayProxy("\x0\x0"), ['ab', 'cd']];
     }
 
     // `IterableTestTrait`

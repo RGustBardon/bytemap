@@ -28,6 +28,7 @@ namespace Bytemap;
 final class NativeFunctionalityTest extends AbstractTestOfBytemap
 {
     use ArrayAccessTestTrait;
+    use CountableTestTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
@@ -47,6 +48,14 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 }
                 yield [$bytemap, $defaultValue, $elements];
             }
+        }
+    }
+
+    // `CountableTestTrait`
+    public static function countableInstanceProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            yield [new $impl("\x00\x00"), ['ab', 'cd']];
         }
     }
 
@@ -96,35 +105,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     public function testConstructorEmptyString(string $impl): void
     {
         self::instantiate($impl, '');
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::count
-     * @covers \Bytemap\Bytemap::count
-     * @dataProvider arrayAccessProvider
-     */
-    public function testCountable(string $impl, array $elements): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-        self::assertCount(0, $bytemap);
-
-        $bytemap[] = $elements[1];
-        self::assertCount(1, $bytemap);
-
-        $bytemap[4] = $elements[2];
-        self::assertCount(5, $bytemap);
-
-        $bytemap[4] = $elements[1];
-        self::assertCount(5, $bytemap);
-
-        unset($bytemap[1]);
-        self::assertCount(4, $bytemap);
-
-        unset($bytemap[4]);
-        self::assertCount(4, $bytemap);
-
-        unset($bytemap[3]);
-        self::assertCount(3, $bytemap);
     }
 
     /**

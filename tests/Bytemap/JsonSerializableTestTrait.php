@@ -32,7 +32,7 @@ trait JsonSerializableTestTrait
             $jsonSerializable[] = $element;
         }
         $jsonSerializable[4] = $defaultValue;
-        \array_push($sequence, $elements[0], $elements[0]);
+        \array_push($sequence, $defaultValue, $defaultValue);
         self::assertNativeJson($sequence, $jsonSerializable);
     }
 
