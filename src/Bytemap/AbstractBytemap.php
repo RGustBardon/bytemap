@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
-use JsonStreamingParser\Listener;
+use JsonStreamingParser\Exception\ParsingException;
+use JsonStreamingParser\Listener\ListenerInterface;
 use JsonStreamingParser\Parser;
-use JsonStreamingParser\ParsingError;
 
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
@@ -345,7 +345,7 @@ abstract class AbstractBytemap implements BytemapInterface
 
     final protected static function hasStreamingParser(): bool
     {
-        return ($_ENV['BYTEMAP_STREAMING_PARSER'] ?? true) && \class_exists('\\JsonStreamingParser\\Parser');
+        return ($_ENV['BYTEMAP_STREAMING_PARSER'] ?? true) && \interface_exists('\\JsonStreamingParser\\Listener\\ListenerInterface');
     }
 
     final protected static function parseJsonStreamNatively($jsonStream)
@@ -366,11 +366,11 @@ abstract class AbstractBytemap implements BytemapInterface
         return $result;
     }
 
-    final protected static function parseJsonStreamOnline($jsonStream, Listener $listener): void
+    final protected static function parseJsonStreamOnline($jsonStream, ListenerInterface $listener): void
     {
         try {
             (new Parser($jsonStream, $listener))->parse();
-        } catch (ParsingError | \UnexpectedValueException $e) {
+        } catch (ParsingException | \UnexpectedValueException $e) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to parse JSON ('.$e->getMessage().')');
         }
     }

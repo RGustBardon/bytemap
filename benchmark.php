@@ -550,7 +550,7 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
             }
             [$key, $value] = \explode(':', \trim($buffer), 2);
             $value = \preg_replace('~\\s+~', ' ', \trim($value));
-            if (\preg_match('~^[0-9]+ kB$~', $value)) {
+            if (\is_string($value) && \preg_match('~^[0-9]+ kB$~', $value)) {
                 $value = 1024 * (int) \substr($value, 0, -3);
             }
             $snapshot['ProcessStatus'][$key] = $value;

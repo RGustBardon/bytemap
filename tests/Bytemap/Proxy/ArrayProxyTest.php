@@ -474,7 +474,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                             $iterables[$key] = new class($iterable) implements \IteratorAggregate {
                                 private $it;
 
-                                public function __construct(array $iterable)
+                                public function __construct(iterable $iterable)
                                 {
                                     $this->it = $iterable;
                                 }

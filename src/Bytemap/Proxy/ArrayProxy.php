@@ -376,7 +376,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 if (isset($keysToReorder[$index])) {
                     $iterableToReorder = \array_combine($keysToReorder[$index], $iterableToReorder);
                 }
-                $iterableToReorder = \array_merge($iterableToReorder);  // Re-index numeric keys.
+                if (\is_array($iterableToReorder)) {
+                    $iterableToReorder = \array_merge($iterableToReorder);  // Re-index numeric keys.
+                }
             }
         }
     }

@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Bytemap\JsonListener;
 
-use JsonStreamingParser\Listener;
+use JsonStreamingParser\Listener\ListenerInterface;
 
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
-class BytemapListener implements Listener
+class BytemapListener implements ListenerInterface
 {
     private const STATE_INITIAL = 'Initial';
     private const STATE_DOCUMENT_STARTED = 'DocumentStarted';
@@ -42,49 +42,49 @@ class BytemapListener implements Listener
         $this->setter = $setter;
     }
 
-    public function startDocument()
+    public function startDocument(): void
     {
         $this->transition(self::STATE_DOCUMENT_STARTED);
     }
 
-    public function endDocument()
+    public function endDocument(): void
     {
         $this->transition(self::STATE_INITIAL);
     }
 
-    public function startObject()
+    public function startObject(): void
     {
         $this->transition(self::STATE_AWAITING_VALUE);
     }
 
-    public function endObject()
+    public function endObject(): void
     {
         $this->transition(self::STATE_DOCUMENT_ENDED);
     }
 
-    public function startArray()
+    public function startArray(): void
     {
         $this->transition(self::STATE_AWAITING_VALUE);
     }
 
-    public function endArray()
+    public function endArray(): void
     {
         $this->transition(self::STATE_DOCUMENT_ENDED);
     }
 
-    public function key($key)
+    public function key(string $key): void
     {
         $intKey = (int) $key;
         $this->key = ((string) $intKey === $key) ? $intKey : $key;
     }
 
-    public function value($value)
+    public function value($value): void
     {
         ($this->setter)($this->key, $value);
         $this->key = null;
     }
 
-    public function whitespace($whitespace)
+    public function whitespace(string $whitespace): void
     {
         // Ignored.
     }
