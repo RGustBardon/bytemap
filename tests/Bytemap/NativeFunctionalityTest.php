@@ -111,7 +111,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\Benchmark\AbstractDsBytemap::__clone
      * @covers \Bytemap\Benchmark\SplBytemap::__clone
      * @dataProvider arrayAccessProvider
-     * @depends testCountable
      */
     public function testCloning(string $impl, array $elements): void
     {
@@ -270,7 +269,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
      * @covers \Bytemap\AbstractBytemap::unserialize
      * @covers \Bytemap\Benchmark\SplBytemap::unserialize
      * @dataProvider arrayAccessProvider
-     * @depends testCountable
      */
     public function testSerializable(string $impl, array $elements): void
     {
