@@ -281,12 +281,12 @@ class Bytemap extends AbstractBytemap
         $match = null;
 
         $bytesPerElement = $this->bytesPerElement;
-        $batchSize = self::BATCH_ELEMENT_COUNT * $bytesPerElement;
         $elementCount = $this->elementCount;
         $map = $this->map;
         if ($howManyToReturn > 0) {
+            $batchSize = self::BATCH_ELEMENT_COUNT * $bytesPerElement;
             for ($index = $howManyToSkip; $index < $elementCount; $index += self::BATCH_ELEMENT_COUNT) {
-                foreach (\str_split(\substr($map, $index * $bytesPerElement, $batchSize), $bytesPerElement) as $i => $element) {
+                foreach ((array) \str_split(\substr($map, $index * $bytesPerElement, $batchSize), $bytesPerElement) as $i => $element) {
                     if (!($whitelist xor $lookup[$element] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
                         yield $index + $i => $element;
                         if (0 === --$howManyToReturn) {
@@ -305,21 +305,27 @@ class Bytemap extends AbstractBytemap
                 }
             }
         } else {
-            $i = $this->elementCount - 1 - $howManyToSkip;
-            for ($index = $i * $bytesPerElement; $i >= 0; --$i, $index -= $bytesPerElement) {
-                if (!($whitelist xor $lookup[$element = \substr($map, $index, $bytesPerElement)] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
-                    yield $i => $element;
-                    if (0 === ++$howManyToReturn) {
-                        return;
+            for ($index = $this->elementCount - $howManyToSkip - 1; $index >= 0; $index -= self::BATCH_ELEMENT_COUNT) {
+                $start = $index - self::BATCH_ELEMENT_COUNT + 1;
+                $batchElementCount = (self::BATCH_ELEMENT_COUNT + \min(0, $start));
+                $start = \max(0, $start);
+                $end = $start + $batchElementCount - 1;
+                $batch = (array) \str_split(\substr($map, $start * $bytesPerElement, $batchElementCount * $bytesPerElement), $bytesPerElement);
+                foreach (\array_reverse($batch) as $i => $element) {
+                    if (!($whitelist xor $lookup[$element] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                        yield $end - $i => $element;
+                        if (0 === ++$howManyToReturn) {
+                            return;
+                        }
                     }
-                }
-                if (null !== $match) {
-                    $lookup[$element] = $match;
-                    $match = null;
-                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
-                        unset($lookup[\key($lookup)]);
-                    } else {
-                        ++$lookupSize;
+                    if (null !== $match) {
+                        $lookup[$element] = $match;
+                        $match = null;
+                        if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
+                            unset($lookup[\key($lookup)]);
+                        } else {
+                            ++$lookupSize;
+                        }
                     }
                 }
             }
