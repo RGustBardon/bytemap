@@ -281,23 +281,26 @@ class Bytemap extends AbstractBytemap
         $match = null;
 
         $bytesPerElement = $this->bytesPerElement;
+        $batchSize = self::BATCH_ELEMENT_COUNT * $bytesPerElement;
         $elementCount = $this->elementCount;
         $map = $this->map;
         if ($howManyToReturn > 0) {
-            for ($i = $howManyToSkip, $index = $howManyToSkip * $bytesPerElement; $i < $elementCount; ++$i, $index += $bytesPerElement) {
-                if (!($whitelist xor $lookup[$element = \substr($map, $index, $bytesPerElement)] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
-                    yield $i => $element;
-                    if (0 === --$howManyToReturn) {
-                        return;
+            for ($index = $howManyToSkip; $index < $elementCount; $index += self::BATCH_ELEMENT_COUNT) {
+                foreach (\str_split(\substr($map, $index * $bytesPerElement, $batchSize), $bytesPerElement) as $i => $element) {
+                    if (!($whitelist xor $lookup[$element] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                        yield $index + $i => $element;
+                        if (0 === --$howManyToReturn) {
+                            return;
+                        }
                     }
-                }
-                if (null !== $match) {
-                    $lookup[$element] = $match;
-                    $match = null;
-                    if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
-                        unset($lookup[\key($lookup)]);
-                    } else {
-                        ++$lookupSize;
+                    if (null !== $match) {
+                        $lookup[$element] = $match;
+                        $match = null;
+                        if ($lookupSize > self::GREP_MAXIMUM_LOOKUP_SIZE) {
+                            unset($lookup[\key($lookup)]);
+                        } else {
+                            ++$lookupSize;
+                        }
                     }
                 }
             }
