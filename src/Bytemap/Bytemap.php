@@ -307,13 +307,12 @@ class Bytemap extends AbstractBytemap
         } else {
             for ($index = $this->elementCount - $howManyToSkip - 1; $index >= 0; $index -= self::BATCH_ELEMENT_COUNT) {
                 $start = $index - self::BATCH_ELEMENT_COUNT + 1;
-                $batchElementCount = (self::BATCH_ELEMENT_COUNT + \min(0, $start));
+                $batchElementCount = self::BATCH_ELEMENT_COUNT + \min(0, $start);
                 $start = \max(0, $start);
-                $end = $start + $batchElementCount - 1;
                 $batch = (array) \str_split(\substr($map, $start * $bytesPerElement, $batchElementCount * $bytesPerElement), $bytesPerElement);
-                foreach (\array_reverse($batch) as $i => $element) {
-                    if (!($whitelist xor $lookup[$element] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
-                        yield $end - $i => $element;
+                for ($i = $batchElementCount - 1; $i >= 0; --$i) {
+                    if (!($whitelist xor $lookup[$element = $batch[$i]] ?? ($match = (null !== \preg_filter($patterns, '', $element))))) {
+                        yield $start + $i => $element;
                         if (0 === ++$howManyToReturn) {
                             return;
                         }
