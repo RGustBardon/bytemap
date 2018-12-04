@@ -405,21 +405,29 @@ class Bytemap extends AbstractBytemap
         $bytesPerElement = $this->bytesPerElement;
         $map = $this->map;
         if ($howManyToReturn > 0) {
+            $batchSize = self::BATCH_ELEMENT_COUNT * $bytesPerElement;
+            $elementCount = $this->elementCount;
             if ($whitelist) {
-                for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
-                    if (isset($elements[$element = \substr($map, $i * $bytesPerElement, $bytesPerElement)])) {
-                        yield $i => $element;
-                        if (0 === --$howManyToReturn) {
-                            return;
+                for ($index = $howManyToSkip; $index < $elementCount; $index += self::BATCH_ELEMENT_COUNT) {
+                    $batch = (array) \str_split(\substr($map, $index * $bytesPerElement, $batchSize), $bytesPerElement);
+                    foreach ($batch as $i => $element) {
+                        if (isset($elements[$element])) {
+                            yield $index + $i => $element;
+                            if (0 === --$howManyToReturn) {
+                                return;
+                            }
                         }
                     }
                 }
             } else {
-                for ($i = $howManyToSkip, $elementCount = $this->elementCount; $i < $elementCount; ++$i) {
-                    if (!isset($elements[$element = \substr($map, $i * $bytesPerElement, $bytesPerElement)])) {
-                        yield $i => $element;
-                        if (0 === --$howManyToReturn) {
-                            return;
+                for ($index = $howManyToSkip; $index < $elementCount; $index += self::BATCH_ELEMENT_COUNT) {
+                    $batch = (array) \str_split(\substr($map, $index * $bytesPerElement, $batchSize), $bytesPerElement);
+                    foreach ($batch as $i => $element) {
+                        if (!isset($elements[$element])) {
+                            yield $index + $i => $element;
+                            if (0 === --$howManyToReturn) {
+                                return;
+                            }
                         }
                     }
                 }
