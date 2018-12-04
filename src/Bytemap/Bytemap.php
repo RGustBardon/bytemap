@@ -433,20 +433,32 @@ class Bytemap extends AbstractBytemap
                 }
             }
         } elseif ($whitelist) {
-            for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (isset($elements[$element = \substr($map, $i * $bytesPerElement, $bytesPerElement)])) {
-                    yield $i => $element;
-                    if (0 === ++$howManyToReturn) {
-                        return;
+            for ($index = $this->elementCount - $howManyToSkip - 1; $index >= 0; $index -= self::BATCH_ELEMENT_COUNT) {
+                $start = $index - self::BATCH_ELEMENT_COUNT + 1;
+                $batchElementCount = self::BATCH_ELEMENT_COUNT + \min(0, $start);
+                $start = \max(0, $start);
+                $batch = (array) \str_split(\substr($map, $start * $bytesPerElement, $batchElementCount * $bytesPerElement), $bytesPerElement);
+                for ($i = $batchElementCount - 1; $i >= 0; --$i) {
+                    if (isset($elements[$element = $batch[$i]])) {
+                        yield $start + $i => $element;
+                        if (0 === ++$howManyToReturn) {
+                            return;
+                        }
                     }
                 }
             }
         } else {
-            for ($i = $this->elementCount - 1 - $howManyToSkip; $i >= 0; --$i) {
-                if (!isset($elements[$element = \substr($map, $i * $bytesPerElement, $bytesPerElement)])) {
-                    yield $i => $element;
-                    if (0 === ++$howManyToReturn) {
-                        return;
+            for ($index = $this->elementCount - $howManyToSkip - 1; $index >= 0; $index -= self::BATCH_ELEMENT_COUNT) {
+                $start = $index - self::BATCH_ELEMENT_COUNT + 1;
+                $batchElementCount = self::BATCH_ELEMENT_COUNT + \min(0, $start);
+                $start = \max(0, $start);
+                $batch = (array) \str_split(\substr($map, $start * $bytesPerElement, $batchElementCount * $bytesPerElement), $bytesPerElement);
+                for ($i = $batchElementCount - 1; $i >= 0; --$i) {
+                    if (!isset($elements[$element = $batch[$i]])) {
+                        yield $start + $i => $element;
+                        if (0 === ++$howManyToReturn) {
+                            return;
+                        }
                     }
                 }
             }
