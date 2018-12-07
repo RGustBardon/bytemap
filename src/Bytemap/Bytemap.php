@@ -206,58 +206,7 @@ class Bytemap extends AbstractBytemap
 
         $bytemap = new self($defaultValue);
         if (self::hasStreamingParser()) {
-            $batch = [];
-            $batchElementCount = 0;
-            $lowestPossibleIndex = \PHP_INT_MAX;
-            $highestPossibleIndex = \PHP_INT_MIN;
-            
-            $processBatch = static function () use (&$batch, &$batchElementCount, $bytemap, &$lowestPossibleIndex, &$highestPossibleIndex) {
-                $lowestIndex = \min($bytemap->elementCount, $lowestPossibleIndex + 1);
-                $highestIndex = $highestPossibleIndex - 1;
-
-                $fill = \array_fill($lowestIndex, $highestIndex - $lowestIndex + 1, $bytemap->defaultValue);
-                $batch += $fill;
-
-                \ksort($batch, \SORT_NUMERIC);
-                $substring = \implode('', $batch);
-
-                $bytemap->map = \substr_replace($bytemap->map, $substring, $lowestIndex * $bytemap->bytesPerElement, \strlen($substring));
-                $bytemap->deriveProperties();
-
-                $batch = [];
-                $batchElementCount = 0;
-                $lowestPossibleIndex = \PHP_INT_MAX;
-                $highestPossibleIndex = \PHP_INT_MIN;
-            };
-            
-            self::parseJsonStreamOnline($jsonStream, new BytemapListener(static function ($index, $element) use (&$batch, &$batchElementCount, $bytemap, &$lowestPossibleIndex, &$highestPossibleIndex, $processBatch): void {
-                if (null === $index) {  // `$bytemap[] = $element`
-                    $index = $highestPossibleIndex ?? 0;
-                    if ($index < $bytemap->elementCount) {
-                        $index = $bytemap->elementCount;
-                    }
-                }
-
-                if (\is_int($index) && $index >= 0 && \is_string($element) && \strlen($element) === $bytemap->bytesPerElement) {
-                    if ($batch && ($index < $lowestPossibleIndex || $index > $highestPossibleIndex || $batchElementCount > self::BATCH_ELEMENT_COUNT)) {
-                        $processBatch();
-                    }
-                    ++$batchElementCount;
-                    $batch[$index] = $element;
-                    
-                    if ($lowestPossibleIndex > $index - 1) {
-                        $lowestPossibleIndex = $index - 1;
-                    }
-                    if ($highestPossibleIndex < $index + 1) {
-                        $highestPossibleIndex = $index + 1;
-                    }
-                } else {
-                    self::throwOnOffsetSet($index, $element, $bytemap->bytesPerElement);
-                }
-            }));
-            if ($batch) {
-                $processBatch();
-            }
+            self::parseJsonStreamOnline($jsonStream, new BytemapListener([$bytemap, 'offsetSet']));
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
             [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultValue);
