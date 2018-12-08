@@ -16,7 +16,7 @@ namespace Bytemap;
 use Bytemap\JsonListener\BytemapListener;
 
 /**
- * An implementation of the `BytemapInterface` using a string.
+ * An implementation of the `BytemapInterface` using a string to store strings of equal length.
  *
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  */
