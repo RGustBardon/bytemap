@@ -82,13 +82,13 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // `ArrayAccess`
-    final public function offsetExists($index): bool
+    public function offsetExists($index): bool
     {
         return \is_int($index) && $index >= 0 && $index < $this->elementCount;
     }
 
     // `Countable`
-    final public function count(): int
+    public function count(): int
     {
         return $this->elementCount;
     }

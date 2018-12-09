@@ -28,6 +28,11 @@ class Bitmap extends Bytemap
         parent::__construct("\x0");
     }
 
+    public function offsetExists($index): bool
+    {
+        return \is_int($index) && $index >= 0 && $index < $this->bitCount;
+    }
+
     public function offsetGet($index): bool
     {
         if (\is_int($index) && $index >= 0 && $index < $this->bitCount) {
@@ -88,8 +93,8 @@ class Bitmap extends Bytemap
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be a Boolean, '.\gettype($element).' given');
             }
 
-            if ($index > $this->bitCount) {
-                $this->bitCount = $index;
+            if ($index >= $this->bitCount) {
+                $this->bitCount = $index + 1;
             }
 
             return;
