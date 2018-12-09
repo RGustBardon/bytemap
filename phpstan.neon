@@ -5,3 +5,4 @@ parameters:
     ignoreErrors:
         - '~assertFalse\(\) with true will always evaluate to false~'
         - '~Casting to string something~'
+        - '~Binary operation "[&\|]" between string and ~'
