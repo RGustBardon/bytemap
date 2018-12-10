@@ -35,17 +35,10 @@ class Bitmap extends Bytemap
 
     public function offsetGet($index): bool
     {
+        static $mask = ["\x1", "\x2", "\x4", "\x8", "\x10", "\x20", "\x40", "\x80"];
+
         if (\is_int($index) && $index >= 0 && $index < $this->bitCount) {
-            return "\x0" !== (parent::offsetGet($index >> 3) & [
-                0x1 => "\x1",
-                0x2 => "\x2",
-                0x4 => "\x4",
-                0x8 => "\x8",
-                0x10 => "\x10",
-                0x20 => "\x20",
-                0x40 => "\x40",
-                0x80 => "\x80",
-            ][1 << ($index & 7)]);
+            return "\x0" !== ($this->map[$index >> 3] & $mask[$index & 7]);
         }
 
         if (!\is_int($index)) {
@@ -61,6 +54,9 @@ class Bitmap extends Bytemap
 
     public function offsetSet($index, $element): void
     {
+        static $originalMask = ["\x1", "\x2", "\x4", "\x8", "\x10", "\x20", "\x40", "\x80"];
+        static $invertedMask = ["\xfe", "\xfd", "\xfb", "\xf7", "\xef", "\xdf", "\xbf", "\x7f"];
+
         if (null === $index) {  // `$bitmap[] = $element`
             $index = $this->bitCount;
         }
@@ -68,27 +64,9 @@ class Bitmap extends Bytemap
         if (\is_int($index) && $index >= 0) {
             $byteIndex = $index >> 3;
             if (true === $element) {
-                parent::offsetSet($byteIndex, ($byteIndex < $this->elementCount ? parent::offsetGet($byteIndex) : "\x0") | [
-                    0x1 => "\x1",
-                    0x2 => "\x2",
-                    0x4 => "\x4",
-                    0x8 => "\x8",
-                    0x10 => "\x10",
-                    0x20 => "\x20",
-                    0x40 => "\x40",
-                    0x80 => "\x80",
-                ][1 << ($index & 7)]);
+                parent::offsetSet($byteIndex, ($this->map[$byteIndex] ?? "\x0") | $originalMask[$index & 7]);
             } elseif (false === $element) {
-                parent::offsetSet($byteIndex, ($byteIndex < $this->elementCount ? parent::offsetGet($byteIndex) : "\x0") & ~[
-                    0x1 => "\x1",
-                    0x2 => "\x2",
-                    0x4 => "\x4",
-                    0x8 => "\x8",
-                    0x10 => "\x10",
-                    0x20 => "\x20",
-                    0x40 => "\x40",
-                    0x80 => "\x80",
-                ][1 << ($index & 7)]);
+                parent::offsetSet($byteIndex, ($this->map[$byteIndex] ?? "\x0") & $invertedMask[$index & 7]);
             } else {
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be a Boolean, '.\gettype($element).' given');
             }
@@ -105,4 +83,5 @@ class Bitmap extends Bytemap
 
         throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Negative index: '.$index);
     }
+
 }
