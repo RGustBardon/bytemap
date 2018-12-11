@@ -343,6 +343,7 @@ class Bitmap extends Bytemap
             "\xfc" => "\x7e",
             "\xfd" => "\x7e",
             "\xfe" => "\x7f",
+            "\xff" => "\x7f",
         ];
 
         if (\is_int($index) && $index >= 0 && $index < $this->bitCount) {
