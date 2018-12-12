@@ -28,6 +28,7 @@ class Bitmap extends Bytemap
         parent::__construct("\x0");
     }
 
+    // `ArrayAccess`
     public function offsetExists($index): bool
     {
         return \is_int($index) && $index >= 0 && $index < $this->bitCount;
@@ -365,5 +366,11 @@ class Bitmap extends Bytemap
                 $this->map[$i] = $byte ^ (($byte ^ ($shiftOneRight[$byte] | $carry)) & $mask[$bitIndex]);
             }
         }
+    }
+    
+    // `Countable`
+    public function count(): int
+    {
+        return $this->bitCount;
     }
 }
