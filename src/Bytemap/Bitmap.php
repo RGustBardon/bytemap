@@ -373,4 +373,27 @@ class Bitmap extends Bytemap
     {
         return $this->bitCount;
     }
+    
+    // `IteratorAggregate`
+    public function getIterator(): \Traversable
+    {
+        static $mask = ["\x1", "\x2", "\x4", "\x8", "\x10", "\x20", "\x40", "\x80"];
+        
+        $map = $this->map;
+        for ($bitIndex = 0, $byteIndex = 0, $lastByteIndex = $this->elementCount - 1; $byteIndex < $lastByteIndex; ++$byteIndex) {
+            $byte = $map[$byteIndex];
+            yield $bitIndex++ => "\x0" !== ($byte & "\x01");
+            yield $bitIndex++ => "\x0" !== ($byte & "\x02");
+            yield $bitIndex++ => "\x0" !== ($byte & "\x04");
+            yield $bitIndex++ => "\x0" !== ($byte & "\x08");
+            yield $bitIndex++ => "\x0" !== ($byte & "\x10");
+            yield $bitIndex++ => "\x0" !== ($byte & "\x20");
+            yield $bitIndex++ => "\x0" !== ($byte & "\x40");
+            yield $bitIndex++ => "\x0" !== ($byte & "\x80");
+        }
+
+        for ($bit = 0, $byte = $map[$byteIndex], $bitCount = $this->bitCount; $bitIndex < $bitCount; ++$bitIndex, ++$bit) {
+            yield $bitIndex => "\x0" !== ($byte & $mask[$bit]);
+        }
+    }
 }
