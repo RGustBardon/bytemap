@@ -367,18 +367,18 @@ class Bitmap extends Bytemap
             }
         }
     }
-    
+
     // `Countable`
     public function count(): int
     {
         return $this->bitCount;
     }
-    
+
     // `IteratorAggregate`
     public function getIterator(): \Traversable
     {
         static $mask = ["\x1", "\x2", "\x4", "\x8", "\x10", "\x20", "\x40", "\x80"];
-        
+
         $map = $this->map;
         for ($bitIndex = 0, $byteIndex = 0, $lastByteIndex = $this->elementCount - 1; $byteIndex < $lastByteIndex; ++$byteIndex) {
             $byte = $map[$byteIndex];
@@ -395,5 +395,11 @@ class Bitmap extends Bytemap
         for ($bit = 0, $byte = $map[$byteIndex], $bitCount = $this->bitCount; $bitIndex < $bitCount; ++$bitIndex, ++$bit) {
             yield $bitIndex => "\x0" !== ($byte & $mask[$bit]);
         }
+    }
+
+    // `JsonSerializable`
+    public function jsonSerialize(): array
+    {
+        return \iterator_to_array($this);
     }
 }
