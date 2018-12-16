@@ -402,4 +402,10 @@ class Bitmap extends Bytemap
     {
         return \iterator_to_array($this);
     }
+    
+    // `Serializable`
+    public function serialize(): string
+    {
+        return $this->map;
+    }
 }
