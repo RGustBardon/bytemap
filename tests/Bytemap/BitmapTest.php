@@ -30,14 +30,21 @@ use PHPUnit\Framework\TestCase;
 final class BitmapTest extends TestCase
 {
     use CountableTestTrait;
+    use IterableTestTrait;
     use MagicPropertiesTestTrait;
-    
+
     // `CountableTestTrait`
     public static function countableInstanceProvider(): \Generator
     {
         yield [new Bitmap(), [true, false]];
     }
-    
+
+    // `IterableTestTrait`
+    public static function iterableInstanceProvider(): \Generator
+    {
+        yield [new Bitmap(), [false, true, false]];
+    }
+
     // `MagicPropertiesTestTrait`
     public static function magicPropertiesInstanceProvider(): \Generator
     {
