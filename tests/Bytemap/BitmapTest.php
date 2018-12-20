@@ -19,13 +19,7 @@ use PHPUnit\Framework\TestCase;
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
  * @internal
- * @covers \Bytemap\AbstractBytemap
- * @covers \Bytemap\Benchmark\AbstractDsBytemap
- * @covers \Bytemap\Benchmark\ArrayBytemap
- * @covers \Bytemap\Benchmark\DsDequeBytemap
- * @covers \Bytemap\Benchmark\DsVectorBytemap
- * @covers \Bytemap\Benchmark\SplBytemap
- * @covers \Bytemap\Bytemap
+ * @covers \Bytemap\Bitmap
  */
 final class BitmapTest extends TestCase
 {
@@ -45,7 +39,7 @@ final class BitmapTest extends TestCase
     {
         yield [new Bitmap(), [false, true, false]];
     }
-    
+
     // `JsonSerializableTestTrait`
     public static function jsonSerializableInstanceProvider(): \Generator
     {

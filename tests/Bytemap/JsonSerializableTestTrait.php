@@ -22,6 +22,8 @@ trait JsonSerializableTestTrait
 {
     /**
      * @dataProvider jsonSerializableInstanceProvider
+     *
+     * @param mixed $defaultValue
      */
     public function testJsonSerializable(\JsonSerializable $jsonSerializable, $defaultValue, array $elements): void
     {
