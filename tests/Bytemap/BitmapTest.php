@@ -23,10 +23,22 @@ use PHPUnit\Framework\TestCase;
  */
 final class BitmapTest extends TestCase
 {
+    use ArrayAccessTestTrait;
     use CountableTestTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
+
+    // `ArrayAccessTestTrait`
+    public static function arrayAccessInstanceProvider(): \Generator
+    {
+        $elements = [false, true, false];
+        $bytemap = new Bitmap();
+        foreach ($elements as $element) {
+            $bytemap[] = $element;
+        }
+        yield [$bytemap, false, $elements];
+    }
 
     // `CountableTestTrait`
     public static function countableInstanceProvider(): \Generator

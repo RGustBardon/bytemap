@@ -17,6 +17,7 @@ use Bytemap\ArrayAccessTestTrait;
 use Bytemap\Bytemap;
 use Bytemap\BytemapInterface;
 use Bytemap\CountableTestTrait;
+use Bytemap\InvalidLengthTestTrait;
 use Bytemap\IterableTestTrait;
 use Bytemap\JsonSerializableTestTrait;
 use Bytemap\MagicPropertiesTestTrait;
@@ -32,6 +33,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 {
     use ArrayAccessTestTrait;
     use CountableTestTrait;
+    use InvalidLengthTestTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;

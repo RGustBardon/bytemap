@@ -33,7 +33,7 @@ final class MutationTest extends AbstractTestOfBytemap
     public static function invalidElementTypeProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $elements]) {
-            foreach (self::generateElementsOfInvalidType() as $invalidElement) {
+            foreach (self::generateElementsOfInvalidType($elements[0]) as $invalidElement) {
                 yield from self::generateInvalidElements($impl, $elements, $invalidElement);
             }
         }

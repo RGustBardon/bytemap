@@ -39,13 +39,18 @@ trait InvalidTypeGeneratorsTrait
         ];
     }
 
-    public static function generateElementsOfInvalidType(): \Generator
+    /**
+     * @param mixed $defaultValue
+     */
+    public static function generateElementsOfInvalidType($defaultValue): \Generator
     {
-        yield from [
+        $expectedType = \gettype($defaultValue);
+        foreach ([
             false, true,
             0, 1, 10, 42,
             0., 1., 10., 42.,
             [], [0], [1],
+            'hello, world!',
             new \stdClass(), new class() {
                 public function __toString(): string
                 {
@@ -55,6 +60,10 @@ trait InvalidTypeGeneratorsTrait
             \fopen('php://memory', 'rb'),
             function (): int { return 0; },
             function (): \Generator { yield 0; },
-        ];
+        ] as $value) {
+            if (\gettype($value) !== $expectedType) {
+                yield $value;
+            }
+        }
     }
 }

@@ -56,17 +56,8 @@ trait ArrayAccessTestTrait
     public static function invalidElementTypeProvider(): \Generator
     {
         foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
-            foreach (self::generateElementsOfInvalidType() as $invalidElement) {
+            foreach (self::generateElementsOfInvalidType($defaultValue) as $invalidElement) {
                 yield [$arrayAccessObject, $elements, $invalidElement];
-            }
-        }
-    }
-
-    public static function invalidLengthProvider(): \Generator
-    {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
-            foreach (self::generateElementsOfInvalidLength(\strlen($elements[0])) as $invalidElement) {
-                yield [$arrayAccessObject, $invalidElement];
             }
         }
     }
@@ -145,15 +136,6 @@ trait ArrayAccessTestTrait
     }
 
     /**
-     * @dataProvider invalidLengthProvider
-     * @expectedException \DomainException
-     */
-    public function testSetInvalidLength(\ArrayAccess $arrayAccessObject, string $invalidElement): void
-    {
-        $arrayAccessObject[] = $invalidElement;
-    }
-
-    /**
      * @dataProvider nullIndexProvider
      * @dataProvider invalidIndexTypeProvider
      * @doesNotPerformAssertions
@@ -177,8 +159,10 @@ trait ArrayAccessTestTrait
 
     /**
      * @dataProvider arrayAccessInstanceProvider
+     *
+     * @param mixed $defaultValue
      */
-    public function testArrayAccess(\ArrayAccess $arrayAccessObject, string $defaultValue, array $elements): void
+    public function testArrayAccess(\ArrayAccess $arrayAccessObject, $defaultValue, array $elements): void
     {
         $originalElementCount = \count($elements);
 
@@ -251,8 +235,10 @@ trait ArrayAccessTestTrait
      * @dataProvider arrayAccessInstanceProvider
      * @depends testArrayAccess
      * @expectedException \OutOfRangeException
+     *
+     * @param mixed $defaultValue
      */
-    public function testGetFromEmpty(\ArrayAccess $arrayAccessObject, string $defaultValue, array $elements): void
+    public function testGetFromEmpty(\ArrayAccess $arrayAccessObject, $defaultValue, array $elements): void
     {
         for ($i = \count($elements) - 1; $i >= 0; --$i) {
             unset($arrayAccessObject[$i]);
