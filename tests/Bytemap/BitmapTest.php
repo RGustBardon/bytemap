@@ -44,6 +44,12 @@ final class BitmapTest extends TestCase
     {
         yield [new Bitmap(), [false, true, false]];
     }
+    
+    // `JsonSerializableTestTrait`
+    public static function jsonSerializableInstanceProvider(): \Generator
+    {
+        yield [new Bitmap(), false, [false, true, false]];
+    }
 
     // `MagicPropertiesTestTrait`
     public static function magicPropertiesInstanceProvider(): \Generator
