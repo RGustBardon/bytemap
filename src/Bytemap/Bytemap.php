@@ -30,7 +30,7 @@ class Bytemap extends AbstractBytemap
     private $singleByte;
 
     // `ArrayAccess`
-    public function offsetGet($index): string
+    public function offsetGet($index) // : string
     {
         if (\is_int($index) && $index >= 0 && $index < $this->elementCount) {
             if ($this->singleByte) {

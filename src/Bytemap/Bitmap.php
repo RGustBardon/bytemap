@@ -34,7 +34,7 @@ class Bitmap extends Bytemap
         return \is_int($index) && $index >= 0 && $index < $this->bitCount;
     }
 
-    public function offsetGet($index): bool
+    public function offsetGet($index) // : bool
     {
         static $mask = ["\x1", "\x2", "\x4", "\x8", "\x10", "\x20", "\x40", "\x80"];
 
