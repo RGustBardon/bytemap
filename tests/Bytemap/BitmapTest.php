@@ -31,6 +31,7 @@ final class BitmapTest extends TestCase
 {
     use CountableTestTrait;
     use IterableTestTrait;
+    use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
 
     // `CountableTestTrait`

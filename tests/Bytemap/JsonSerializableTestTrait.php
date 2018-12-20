@@ -23,7 +23,7 @@ trait JsonSerializableTestTrait
     /**
      * @dataProvider jsonSerializableInstanceProvider
      */
-    public function testJsonSerializable(\JsonSerializable $jsonSerializable, string $defaultValue, array $elements): void
+    public function testJsonSerializable(\JsonSerializable $jsonSerializable, $defaultValue, array $elements): void
     {
         self::assertNativeJson([], $jsonSerializable);
 
