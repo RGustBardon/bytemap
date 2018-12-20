@@ -392,8 +392,10 @@ class Bitmap extends Bytemap
             yield $bitIndex++ => "\x0" !== ($byte & "\x80");
         }
 
-        for ($bit = 0, $byte = $map[$byteIndex], $bitCount = $this->bitCount; $bitIndex < $bitCount; ++$bitIndex, ++$bit) {
-            yield $bitIndex => "\x0" !== ($byte & $mask[$bit]);
+        if ($lastByteIndex >= 0) {
+            for ($bit = 0, $byte = $map[$lastByteIndex], $bitCount = $this->bitCount; $bitIndex < $bitCount; ++$bitIndex, ++$bit) {
+                yield $bitIndex => "\x0" !== ($byte & $mask[$bit]);
+            }
         }
     }
 
