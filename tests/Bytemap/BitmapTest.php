@@ -63,4 +63,33 @@ final class BitmapTest extends TestCase
     {
         yield [new Bitmap()];
     }
+
+    public function testMultibyteUnset(): void
+    {
+        $bitmap = new Bitmap();
+        $bitmap[30] = true;
+        $bitmap[32] = false;
+        unset($bitmap[29]);
+        self::assertFalse($bitmap[28]);
+        self::assertTrue($bitmap[29]);
+        self::assertFalse($bitmap[30]);
+        self::assertFalse($bitmap[31]);
+        self::assertFalse(isset($bitmap[32]));
+    }
+
+    public function testMultibyteIterator(): void
+    {
+        $bitmap = new Bitmap();
+        $bitmap[30] = true;
+        $bitmap[32] = false;
+        $values = [];
+        foreach ($bitmap as $key => $value) {
+            $values[$key] = $value;
+        }
+        self::assertFalse($values[29]);
+        self::assertTrue($values[30]);
+        self::assertFalse($values[31]);
+        self::assertFalse($values[32]);
+        self::assertFalse(isset($values[33]));
+    }
 }
