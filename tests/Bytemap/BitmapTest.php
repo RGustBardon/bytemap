@@ -64,6 +64,7 @@ final class BitmapTest extends TestCase
         yield [new Bitmap()];
     }
 
+    // `BitmapTest`
     public function testMultibyteUnset(): void
     {
         $bitmap = new Bitmap();

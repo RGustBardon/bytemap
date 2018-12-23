@@ -20,12 +20,14 @@ namespace Bytemap;
  */
 class Bitmap extends Bytemap
 {
+    protected const DEFAULT_BYTEMAP_VALUE = "\x0";
+
     /** @var int */
-    private $bitCount = 0;
+    protected $bitCount = 0;
 
     public function __construct()
     {
-        parent::__construct("\x0");
+        parent::__construct(self::DEFAULT_BYTEMAP_VALUE);
     }
 
     // `ArrayAccess`
@@ -408,6 +410,33 @@ class Bitmap extends Bytemap
     // `Serializable`
     public function serialize(): string
     {
-        return $this->map;
+        return \serialize([$this->bitCount, $this->map]);
+    }
+
+    protected function unserializeAndValidate(string $serialized): void
+    {
+        $errorMessage = 'details unavailable';
+        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage): void {
+            $errorMessage = $errstr;
+        });
+        $result = \unserialize($serialized, ['allowed_classes' => static::UNSERIALIZED_CLASSES]);
+        \restore_error_handler();
+
+        if (false === $result) {
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize ('.$errorMessage.')');
+        }
+        if (!\is_array($result) || !\in_array(\array_keys($result), [[0, 1], [1, 0]], true)) {
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize (expected an array of two elements)');
+        }
+
+        $this->defaultValue = self::DEFAULT_BYTEMAP_VALUE;
+        [$this->bitCount, $this->map] = $result;
+
+        if (!\is_int($this->bitCount)) {
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the number of bits must be an integer, '.\gettype($this->bitCount).' given)');
+        }
+        if ($this->bitCount < 0) {
+            throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (the number of bits must not be negative)');
+        }
     }
 }
