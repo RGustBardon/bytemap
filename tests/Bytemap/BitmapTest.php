@@ -28,6 +28,7 @@ final class BitmapTest extends TestCase
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
+    use SerializableTestTrait;
 
     // `ArrayAccessTestTrait`
     public static function arrayAccessInstanceProvider(): \Generator
@@ -62,6 +63,24 @@ final class BitmapTest extends TestCase
     public static function magicPropertiesInstanceProvider(): \Generator
     {
         yield [new Bitmap()];
+    }
+
+    // `SerializableTestTrait`
+    public static function invalidSerializedDataProvider(): \Generator
+    {
+        yield from [
+            // C:14:"Bytemap\Bitmap":26:{a:2:{i:0;i:7;i:1;s:1:"a";}}
+            ['C:14:"Bytemap\Bitmap":26:{a:3:{i:0;i:7;i:1;s:1:"a";}}', \UnexpectedValueException::class, 'error at offset'],
+            ['C:14:"Bytemap\Bitmap":14:{a:1:{i:0;i:7;}}', \UnexpectedValueException::class, 'expected an array of two elements'],
+            ['C:14:"Bytemap\Bitmap":30:{a:2:{i:0;s:1:"7";i:1;s:1:"a";}}', \TypeError::class, 'number of bits must be an integer'],
+            ['C:14:"Bytemap\Bitmap":27:{a:2:{i:0;i:-7;i:1;s:1:"a";}}', \DomainException::class, 'number of bits must not be negative'],
+            ['C:14:"Bytemap\Bitmap":38:{a:2:{i:0;i:7;i:1;a:1:{i:1;s:3:"bar";}}}', \TypeError::class, 'must be of type string'],
+        ];
+    }
+
+    public static function serializableInstanceProvider(): \Generator
+    {
+        yield from self::jsonSerializableInstanceProvider();
     }
 
     // `BitmapTest`

@@ -33,6 +33,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
+    use SerializableTestTrait;
 
     // `ArrayAccessTestTrait`
     public static function arrayAccessInstanceProvider(): \Generator
@@ -96,46 +97,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         }
     }
 
-    // `NativeFunctionalityTest`
-
-    /**
-     * @covers \Bytemap\AbstractBytemap
-     * @dataProvider implementationProvider
-     * @expectedException \DomainException
-     */
-    public function testConstructorEmptyString(string $impl): void
-    {
-        self::instantiate($impl, '');
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::__clone
-     * @covers \Bytemap\Benchmark\SplBytemap::__clone
-     * @dataProvider arrayAccessProvider
-     */
-    public function testCloning(string $impl, array $elements): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-        $bytemap[] = $elements[1];
-        $bytemap[] = $elements[2];
-        $bytemap[] = $elements[1];
-
-        $clone = clone $bytemap;
-        $size = \count($clone);
-        self::assertSame(\count($bytemap), $size);
-        for ($i = 0; $i < $size; ++$i) {
-            self::assertSame($bytemap[$i], $clone[$i]);
-        }
-
-        $bytemap[] = $elements[1];
-        self::assertCount($size, $clone);
-        self::assertCount($size + 1, $bytemap);
-        unset($bytemap[$size + 1]);
-
-        self::assertDefaultValue($elements[0], $clone, $elements[1]);
-        self::assertDefaultValue($elements[0], $bytemap, $elements[2]);
-    }
-
+    // `SerializableTestTrait`
     public static function invalidSerializedDataProvider(): \Generator
     {
         yield from [
@@ -246,42 +208,47 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
         }
     }
 
-    /**
-     * @covers \Bytemap\AbstractBytemap::unserialize
-     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
-     * @dataProvider invalidSerializedDataProvider
-     */
-    public function testUnserializeInvalidData(string $data, string $expectedThrowable, string $expectedMessage): void
+    public static function serializableInstanceProvider(): \Generator
     {
-        try {
-            \unserialize($data);
-        } catch (\Throwable $e) {
-            if (!($e instanceof $expectedThrowable)) {
-                $format = 'Failed asserting that a throwable of type %s is thrown as opposed to %s with message "%s"';
-                self::fail(\sprintf($format, $expectedThrowable, \get_class($e), $e->getMessage()));
-            }
-        }
-        self::assertTrue(isset($e), 'Nothing thrown although "\\'.$expectedThrowable.'" was expected.');
-        self::assertContains($expectedMessage, $e->getMessage(), '', true);
+        yield from self::jsonSerializableInstanceProvider();
+    }
+
+    // `NativeFunctionalityTest`
+    /**
+     * @covers \Bytemap\AbstractBytemap
+     * @dataProvider implementationProvider
+     * @expectedException \DomainException
+     */
+    public function testConstructorEmptyString(string $impl): void
+    {
+        self::instantiate($impl, '');
     }
 
     /**
-     * @covers \Bytemap\AbstractBytemap::serialize
-     * @covers \Bytemap\AbstractBytemap::unserialize
-     * @covers \Bytemap\Benchmark\SplBytemap::unserialize
+     * @covers \Bytemap\Benchmark\AbstractDsBytemap::__clone
+     * @covers \Bytemap\Benchmark\SplBytemap::__clone
      * @dataProvider arrayAccessProvider
      */
-    public function testSerializable(string $impl, array $elements): void
+    public function testCloning(string $impl, array $elements): void
     {
-        $sequence = [$elements[1], $elements[2], $elements[1], $elements[0], $elements[0]];
-
         $bytemap = self::instantiate($impl, $elements[0]);
-        self::pushElements($bytemap, ...$sequence);
+        $bytemap[] = $elements[1];
+        $bytemap[] = $elements[2];
+        $bytemap[] = $elements[1];
 
-        $copy = \unserialize(\serialize($bytemap), ['allowed_classes' => [$impl]]);
-        self::assertNotSame($bytemap, $copy);
-        self::assertSequence($sequence, $copy);
-        self::assertDefaultValue($elements[0], $copy, $elements[1]);
+        $clone = clone $bytemap;
+        $size = \count($clone);
+        self::assertSame(\count($bytemap), $size);
+        for ($i = 0; $i < $size; ++$i) {
+            self::assertSame($bytemap[$i], $clone[$i]);
+        }
+
+        $bytemap[] = $elements[1];
+        self::assertCount($size, $clone);
+        self::assertCount($size + 1, $bytemap);
+        unset($bytemap[$size + 1]);
+
+        self::assertDefaultValue($elements[0], $clone, $elements[1]);
         self::assertDefaultValue($elements[0], $bytemap, $elements[2]);
     }
 }
