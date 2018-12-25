@@ -28,6 +28,7 @@ namespace Bytemap;
 final class NativeFunctionalityTest extends AbstractTestOfBytemap
 {
     use ArrayAccessTestTrait;
+    use CloneableTestTrait;
     use CountableTestTrait;
     use InvalidLengthTestTrait;
     use IterableTestTrait;
@@ -51,6 +52,12 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 yield [$bytemap, $defaultValue, $elements];
             }
         }
+    }
+
+    // `CloneableTestTrait`
+    public static function cloneableInstanceProvider(): \Generator
+    {
+        yield from self::jsonSerializableInstanceProvider();
     }
 
     // `CountableTestTrait`
@@ -214,6 +221,7 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     // `NativeFunctionalityTest`
+
     /**
      * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider
@@ -222,33 +230,5 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     public function testConstructorEmptyString(string $impl): void
     {
         self::instantiate($impl, '');
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::__clone
-     * @covers \Bytemap\Benchmark\SplBytemap::__clone
-     * @dataProvider arrayAccessProvider
-     */
-    public function testCloning(string $impl, array $elements): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-        $bytemap[] = $elements[1];
-        $bytemap[] = $elements[2];
-        $bytemap[] = $elements[1];
-
-        $clone = clone $bytemap;
-        $size = \count($clone);
-        self::assertSame(\count($bytemap), $size);
-        for ($i = 0; $i < $size; ++$i) {
-            self::assertSame($bytemap[$i], $clone[$i]);
-        }
-
-        $bytemap[] = $elements[1];
-        self::assertCount($size, $clone);
-        self::assertCount($size + 1, $bytemap);
-        unset($bytemap[$size + 1]);
-
-        self::assertDefaultValue($elements[0], $clone, $elements[1]);
-        self::assertDefaultValue($elements[0], $bytemap, $elements[2]);
     }
 }

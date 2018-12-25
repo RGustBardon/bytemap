@@ -59,6 +59,7 @@ trait SerializableTestTrait
         $unserialized[4] = $elements[1];
         self::assertSame($defaultValue, $unserialized[3]);
         self::assertNotSame($serializable, $unserialized);
+        self::assertFalse(isset($serializable[3]));
     }
 
     abstract public static function invalidSerializedDataProvider(): \Generator;

@@ -24,6 +24,7 @@ use PHPUnit\Framework\TestCase;
 final class BitmapTest extends TestCase
 {
     use ArrayAccessTestTrait;
+    use CloneableTestTrait;
     use CountableTestTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
@@ -39,6 +40,12 @@ final class BitmapTest extends TestCase
             $bytemap[] = $element;
         }
         yield [$bytemap, false, $elements];
+    }
+
+    // `CloneableTestTrait`
+    public static function cloneableInstanceProvider(): \Generator
+    {
+        yield from self::jsonSerializableInstanceProvider();
     }
 
     // `CountableTestTrait`

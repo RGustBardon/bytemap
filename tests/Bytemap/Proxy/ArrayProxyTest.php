@@ -16,6 +16,7 @@ namespace Bytemap\Proxy;
 use Bytemap\ArrayAccessTestTrait;
 use Bytemap\Bytemap;
 use Bytemap\BytemapInterface;
+use Bytemap\CloneableTestTrait;
 use Bytemap\CountableTestTrait;
 use Bytemap\InvalidLengthTestTrait;
 use Bytemap\IterableTestTrait;
@@ -33,6 +34,7 @@ use Bytemap\SerializableTestTrait;
 final class ArrayProxyTest extends AbstractTestOfProxy
 {
     use ArrayAccessTestTrait;
+    use CloneableTestTrait;
     use CountableTestTrait;
     use InvalidLengthTestTrait;
     use IterableTestTrait;
@@ -64,6 +66,12 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
             yield [new ArrayProxy($defaultValue, ...$elements), $defaultValue, $elements];
         }
+    }
+
+    // `CloneableTestTrait`
+    public static function cloneableInstanceProvider(): \Generator
+    {
+        yield from self::jsonSerializableInstanceProvider();
     }
 
     // `CountableTestTrait`
