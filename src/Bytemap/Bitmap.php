@@ -428,27 +428,13 @@ class Bitmap extends Bytemap
         
         // Delete the elements.
         $firstIndex = \max(0, $firstIndex);
-        $maximumRange = $this->bitCount - $firstIndex;
-        
-        $firstFullByteIndex = ($firstIndex >> 3);
-        if (0 !== $firstIndex & 7) {
-            ++$firstFullByteIndex;
-        }
-        if ($howMany >= $maximumRange) {
-            $lastFullByteIndex = $this->elementCount - 2;
-        } else {
-            $lastFullByteIndex = (($firstIndex + $howMany) >> 3) - 1;
-        }
-        $howManyFullBytes = $lastFullByteIndex - $firstFullByteIndex + 1;
+        $firstFullByteIndex = ($firstIndex >> 3) + ((0 === $firstIndex & 7) ? 0 : 1);
+        $howManyFullBytes = \min($this->elementCount - 1, ($firstIndex + $howMany) >> 3) - $firstFullByteIndex;
         if ($howManyFullBytes > 0) {
-            $originalByteCount = $this->elementCount;
             parent::deleteWithNonNegativeIndex($firstFullByteIndex, $howManyFullBytes, $this->elementCount);
-            $removedBitCount = $howManyFullBytes << 3;
-            if ($originalByteCount - 1 === $lastFullByteIndex) {
-                $removedBitCount += ($this->bitCount & 7);
-            }
-            $this->bitCount -= $removedBitCount;
-            $howMany -= $removedBitCount;
+            $deletedBitCount = ($howManyFullBytes << 3);
+            $this->bitCount -= $deletedBitCount;
+            $howMany -= $deletedBitCount;
         }
         
         for ($i = $firstIndex + $howMany - 1; $i >= $firstIndex; --$i) {
