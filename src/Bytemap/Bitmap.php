@@ -435,7 +435,7 @@ class Bitmap extends Bytemap
             ++$firstFullByteIndex;
         }
         if ($howMany >= $maximumRange) {
-            $lastFullByteIndex = $this->elementCount - 1;
+            $lastFullByteIndex = $this->elementCount - 2;
         } else {
             $lastFullByteIndex = (($firstIndex + $howMany) >> 3) - 1;
         }
@@ -445,11 +445,10 @@ class Bitmap extends Bytemap
             parent::deleteWithNonNegativeIndex($firstFullByteIndex, $howManyFullBytes, $this->elementCount);
             $removedBitCount = $howManyFullBytes << 3;
             if ($originalByteCount - 1 === $lastFullByteIndex) {
-                $removedBitCount -= ($this->bitCount & 7) - 8;
+                $removedBitCount += ($this->bitCount & 7);
             }
             $this->bitCount -= $removedBitCount;
             $howMany -= $removedBitCount;
-            $maximumRange -= $removedBitCount;
         }
         
         for ($i = $firstIndex + $howMany - 1; $i >= $firstIndex; --$i) {
