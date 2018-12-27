@@ -206,7 +206,7 @@ abstract class AbstractBytemap implements BytemapInterface
         }
     }
 
-    final public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void
+    public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void
     {
         $elementCount = $this->elementCount;
 

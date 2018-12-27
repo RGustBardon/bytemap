@@ -350,13 +350,7 @@ class Bitmap extends Bytemap
         ];
 
         if (\is_int($index) && $index >= 0 && $index < $this->bitCount) {
-            $bitIndex = ($index & 7);
-
-            if (--$this->bitCount === $index && 0 === $bitIndex) {
-                --$this->bytesInTotal;
-                --$this->elementCount;
-                $this->map = \substr($this->map, 0, -1);
-            } else {
+            if (--$this->bitCount > $index) {
                 $carry = "\x0";
                 for ($i = $this->elementCount - 1, $byteIndex = ($index >> 3); $i > $byteIndex; --$i) {
                     $this->map[$i] = ($shiftOneRight[$byte = $this->map[$i]] | $carry);
@@ -365,7 +359,13 @@ class Bitmap extends Bytemap
 
                 // https://graphics.stanford.edu/~seander/bithacks.html#MaskedMerge
                 $byte = $this->map[$i];
-                $this->map[$i] = $byte ^ (($byte ^ ($shiftOneRight[$byte] | $carry)) & $mask[$bitIndex]);
+                $this->map[$i] = $byte ^ (($byte ^ ($shiftOneRight[$byte] | $carry)) & $mask[$index & 7]);
+            }
+            
+            if (0 === ($this->bitCount & 7)) {
+                --$this->bytesInTotal;
+                --$this->elementCount;
+                $this->map = \substr($this->map, 0, -1);
             }
         }
     }
@@ -414,6 +414,49 @@ class Bitmap extends Bytemap
     }
 
     // `BytemapInterface`
+    public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void
+    {
+        // Check if there is anything to delete.
+        if ($howMany < 1 || 0 === $this->bitCount) {
+            return;
+        }
+        
+        // Calculate the positive index corresponding to the negative one.
+        if ($firstIndex < 0) {
+            $firstIndex += $this->bitCount;
+        }
+        
+        // Delete the elements.
+        $firstIndex = \max(0, $firstIndex);
+        $maximumRange = $this->bitCount - $firstIndex;
+        
+        $firstFullByteIndex = ($firstIndex >> 3);
+        if (0 !== $firstIndex & 7) {
+            ++$firstFullByteIndex;
+        }
+        if ($howMany >= $maximumRange) {
+            $lastFullByteIndex = $this->elementCount - 1;
+        } else {
+            $lastFullByteIndex = (($firstIndex + $howMany) >> 3) - 1;
+        }
+        $howManyFullBytes = $lastFullByteIndex - $firstFullByteIndex + 1;
+        if ($howManyFullBytes > 0) {
+            $originalByteCount = $this->elementCount;
+            parent::deleteWithNonNegativeIndex($firstFullByteIndex, $howManyFullBytes, $this->elementCount);
+            $removedBitCount = $howManyFullBytes << 3;
+            if ($originalByteCount - 1 === $lastFullByteIndex) {
+                $removedBitCount -= ($this->bitCount & 7) - 8;
+            }
+            $this->bitCount -= $removedBitCount;
+            $howMany -= $removedBitCount;
+            $maximumRange -= $removedBitCount;
+        }
+        
+        for ($i = $firstIndex + $howMany - 1; $i >= $firstIndex; --$i) {
+            unset($this[$i]);
+        }
+    }
+    
     public function streamJson($stream): void
     {
         static $byteMapping = [
