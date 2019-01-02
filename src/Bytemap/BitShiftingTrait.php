@@ -40,6 +40,7 @@ trait BitShiftingTrait
             }
         }
         
+        $targetStartBitIndex = $firstIndex;
         $sourceStartBitIndex = $firstIndex + $howMany;
         
         $maskFromLeft = [];
@@ -68,48 +69,12 @@ trait BitShiftingTrait
             }
         }
         
-        $targetByteIndex = ($firstIndex >> 3);
         while ($sourceStartBitIndex < $this->bitCount) {
-            if (isset($targetBitMissingCount)) {
-                $targetBitMissingCount = 8;
-            } else {
-                $targetBitMissingCount = 8 - ($firstIndex & 7);
-            }
+            $targetByteBitIndex = ($targetStartBitIndex & 7);
+            $targetByteMissingCount = 8 - $targetByteBitIndex;
             
-            $sourceFirstByteIndex = ($sourceStartBitIndex >> 3);
-            $sourceSecondByteIndex = $sourceFirstByteIndex + 1;
-            
-            
-            $sourceFirstByte = $this->map[$sourceFirstByteIndex] ?? "\x0";
-            $sourceSecondByte = $this->map[$sourceSecondByteIndex] ?? "\x0";
-            
-            $extractThisManyBitsFromFirstStartingRight = 8 - ($sourceStartBitIndex & 7);
-            $shiftLeftFirstBy = $targetBitMissingCount - $extractThisManyBitsFromFirstStartingRight;
-            
-            $extractThisManyBitsFromSecondStartingLeft = $targetBitMissingCount - $extractThisManyBitsFromFirstStartingRight;
-            $shiftRightSecondBy = 8 - $extractThisManyBitsFromSecondStartingLeft;
-            
-            $sourceFirstByte = ($sourceFirstByte & $maskFromLeft[$extractThisManyBitsFromFirstStartingRight]);
-            if ($shiftLeftFirstBy > 0) {
-                $sourceFirstByte = $lookupTableShiftRight[$shiftLeftFirstBy][$sourceFirstByte];
-            } elseif ($shiftLeftFirstBy < 0) {
-                $sourceFirstByte = $lookupTableShiftLeft[-$shiftLeftFirstBy][$sourceFirstByte];
-            }
-            
-            $sourceSecondByte = ($sourceSecondByte & $maskFromRight[$extractThisManyBitsFromSecondStartingLeft]);
-            if ($shiftRightSecondBy > 0) {
-                $sourceSecondByte = $lookupTableShiftLeft[$shiftRightSecondBy][$sourceSecondByte];
-            } elseif ($shiftRightSecondBy < 0) {
-                $sourceSecondByte = $lookupTableShiftRight[-$shiftRightSecondBy][$sourceSecondByte];
-            }
-            
-            $this->map[$targetByteIndex] = ($this->map[$targetByteIndex] & $maskFromRight[8 - $targetBitMissingCount]);
-            $this->map[$targetByteIndex] = ($this->map[$targetByteIndex] | $sourceFirstByte);
-            $this->map[$targetByteIndex] = ($this->map[$targetByteIndex] | $sourceSecondByte);
-
-            ++$targetByteIndex;
-            
-            $sourceStartBitIndex += $targetBitMissingCount;
+            $targetByteNewBits = "\x0";
+            break;
         }
         
         $this->bitCount -= \min($howMany, $this->bitCount - $firstIndex);
