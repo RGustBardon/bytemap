@@ -361,7 +361,7 @@ class Bitmap extends Bytemap
                 $byte = $this->map[$i];
                 $this->map[$i] = $byte ^ (($byte ^ ($shiftOneRight[$byte] | $carry)) & $mask[$index & 7]);
             }
-            
+
             if (0 === ($this->bitCount & 7)) {
                 --$this->bytesInTotal;
                 --$this->elementCount;
@@ -420,12 +420,12 @@ class Bitmap extends Bytemap
         if ($howMany < 1 || 0 === $this->bitCount) {
             return;
         }
-        
+
         // Calculate the positive index corresponding to the negative one.
         if ($firstIndex < 0) {
             $firstIndex += $this->bitCount;
         }
-        
+
         // Delete the elements.
         $firstIndex = \max(0, $firstIndex);
         $firstFullByteIndex = ($firstIndex >> 3) + ((0 === $firstIndex & 7) ? 0 : 1);
@@ -436,12 +436,12 @@ class Bitmap extends Bytemap
             $this->bitCount -= $deletedBitCount;
             $howMany -= $deletedBitCount;
         }
-        
+
         for ($i = $firstIndex + $howMany - 1; $i >= $firstIndex; --$i) {
             unset($this[$i]);
         }
     }
-    
+
     public function streamJson($stream): void
     {
         static $byteMapping = [
