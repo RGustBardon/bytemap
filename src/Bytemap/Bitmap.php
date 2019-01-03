@@ -437,9 +437,69 @@ class Bitmap extends Bytemap
             $howMany -= $deletedBitCount;
         }
 
-        for ($i = $firstIndex + $howMany - 1; $i >= $firstIndex; --$i) {
-            unset($this[$i]);
+        if (0 === $firstIndex & 7) {
+            if ($firstIndex + $howMany >= $this->bitCount) {
+                $this->map = \substr($this->map, 0, $firstIndex >> 3);
+                $this->bitCount = $firstIndex;
+                $this->elementCount = $firstIndex >> 3;
+                $this->bytesInTotal = $this->elementCount;
+
+                return;
+            }
+            if (0 === $howMany & 7) {
+                $originalByteCount = \strlen($this->map);
+                $this->map = \substr_replace($this->map, '', $firstIndex >> 3, $howMany >> 3);
+                $byteCountDifference = $originalByteCount - \strlen($this->map);
+                $this->bitCount -= $byteCountDifference << 3;
+                $this->elementCount -= $byteCountDifference;
+                $this->bytesInTotal -= $byteCountDifference;
+
+                return;
+            }
         }
+
+        $lastByteIndex = $this->elementCount - 1;
+        $bitCount = $this->bitCount;
+        $map = $this->map;
+
+        $targetHeadBitAbsoluteIndex = $firstIndex;
+        $sourceHeadBitAbsoluteIndex = $firstIndex + $howMany;
+
+        while ($sourceHeadBitAbsoluteIndex < $bitCount) {
+            $targetHeadBitRelativeBitIndex = $targetHeadBitAbsoluteIndex & 7;
+            $targetByteMissingBitCount = 8 - $targetHeadBitRelativeBitIndex;
+
+            $sourceHeadByteIndex = $sourceHeadBitAbsoluteIndex >> 3;
+            $sourceAssembledByte = \ord($map[$sourceHeadByteIndex]);
+
+            $sourceHeadShift = $sourceHeadBitAbsoluteIndex & 7;
+            if ($sourceHeadShift > 0) {
+                $sourceAssembledByte >>= $sourceHeadShift;
+                $sourceAssembledBitCount = 8 - $sourceHeadShift;
+                if ($sourceAssembledBitCount < $targetByteMissingBitCount && $sourceHeadByteIndex < $lastByteIndex) {
+                    $sourceAssembledByte |= (
+                            \ord($map[$sourceHeadByteIndex + 1])
+                            & 0xff >> (8 - $targetByteMissingBitCount + $sourceAssembledBitCount)
+                        ) << $sourceAssembledBitCount;
+                }
+            }
+
+            $targetHeadByteIndex = $targetHeadBitAbsoluteIndex >> 3;
+            if ($targetHeadBitRelativeBitIndex > 0) {
+                $sourceAssembledByte =
+                    \ord($map[$targetHeadByteIndex])
+                    & 0xff >> $targetByteMissingBitCount
+                    | $sourceAssembledByte << $targetHeadBitRelativeBitIndex;
+            }
+            $map[$targetHeadByteIndex] = \chr($sourceAssembledByte);
+
+            $targetHeadBitAbsoluteIndex += $targetByteMissingBitCount;
+            $sourceHeadBitAbsoluteIndex += $targetByteMissingBitCount;
+        }
+
+        $this->bitCount -= \min($howMany, $bitCount - $firstIndex);
+        $this->map = \substr_replace($map, '', ($this->bitCount >> 3) + 1, \PHP_INT_MAX);
+        $this->deriveProperties();
     }
 
     public function streamJson($stream): void
