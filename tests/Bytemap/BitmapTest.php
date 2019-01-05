@@ -31,6 +31,14 @@ final class BitmapTest extends TestCase
     use MagicPropertiesTestTrait;
     use SerializableTestTrait;
 
+    private const BINARY_DUMP_STATUS_DEFAULT = ' ';
+    private const BINARY_DUMP_STATUS_MARKED = 'X';
+    private const BINARY_DUMP_SEPARATOR_BYTE = '|';
+    private const BINARY_DUMP_SEPARATOR_NIBBLE = ' ';
+    private const BINARY_DUMP_TERMINATOR = '#';
+    private const BINARY_DUMP_VALUE_FALSE = '0';
+    private const BINARY_DUMP_VALUE_TRUE = '1';
+
     // `ArrayAccessTestTrait`
     public static function arrayAccessInstanceProvider(): \Generator
     {
@@ -118,5 +126,72 @@ final class BitmapTest extends TestCase
         self::assertFalse($values[31]);
         self::assertFalse($values[32]);
         self::assertFalse(isset($values[33]));
+    }
+
+    public function testDeletionRandomly(): void
+    {
+        \mt_srand(0);
+        for ($i = 0; $i < 10000; ++$i) {
+            $elementCount = \mt_rand(0, 100);
+            $firstIndex = \mt_rand(0, $elementCount);
+            $howMany = \mt_rand(0, $elementCount - $firstIndex + 10);
+
+            $bitmap = new Bitmap();
+            $input = '';
+            for ($index = 0; $index < $elementCount; ++$index) {
+                $bit = 1 === \mt_rand(0, 1);
+                $bitmap[$index] = $bit;
+                $input .= $bit ? self::BINARY_DUMP_VALUE_TRUE : self::BINARY_DUMP_VALUE_FALSE;
+            }
+
+            $toBeDeleted = '';
+            for ($index = 0; $index < $elementCount; ++$index) {
+                $toBeDeleted .= ($index >= $firstIndex && $index < $firstIndex + $howMany) ? self::BINARY_DUMP_STATUS_MARKED : self::BINARY_DUMP_STATUS_DEFAULT;
+            }
+
+            $expected = \substr_replace($input, '', $firstIndex, $howMany);
+
+            $bitmap->delete($firstIndex, $howMany);
+
+            $actual = '';
+            foreach ($bitmap as $value) {
+                $actual .= $value ? self::BINARY_DUMP_VALUE_TRUE : self::BINARY_DUMP_VALUE_FALSE;
+            }
+
+            $format = <<<'NOWDOC'
+First index:   %d
+How many:      %d
+Input:         %s
+To be deleted: %s
+Expected:      %s
+Actual:        %s
+NOWDOC;
+            $message = \sprintf(
+                $format,
+                $firstIndex,
+                $howMany,
+                self::formatBinary($input),
+                self::formatBinary($toBeDeleted),
+                self::formatBinary($expected),
+                self::formatBinary($actual)
+            );
+
+            self::assertSame($expected, $actual, $message);
+        }
+    }
+
+    private static function formatBinary(string $binary): string
+    {
+        $formattedBinary = '';
+        $lastIndex = \intdiv(\strlen($binary), 4);
+        foreach (\str_split($binary, 4) as $index => $chunk) {
+            $formattedBinary .= $chunk;
+            if ($index < $lastIndex) {
+                $formattedBinary .= (($index & 1) ? self::BINARY_DUMP_SEPARATOR_NIBBLE : self::BINARY_DUMP_SEPARATOR_BYTE);
+            }
+        }
+        $formattedBinary .= self::BINARY_DUMP_TERMINATOR;
+
+        return $formattedBinary;
     }
 }
