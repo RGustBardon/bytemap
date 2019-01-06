@@ -414,6 +414,11 @@ class Bitmap extends Bytemap
     }
 
     // `BytemapInterface`
+    public function insert(iterable $elements, int $firstIndex = -1): void
+    {
+        // TODO(user): Implement the method.
+    }
+
     public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void
     {
         // Check if there is anything to delete.

@@ -128,6 +128,46 @@ final class BitmapTest extends TestCase
         self::assertFalse(isset($values[33]));
     }
 
+    public function testInsertionRandomly(): void
+    {
+        \mt_srand(0);
+        for ($i = 0; $i < 10000; ++$i) {
+            $elementCount = \mt_rand(0, 100);
+            $firstIndex = \mt_rand(0, $elementCount);
+            $howMany = \mt_rand(0, $elementCount - $firstIndex + 10);
+
+            $firstIndexStringified = \str_repeat(self::BINARY_DUMP_STATUS_DEFAULT, $elementCount);
+            $firstIndexStringified[$firstIndex] = self::BINARY_DUMP_STATUS_MARKED;
+
+            $bitmap = self::createRandomBitmap($elementCount);
+            $input = self::stringify($bitmap);
+
+            $toBeInserted = [];
+            for ($index = 0; $index < $howMany; ++$index) {
+                $toBeInserted[] = 1 === \mt_rand(0, 1);
+            }
+            $toBeInsertedStringified = self::stringify($toBeInserted);
+
+            $format = <<<'NOWDOC'
+First index:    %d
+                %s
+Input:          %s
+To be inserted: %s
+
+NOWDOC;
+            $message = \sprintf(
+                $format,
+                $firstIndex,
+                self::formatBinary($firstIndexStringified),
+                self::formatBinary($input),
+                self::formatBinary($toBeInsertedStringified)
+            );
+            $expected = \substr_replace($input, $toBeInsertedStringified, $firstIndex, 0);
+            $bitmap->insert($toBeInserted, $firstIndex);
+            self::assertBinary($expected, $bitmap, $message);
+        }
+    }
+
     public function testDeletionRandomly(): void
     {
         \mt_srand(0);
@@ -136,48 +176,52 @@ final class BitmapTest extends TestCase
             $firstIndex = \mt_rand(0, $elementCount);
             $howMany = \mt_rand(0, $elementCount - $firstIndex + 10);
 
-            $bitmap = new Bitmap();
-            $input = '';
-            for ($index = 0; $index < $elementCount; ++$index) {
-                $bit = 1 === \mt_rand(0, 1);
-                $bitmap[$index] = $bit;
-                $input .= $bit ? self::BINARY_DUMP_VALUE_TRUE : self::BINARY_DUMP_VALUE_FALSE;
-            }
+            $bitmap = self::createRandomBitmap($elementCount);
+            $input = self::stringify($bitmap);
 
             $toBeDeleted = '';
             for ($index = 0; $index < $elementCount; ++$index) {
                 $toBeDeleted .= ($index >= $firstIndex && $index < $firstIndex + $howMany) ? self::BINARY_DUMP_STATUS_MARKED : self::BINARY_DUMP_STATUS_DEFAULT;
             }
 
-            $expected = \substr_replace($input, '', $firstIndex, $howMany);
-
-            $bitmap->delete($firstIndex, $howMany);
-
-            $actual = '';
-            foreach ($bitmap as $value) {
-                $actual .= $value ? self::BINARY_DUMP_VALUE_TRUE : self::BINARY_DUMP_VALUE_FALSE;
-            }
-
             $format = <<<'NOWDOC'
-First index:   %d
-How many:      %d
-Input:         %s
-To be deleted: %s
-Expected:      %s
-Actual:        %s
+First index:    %d
+How many:       %d
+Input:          %s
+To be deleted:  %s
+
 NOWDOC;
             $message = \sprintf(
                 $format,
                 $firstIndex,
                 $howMany,
                 self::formatBinary($input),
-                self::formatBinary($toBeDeleted),
-                self::formatBinary($expected),
-                self::formatBinary($actual)
+                self::formatBinary($toBeDeleted)
             );
-
-            self::assertSame($expected, $actual, $message);
+            $expected = \substr_replace($input, '', $firstIndex, $howMany);
+            $bitmap->delete($firstIndex, $howMany);
+            self::assertBinary($expected, $bitmap, $message);
         }
+    }
+
+    private static function createRandomBitmap(int $elementCount): BytemapInterface
+    {
+        $bitmap = new Bitmap();
+        for ($index = 0; $index < $elementCount; ++$index) {
+            $bitmap[$index] = 1 === \mt_rand(0, 1);
+        }
+
+        return $bitmap;
+    }
+
+    private static function stringify(iterable $iterable): string
+    {
+        $result = '';
+        foreach ($iterable as $value) {
+            $result .= $value ? self::BINARY_DUMP_VALUE_TRUE : self::BINARY_DUMP_VALUE_FALSE;
+        }
+
+        return $result;
     }
 
     private static function formatBinary(string $binary): string
@@ -193,5 +237,16 @@ NOWDOC;
         $formattedBinary .= self::BINARY_DUMP_TERMINATOR;
 
         return $formattedBinary;
+    }
+
+    private static function assertBinary(string $expected, BytemapInterface $bitmap, string $message): void
+    {
+        $actual = self::stringify($bitmap);
+        $format = <<<'NOWDOC'
+Expected:       %s
+Actual:         %s
+NOWDOC;
+        $message .= \sprintf($format, self::formatBinary($expected), self::formatBinary($actual));
+        self::assertSame($expected, $actual, $message);
     }
 }
