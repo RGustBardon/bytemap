@@ -128,6 +128,9 @@ final class BitmapTest extends TestCase
         self::assertFalse(isset($values[33]));
     }
 
+    /**
+     * @coversNothing
+     */
     public function testInsertionRandomly(): void
     {
         \mt_srand(0);
@@ -168,6 +171,9 @@ NOWDOC;
         }
     }
 
+    /**
+     * @coversNothing
+     */
     public function testDeletionRandomly(): void
     {
         \mt_srand(0);

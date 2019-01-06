@@ -38,7 +38,7 @@ jobs:
         -
             <<: *STANDARD_TEST_JOB
             stage: Test
-            php: 7.2
+            php: 7.3
             script:
                 - phpdbg -qrr vendor/bin/phpunit --coverage-clover build/logs/clover.xml || travis_terminate 1
                 - php vendor/bin/php-coveralls -v
