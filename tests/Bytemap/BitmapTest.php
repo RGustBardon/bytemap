@@ -127,97 +127,92 @@ final class BitmapTest extends TestCase
         self::assertFalse($values[32]);
         self::assertFalse(isset($values[33]));
     }
-
-    /**
-     * @coversNothing
-     */
-    public function testInsertionRandomly(): void
+    
+    public static function randomizedBitmapProvider(): \Generator
     {
         \mt_srand(0);
         for ($i = 0; $i < 10000; ++$i) {
             $elementCount = \mt_rand(0, 100);
-            $firstIndex = \mt_rand(0, $elementCount);
-            $howMany = \mt_rand(0, $elementCount - $firstIndex + 10);
-
-            $firstIndexStringified = \str_repeat(self::BINARY_DUMP_STATUS_DEFAULT, $elementCount);
-            $firstIndexStringified[$firstIndex] = self::BINARY_DUMP_STATUS_MARKED;
-
-            $bitmap = self::createRandomBitmap($elementCount);
-            $input = self::stringify($bitmap);
-
-            $toBeInserted = [];
-            for ($index = 0; $index < $howMany; ++$index) {
-                $toBeInserted[] = 1 === \mt_rand(0, 1);
+            $bitmap = new Bitmap();
+            for ($index = 0; $index < $elementCount; ++$index) {
+                $bitmap[$index] = 1 === \mt_rand(0, 1);
             }
-            $toBeInsertedStringified = self::stringify($toBeInserted);
+            yield [$bitmap];
+        }
+    }
 
-            $format = <<<'NOWDOC'
+    /**
+     * @dataProvider randomizedBitmapProvider
+     */
+    public function futureTestInsertionRandomly(BytemapInterface $bitmap): void
+    {
+        $elementCount = \count($bitmap);
+        $firstIndex = \mt_rand(0, $elementCount);
+        $howMany = \mt_rand(0, $elementCount - $firstIndex + 10);
+
+        $firstIndexStringified = \str_repeat(self::BINARY_DUMP_STATUS_DEFAULT, $elementCount);
+        $firstIndexStringified[$firstIndex] = self::BINARY_DUMP_STATUS_MARKED;
+
+        $input = self::stringify($bitmap);
+
+        $toBeInserted = [];
+        for ($index = 0; $index < $howMany; ++$index) {
+            $toBeInserted[] = 1 === \mt_rand(0, 1);
+        }
+        $toBeInsertedStringified = self::stringify($toBeInserted);
+
+        $format = <<<'NOWDOC'
 First index:    %d
                 %s
 Input:          %s
 To be inserted: %s
 
 NOWDOC;
-            $message = \sprintf(
-                $format,
-                $firstIndex,
-                self::formatBinary($firstIndexStringified),
-                self::formatBinary($input),
-                self::formatBinary($toBeInsertedStringified)
-            );
-            $expected = \substr_replace($input, $toBeInsertedStringified, $firstIndex, 0);
-            $bitmap->insert($toBeInserted, $firstIndex);
-            self::assertBinary($expected, $bitmap, $message);
-        }
+        $message = \sprintf(
+            $format,
+            $firstIndex,
+            self::formatBinary($firstIndexStringified),
+            self::formatBinary($input),
+            self::formatBinary($toBeInsertedStringified)
+        );
+        $expected = \substr_replace($input, $toBeInsertedStringified, $firstIndex, 0);
+        $bitmap->insert($toBeInserted, $firstIndex);
+        self::assertBinary($expected, $bitmap, $message);
     }
 
     /**
-     * @coversNothing
+     * @dataProvider randomizedBitmapProvider
      */
-    public function testDeletionRandomly(): void
+    public function testDeletionRandomly(BytemapInterface $bitmap): void
     {
-        \mt_srand(0);
-        for ($i = 0; $i < 10000; ++$i) {
-            $elementCount = \mt_rand(0, 100);
-            $firstIndex = \mt_rand(0, $elementCount);
-            $howMany = \mt_rand(0, $elementCount - $firstIndex + 10);
+        $elementCount = \count($bitmap);
+        $firstIndex = \mt_rand(0, $elementCount);
+        $howMany = \mt_rand(0, $elementCount - $firstIndex + 10);
 
-            $bitmap = self::createRandomBitmap($elementCount);
-            $input = self::stringify($bitmap);
+        $input = self::stringify($bitmap);
 
-            $toBeDeleted = '';
-            for ($index = 0; $index < $elementCount; ++$index) {
-                $toBeDeleted .= ($index >= $firstIndex && $index < $firstIndex + $howMany) ? self::BINARY_DUMP_STATUS_MARKED : self::BINARY_DUMP_STATUS_DEFAULT;
-            }
+        $toBeDeleted = '';
+        for ($index = 0; $index < $elementCount; ++$index) {
+            $toBeDeleted .= ($index >= $firstIndex && $index < $firstIndex + $howMany) ? self::BINARY_DUMP_STATUS_MARKED : self::BINARY_DUMP_STATUS_DEFAULT;
+        }
 
-            $format = <<<'NOWDOC'
+        $format = <<<'NOWDOC'
 First index:    %d
 How many:       %d
 Input:          %s
 To be deleted:  %s
 
 NOWDOC;
-            $message = \sprintf(
-                $format,
-                $firstIndex,
-                $howMany,
-                self::formatBinary($input),
-                self::formatBinary($toBeDeleted)
-            );
-            $expected = \substr_replace($input, '', $firstIndex, $howMany);
-            $bitmap->delete($firstIndex, $howMany);
-            self::assertBinary($expected, $bitmap, $message);
-        }
-    }
-
-    private static function createRandomBitmap(int $elementCount): BytemapInterface
-    {
-        $bitmap = new Bitmap();
-        for ($index = 0; $index < $elementCount; ++$index) {
-            $bitmap[$index] = 1 === \mt_rand(0, 1);
-        }
-
-        return $bitmap;
+        $message = \sprintf(
+            $format,
+            $firstIndex,
+            $howMany,
+            self::formatBinary($input),
+            self::formatBinary($toBeDeleted)
+        );
+        $expected = \substr_replace($input, '', $firstIndex, $howMany);
+        $bitmap->delete($firstIndex, $howMany);
+        self::assertBinary($expected, $bitmap, $message);
     }
 
     private static function stringify(iterable $iterable): string
