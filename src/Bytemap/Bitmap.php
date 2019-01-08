@@ -416,7 +416,53 @@ class Bitmap extends Bytemap
     // `BytemapInterface`
     public function insert(iterable $elements, int $firstIndex = -1): void
     {
-        // TODO(user): Implement the method.
+        $substringToInsert = '';
+        $howManyBitsToInsert = 0;
+        $byte = "\x0";
+        foreach ($elements as $element) {
+            if (true === $element) {
+                $byte = ($byte | (1 << $howManyBitsToInsert));
+            } elseif (false !== $element) {
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be a Boolean, '.\gettype($element).' given');
+            }
+            ++$howManyBitsToInsert;
+            if (0 === ($howManyBitsToInsert & 7)) {
+                $substringToInsert .= $byte;
+                $byte = "\x0";
+            }
+        }
+        $substringToInsert .= $byte;
+        
+        if (-1 === $firstIndex || $firstIndex > $this->bitCount - 1) {
+            // Insert the elements.
+            $originalBitCount = $this->bitCount;
+            $lastByteIndex = $this->elementCount - 1;
+            $tailRelativeBitIndex = ($this->bitCount & 7);
+            $gapInBits = \max(0, $firstIndex - $this->bitCount);
+            $gapInBytes = ($gapInBits >> 3) + (0 === ($gapInBits & 7) ? 0 : 1);
+            
+            $this->map .= \str_repeat("\x0", $gapInBytes);
+            $this->bitCount = ($lastByteIndex << 3) + $gapInBits;
+            $this->deriveProperties();
+            
+            if ($tailRelativeBitIndex > 0) {
+                $this->delete($originalBitCount, 8 - $tailRelativeBitIndex);
+            }
+            
+            $originalBitCount = $this->bitCount;
+            $lastByteIndex = $this->elementCount - 1;
+            $tailRelativeBitIndex = ($this->bitCount & 7);
+            
+            $this->map .= $substringToInsert;
+            $this->bitCount = ($lastByteIndex << 3) + $howManyBitsToInsert;
+            $this->deriveProperties();
+            
+            if ($tailRelativeBitIndex > 0) {
+                $this->delete($originalBitCount, 8 - $tailRelativeBitIndex);
+            }
+        } else {
+            // TODO(user): Implement the other case.
+        }
     }
 
     public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void
