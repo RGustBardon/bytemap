@@ -448,6 +448,7 @@ class Bitmap extends Bytemap
             }
             
             if ($howManyBitsToInsert > 0) {
+                $bitCountAfterFillingTheGap = $this->bitCount;
                 $tailRelativeBitIndex = ($this->bitCount & 7);
                 
                 $this->map .= $substringToInsert;
@@ -455,11 +456,10 @@ class Bitmap extends Bytemap
                 $this->bitCount = ($this->elementCount << 3);
                 
                 if ($tailRelativeBitIndex > 0) {
-                    $this->delete($originalBitCount, 8 - $tailRelativeBitIndex);
+                    $this->delete($bitCountAfterFillingTheGap - 1, 8 - $tailRelativeBitIndex);
                 }
                 
                 $this->delete($originalBitCount + $gapInBits + $howManyBitsToInsert); 
-                var_dump($this->bitCount);
             }
         } else {
             // TODO(user): Implement the other case.
