@@ -418,7 +418,7 @@ class Bitmap extends Bytemap
     {
         $substringToInsert = '';
         $howManyBitsToInsert = 0;
-        $byte = "\x0";
+        $byte = 0;
         foreach ($elements as $element) {
             if (true === $element) {
                 $byte = ($byte | (1 << $howManyBitsToInsert));
@@ -427,38 +427,39 @@ class Bitmap extends Bytemap
             }
             ++$howManyBitsToInsert;
             if (0 === ($howManyBitsToInsert & 7)) {
-                $substringToInsert .= $byte;
-                $byte = "\x0";
+                $substringToInsert .= \chr($byte);
+                $byte = 0;
             }
         }
-        $substringToInsert .= $byte;
+        $substringToInsert .= \chr($byte);
         
         if (-1 === $firstIndex || $firstIndex > $this->bitCount - 1) {
             // Insert the elements.
             $originalBitCount = $this->bitCount;
-            $lastByteIndex = $this->elementCount - 1;
             $tailRelativeBitIndex = ($this->bitCount & 7);
             $gapInBits = \max(0, $firstIndex - $this->bitCount);
             $gapInBytes = ($gapInBits >> 3) + (0 === ($gapInBits & 7) ? 0 : 1);
             
-            $this->map .= \str_repeat("\x0", $gapInBytes);
-            $this->bitCount = ($lastByteIndex << 3) + $gapInBits;
-            $this->deriveProperties();
-            
-            if ($tailRelativeBitIndex > 0) {
-                $this->delete($originalBitCount, 8 - $tailRelativeBitIndex);
+            if ($gapInBytes > 0) {
+                $this->map .= \str_repeat("\x0", $gapInBytes);
+                $this->deriveProperties();
+                $this->bitCount = ($this->elementCount << 3);
+                $this->delete($originalBitCount - 1 + $gapInBits);
             }
             
-            $originalBitCount = $this->bitCount;
-            $lastByteIndex = $this->elementCount - 1;
-            $tailRelativeBitIndex = ($this->bitCount & 7);
-            
-            $this->map .= $substringToInsert;
-            $this->bitCount = ($lastByteIndex << 3) + $howManyBitsToInsert;
-            $this->deriveProperties();
-            
-            if ($tailRelativeBitIndex > 0) {
-                $this->delete($originalBitCount, 8 - $tailRelativeBitIndex);
+            if ($howManyBitsToInsert > 0) {
+                $tailRelativeBitIndex = ($this->bitCount & 7);
+                
+                $this->map .= $substringToInsert;
+                $this->deriveProperties();
+                $this->bitCount = ($this->elementCount << 3);
+                
+                if ($tailRelativeBitIndex > 0) {
+                    $this->delete($originalBitCount, 8 - $tailRelativeBitIndex);
+                }
+                
+                $this->delete($originalBitCount + $gapInBits + $howManyBitsToInsert); 
+                var_dump($this->bitCount);
             }
         } else {
             // TODO(user): Implement the other case.
@@ -475,6 +476,10 @@ class Bitmap extends Bytemap
         // Calculate the positive index corresponding to the negative one.
         if ($firstIndex < 0) {
             $firstIndex += $this->bitCount;
+        }
+        
+        if ($firstIndex >= $this->bitCount) {
+            return;
         }
 
         // Delete the elements.
