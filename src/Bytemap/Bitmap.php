@@ -462,7 +462,18 @@ class Bitmap extends Bytemap
                 $this->delete($originalBitCount + $gapInBits + $howManyBitsToInsert); 
             }
         } else {
-            // TODO(user): Implement the other case.
+            $originalFirstIndex = $firstIndex;
+            // Calculate the positive index corresponding to the negative one.
+            if ($firstIndex < 0) {
+                $firstIndex += $this->bitCount;
+                
+                // Keep the indices within the bounds.
+                if ($firstIndex < 0) {
+                    $firstIndex = 0;
+                }
+            }
+            
+            // TODO(user): Implement prepending and splicing.
         }
     }
 
