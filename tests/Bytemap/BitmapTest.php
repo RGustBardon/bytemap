@@ -60,17 +60,6 @@ final class BitmapTest extends AbstractTestOfBytemap
     {
         yield [new Bitmap(), [true, false]];
     }
-    
-    // `DeletionTestTrait`
-    protected static function deletionInstanceProvider(): \Generator
-    {
-        yield from [
-            [new Bitmap(), [false, true, false, true, false, true]],
-            [new Bitmap(), [false, false, true, false, true, false]],
-            [new Bitmap(), [false, false, false, true, true, true]],
-            [new Bitmap(), [false, true, true, true, false, false]],
-        ];
-    }
 
     // `IterableTestTrait`
     public static function iterableInstanceProvider(): \Generator
@@ -137,7 +126,7 @@ final class BitmapTest extends AbstractTestOfBytemap
         self::assertFalse($values[32]);
         self::assertFalse(isset($values[33]));
     }
-    
+
     public static function randomizedBitmapProvider(): \Generator
     {
         \mt_srand(0);
@@ -225,6 +214,17 @@ NOWDOC;
         self::assertBinary($expected, $bitmap, $message);
     }
 
+    // `DeletionTestTrait`
+    protected static function deletionInstanceProvider(): \Generator
+    {
+        yield from [
+            [new Bitmap(), [false, true, false, true, false, true]],
+            [new Bitmap(), [false, false, true, false, true, false]],
+            [new Bitmap(), [false, false, false, true, true, true]],
+            [new Bitmap(), [false, true, true, true, false, false]],
+        ];
+    }
+
     private static function stringify(iterable $iterable): string
     {
         $result = '';
@@ -260,5 +260,4 @@ NOWDOC;
         $message .= \sprintf($format, self::formatBinary($expected), self::formatBinary($actual));
         self::assertSame($expected, $actual, $message);
     }
-
 }

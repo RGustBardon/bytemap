@@ -31,14 +31,6 @@ final class MutationTest extends AbstractTestOfBytemap
     use InvalidLengthGeneratorTrait;
     use InvalidTypeGeneratorsTrait;
 
-    // `DeletionTestTrait`
-    protected static function deletionInstanceProvider(): \Generator
-    {
-        foreach (self::mutationProvider() as [$impl, $elements]) {
-            yield [self::instantiate($impl, $elements[0]), $elements];
-        }
-    }
-    
     // `MutationTest`
     public static function invalidElementTypeProvider(): \Generator
     {
@@ -187,6 +179,14 @@ final class MutationTest extends AbstractTestOfBytemap
         })();
         $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstIndex);
         self::assertSequence($expectedSequence, $bytemap);
+    }
+
+    // `DeletionTestTrait`
+    protected static function deletionInstanceProvider(): \Generator
+    {
+        foreach (self::mutationProvider() as [$impl, $elements]) {
+            yield [self::instantiate($impl, $elements[0]), $elements];
+        }
     }
 
     /**

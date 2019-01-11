@@ -74,7 +74,7 @@ trait DeletionTestTrait
             }
         }
     }
-    
+
     /**
      * @covers \Bytemap\AbstractBytemap::delete
      * @covers \Bytemap\Bitmap::delete

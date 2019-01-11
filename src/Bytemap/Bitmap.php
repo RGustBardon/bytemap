@@ -432,47 +432,47 @@ class Bitmap extends Bytemap
             }
         }
         $substringToInsert .= \chr($byte);
-        
+
         if (-1 === $firstIndex || $firstIndex > $this->bitCount - 1) {
             // Insert the elements.
             $originalBitCount = $this->bitCount;
             $tailRelativeBitIndex = ($this->bitCount & 7);
             $gapInBits = \max(0, $firstIndex - $this->bitCount);
             $gapInBytes = ($gapInBits >> 3) + (0 === ($gapInBits & 7) ? 0 : 1);
-            
+
             if ($gapInBytes > 0) {
                 $this->map .= \str_repeat("\x0", $gapInBytes);
                 $this->deriveProperties();
                 $this->bitCount = ($this->elementCount << 3);
                 $this->delete($originalBitCount - 1 + $gapInBits);
             }
-            
+
             if ($howManyBitsToInsert > 0) {
                 $bitCountAfterFillingTheGap = $this->bitCount;
                 $tailRelativeBitIndex = ($this->bitCount & 7);
-                
+
                 $this->map .= $substringToInsert;
                 $this->deriveProperties();
                 $this->bitCount = ($this->elementCount << 3);
-                
+
                 if ($tailRelativeBitIndex > 0) {
                     $this->delete($bitCountAfterFillingTheGap - 1, 8 - $tailRelativeBitIndex);
                 }
-                
-                $this->delete($originalBitCount + $gapInBits + $howManyBitsToInsert); 
+
+                $this->delete($originalBitCount + $gapInBits + $howManyBitsToInsert);
             }
         } else {
             $originalFirstIndex = $firstIndex;
             // Calculate the positive index corresponding to the negative one.
             if ($firstIndex < 0) {
                 $firstIndex += $this->bitCount;
-                
+
                 // Keep the indices within the bounds.
                 if ($firstIndex < 0) {
                     $firstIndex = 0;
                 }
             }
-            
+
             // TODO(user): Implement prepending and splicing.
         }
     }
@@ -488,7 +488,7 @@ class Bitmap extends Bytemap
         if ($firstIndex < 0) {
             $firstIndex += $this->bitCount;
         }
-        
+
         if ($firstIndex >= $this->bitCount) {
             return;
         }
