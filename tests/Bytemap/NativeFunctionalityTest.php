@@ -221,7 +221,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     }
 
     // `NativeFunctionalityTest`
-
     /**
      * @covers \Bytemap\AbstractBytemap
      * @dataProvider implementationProvider

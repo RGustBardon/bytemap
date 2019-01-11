@@ -27,9 +27,19 @@ namespace Bytemap;
  */
 final class MutationTest extends AbstractTestOfBytemap
 {
+    use DeletionTestTrait;
     use InvalidLengthGeneratorTrait;
     use InvalidTypeGeneratorsTrait;
 
+    // `DeletionTestTrait`
+    protected static function deletionInstanceProvider(): \Generator
+    {
+        foreach (self::mutationProvider() as [$impl, $elements]) {
+            yield [self::instantiate($impl, $elements[0]), $elements];
+        }
+    }
+    
+    // `MutationTest`
     public static function invalidElementTypeProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $elements]) {
@@ -176,81 +186,6 @@ final class MutationTest extends AbstractTestOfBytemap
             }
         })();
         $bytemap->insert($useGenerator ? $generator : \iterator_to_array($generator), $firstIndex);
-        self::assertSequence($expectedSequence, $bytemap);
-    }
-
-    public static function deletionProvider(): \Generator
-    {
-        foreach (self::mutationProvider() as [$impl, $elements]) {
-            foreach ([
-                [[], -1, 0, []],
-                [[], 0, 0, []],
-                [[], 1, 0, []],
-                [[], -1, 1, []],
-                [[], 0, 1, []],
-                [[], 1, 1, []],
-                [[0], -1, 0, [0]],
-                [[0], -1, 1, []],
-                [[0], -1, 2, []],
-                [[0], 0, 0, [0]],
-                [[0], 0, 1, []],
-                [[0], 0, 2, []],
-                [[0], 1, 0, [0]],
-                [[0], 1, 1, [0]],
-                [[0], 1, 2, [0]],
-                [[0, 1], -2, 1, [1]],
-                [[0, 1], -2, 2, []],
-                [[0, 1], -1, 1, [0]],
-                [[0, 1], -1, 2, [0]],
-                [[0, 1], 0, 1, [1]],
-                [[0, 1], 0, 2, []],
-                [[0, 1], 1, 1, [0]],
-                [[0, 1], 1, 2, [0]],
-                [[0, 1, 2, 3, 4, 5], 0, 3, [3, 4, 5]],
-                [[0, 1, 2, 3, 4, 5], 1, 1, [0, 2, 3, 4, 5]],
-                [[0, 1, 2, 3, 4, 5], 1, 3, [0, 4, 5]],
-                [[0, 1, 2, 3, 4, 5], 2, 3, [0, 1, 5]],
-                [[0, 1, 2, 3, 4, 5], 3, 3, [0, 1, 2]],
-                [[0, 1, 2, 3, 4, 5], 4, 3, [0, 1, 2, 3]],
-                [[0, 1, 2, 3, 4, 5], 5, 3, [0, 1, 2, 3, 4]],
-                [[0, 1, 2, 3, 4, 5], -1, 3, [0, 1, 2, 3, 4]],
-                [[0, 1, 2, 3, 4, 5], -2, 3, [0, 1, 2, 3]],
-                [[0, 1, 2, 3, 4, 5], -3, 3, [0, 1, 2]],
-                [[0, 1, 2, 3, 4, 5], -4, 3, [0, 1, 5]],
-                [[0, 1, 2, 3, 4, 5], -5, 3, [0, 4, 5]],
-                [[null, 1, 2, 3, 4, 5], -5, 3, [0, 4, 5]],
-                [[0, 1, 2, 3, 4, 5], -6, 3, [3, 4, 5]],
-                [[1, 2, 1, 2, 1, 2], 2, 3, [1, 2, 2]],
-                [[1, null, 1, 2, 1, 0], 2, 3, [1, 0, 0]],
-            ] as [$sequence, $firstIndex, $howMany, $expected]) {
-                yield [$impl, $elements, $sequence, $firstIndex, $howMany, $expected];
-            }
-        }
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::delete
-     * @dataProvider deletionProvider
-     */
-    public function testDeletion(
-        string $impl,
-        array $elements,
-        array $sequence,
-        int $firstIndex,
-        int $howMany,
-        array $expected
-    ): void {
-        $expectedSequence = [];
-        foreach ($expected as $key) {
-            $expectedSequence[] = $elements[$key];
-        }
-        $bytemap = self::instantiate($impl, $elements[0]);
-        foreach ($sequence as $index => $key) {
-            if (null !== $key) {
-                $bytemap[$index] = $elements[$key];
-            }
-        }
-        $bytemap->delete($firstIndex, $howMany);
         self::assertSequence($expectedSequence, $bytemap);
     }
 

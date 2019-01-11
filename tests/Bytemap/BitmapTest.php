@@ -13,19 +13,18 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
-use PHPUnit\Framework\TestCase;
-
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
  * @internal
  * @covers \Bytemap\Bitmap
  */
-final class BitmapTest extends TestCase
+final class BitmapTest extends AbstractTestOfBytemap
 {
     use ArrayAccessTestTrait;
     use CloneableTestTrait;
     use CountableTestTrait;
+    use DeletionTestTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
@@ -60,6 +59,17 @@ final class BitmapTest extends TestCase
     public static function countableInstanceProvider(): \Generator
     {
         yield [new Bitmap(), [true, false]];
+    }
+    
+    // `DeletionTestTrait`
+    protected static function deletionInstanceProvider(): \Generator
+    {
+        yield from [
+            [new Bitmap(), [false, true, false, true, false, true]],
+            [new Bitmap(), [false, false, true, false, true, false]],
+            [new Bitmap(), [false, false, false, true, true, true]],
+            [new Bitmap(), [false, true, true, true, false, false]],
+        ];
     }
 
     // `IterableTestTrait`
@@ -250,4 +260,5 @@ NOWDOC;
         $message .= \sprintf($format, self::formatBinary($expected), self::formatBinary($actual));
         self::assertSame($expected, $actual, $message);
     }
+
 }
