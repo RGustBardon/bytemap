@@ -760,7 +760,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
 
         $arrayProxy = new self($defaultValue);
-        $arrayProxy->bytemap->insert((function () use ($num, $value): \Generator {
+        $arrayProxy->bytemap->insert((static function () use ($num, $value): \Generator {
             for ($i = 0; $i < $num; ++$i) {
                 yield $value;
             }

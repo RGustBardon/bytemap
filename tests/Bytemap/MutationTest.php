@@ -62,7 +62,7 @@ final class MutationTest extends AbstractTestOfBytemap
             $bytemap[$index] = $expectedSequence[$index] = $elements[$key];
         }
 
-        $generator = (function () use ($elements, $inserted, $invalidElement) {
+        $generator = (static function () use ($elements, $inserted, $invalidElement) {
             foreach ($inserted as $key) {
                 yield null === $key ? $invalidElement : $elements[$key];
             }
@@ -103,7 +103,7 @@ final class MutationTest extends AbstractTestOfBytemap
         foreach ($sequence as $index => $key) {
             $bytemap[$index] = $expectedSequence[$index] = $elements[$key];
         }
-        $generator = (function () use ($elements, $inserted, $invalidElement) {
+        $generator = (static function () use ($elements, $inserted, $invalidElement) {
             foreach ($inserted as $key) {
                 yield null === $key ? $invalidElement : $elements[$key];
             }
@@ -172,7 +172,7 @@ final class MutationTest extends AbstractTestOfBytemap
                 $bytemap[$index] = $elements[$key];
             }
         }
-        $generator = (function () use ($elements, $inserted) {
+        $generator = (static function () use ($elements, $inserted) {
             foreach ($inserted as $key) {
                 yield $elements[$key];
             }

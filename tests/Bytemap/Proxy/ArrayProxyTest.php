@@ -234,7 +234,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [["\x00\x00", '00', '11', '22'], null, 0, ["\x00\x00", '00', '11', '22']],
             [
                 ['cd', 'xy', 'ef', 'ef', 'bb'],
-                function (string $element): bool {
+                static function (string $element): bool {
                     return 'ef' !== $element;
                 },
                 0,
@@ -242,7 +242,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ],
             [
                 ['cd', 'xy', 'ef', 'ef', 'bb'],
-                function (int $key): bool {
+                static function (int $key): bool {
                     return 3 !== $key;
                 },
                 \ARRAY_FILTER_USE_KEY,
@@ -250,7 +250,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ],
             [
                 ['cd', 'xy', 'ef', 'ef', 'bb'],
-                function (string $element, int $key): bool {
+                static function (string $element, int $key): bool {
                     return 'ef' !== $element && 1 !== $key;
                 },
                 \ARRAY_FILTER_USE_BOTH,
@@ -384,7 +384,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public static function mapProvider(): \Generator
     {
-        $defaultCallback = function (?string ...$args): string {
+        $defaultCallback = static function (?string ...$args): string {
             return \implode(':', \array_map('strval', $args));
         };
 
@@ -429,7 +429,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 ],
                 [
                     ['cd', 'xy', 'ef', 'ef'],
-                    function (string $input): string {
+                    static function (string $input): string {
                         return \strtoupper($input);
                     },
                     [],
@@ -439,7 +439,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                 switch ($iterableType) {
                     case \Iterator::class:
                         foreach ($iterables as $key => $iterable) {
-                            $iterables[$key] = (function (array $iterable) {
+                            $iterables[$key] = (static function (array $iterable) {
                                 yield from $iterable;
                             })($iterable);
                         }
@@ -489,7 +489,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         $array = ['a1', 'a2', 'a3'];
         $bytemap = new Bytemap('cd');
         $bytemap->insert(['b1', 'b2']);
-        $generator = function (): \Generator {
+        $generator = static function (): \Generator {
             yield from ['g1', 'g2', 'g3'];
         };
         self::assertSame([
@@ -1008,7 +1008,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             yield [
                 $defaultValue,
                 $elements,
-                function () use ($sortFlags): int {
+                static function () use ($sortFlags): int {
                     return $sortFlags;
                 },
                 $expected,
@@ -1049,7 +1049,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public function testUSort(): void
     {
         $arrayProxy = self::instantiate('cd', 'xy', 'ef', 'ef');
-        $arrayProxy->uSort(function (string $a, string $b): int {
+        $arrayProxy->uSort(static function (string $a, string $b): int {
             static $weights = ['ef' => 0, 'xy' => 1, 'cd' => 2];
 
             return $weights[$a] <=> $weights[$b];
@@ -1068,7 +1068,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      */
     public function testWalkTooFewArguments(): void
     {
-        self::instantiate()->walk(function ($element, $index, $foo) {
+        self::instantiate()->walk(static function ($element, $index, $foo) {
         });
     }
 
@@ -1080,16 +1080,16 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     public static function walkProvider(): \Generator
     {
         foreach ([
-            [['cd', 'xy', 'ef', 'ef'], function ($element, $index) {
+            [['cd', 'xy', 'ef', 'ef'], static function ($element, $index) {
                 $element = 'ab';
             }, self::WALK_NO_USERDATA, ['cd', 'xy', 'ef', 'ef']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$element, $index) {
+            [['cd', 'xy', 'ef', 'ef'], static function (&$element, $index) {
                 $element = \sprintf('%02d', $index);
             }, self::WALK_NO_USERDATA, ['00', '01', '02', '03']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$element, $index, string $userdata) {
+            [['cd', 'xy', 'ef', 'ef'], static function (&$element, $index, string $userdata) {
                 $element = \gettype($userdata)[0].$index;
             }, 'foo', ['s0', 's1', 's2', 's3']],
-            [['cd', 'xy', 'ef', 'ef'], function (&$element, $index, string $userdata = null) {
+            [['cd', 'xy', 'ef', 'ef'], static function (&$element, $index, string $userdata = null) {
                 $element = \gettype($userdata)[0].$index;
             }, null, ['N0', 'N1', 'N2', 'N3']],
             [['cd', 'xy', 'ef', 'ef'], self::class.'::walkMethod', null, ['N0', 'N1', 'N2', 'N3']],
@@ -1288,7 +1288,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
 
     public function pregReplaceCallbackProvider(): \Generator
     {
-        $defaultCallback = function (array $matches): string {
+        $defaultCallback = static function (array $matches): string {
             return $matches[0].',';
         };
 
@@ -1303,7 +1303,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ],
             [
                 ['cd', 'xy', 'ef', 'ef', 'zz'],
-                (function (): \Generator {
+                (static function (): \Generator {
                     yield '~[ef]~';
                 })(),
                 $defaultCallback,
@@ -1314,7 +1314,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [
                 ['cd', 'xy', 'ef', 'ef', 'zz'],
                 ['~^c~', '~[ef]~'],
-                function (array $matches): string {
+                static function (array $matches): string {
                     return $matches[0].',';
                 },
                 1,
@@ -1359,7 +1359,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [
                 ['cd', 'xy', 'ef', 'ef', 'zz'],
                 [
-                    '~^c~' => function (array $matches): string {
+                    '~^c~' => static function (array $matches): string {
                         return 'g';
                     },
                 ],
@@ -1369,8 +1369,8 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ],
             [
                 ['cd', 'xy', 'ef', 'ef', 'zz'],
-                (function (): \Generator {
-                    yield '~[ef]~' => function (array $matches): string {
+                (static function (): \Generator {
+                    yield '~[ef]~' => static function (array $matches): string {
                         return 'w';
                     };
                 })(),
@@ -1381,13 +1381,13 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [
                 ['cd', 'xy', 'ef', 'ef', 'zz'],
                 [
-                    '~^c~' => function (array $matches): string {
+                    '~^c~' => static function (array $matches): string {
                         return 'g';
                     },
-                    '~^g~' => function (array $matches): string {
+                    '~^g~' => static function (array $matches): string {
                         return 'hi';
                     },
-                    '~[ef]~' => function (array $matches): string {
+                    '~[ef]~' => static function (array $matches): string {
                         return 'w';
                     },
                 ],

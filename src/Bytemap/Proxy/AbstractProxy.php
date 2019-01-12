@@ -93,7 +93,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
     public function unserialize($serialized)
     {
         $errorMessage = 'details unavailable';
-        \set_error_handler(function (int $errno, string $errstr) use (&$errorMessage): void {
+        \set_error_handler(static function (int $errno, string $errstr) use (&$errorMessage): void {
             $errorMessage = $errstr;
         });
         $result = \unserialize($serialized, ['allowed_classes' => [Bytemap::class]]);
@@ -138,12 +138,12 @@ abstract class AbstractProxy implements ArrayProxyInterface
 
         if (\SORT_NUMERIC === $sortFlags) {
             if ($ascending) {
-                return function (string $a, string $b): int {
+                return static function (string $a, string $b): int {
                     return (float) $a <=> (float) $b;
                 };
             }
 
-            return function (string $a, string $b): int {
+            return static function (string $a, string $b): int {
                 return (float) $b <=> (float) $a;
             };
         }
@@ -154,7 +154,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
                 return '\\strcoll';
             }
 
-            return function (string $a, string $b): int {
+            return static function (string $a, string $b): int {
                 return \strcoll($b, $a);
             };
             // @codeCoverageIgnoreEnd
@@ -168,7 +168,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
                         return '\\strnatcasecmp';
                     }
 
-                    return function (string $a, string $b): int {
+                    return static function (string $a, string $b): int {
                         return \strnatcasecmp($b, $a);
                     };
                 }
@@ -177,7 +177,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
                     return '\\strnatcmp';
                 }
 
-                return function (string $a, string $b): int {
+                return static function (string $a, string $b): int {
                     return \strnatcmp($b, $a);
                 };
             }
@@ -186,12 +186,12 @@ abstract class AbstractProxy implements ArrayProxyInterface
 
         if (\SORT_REGULAR === $sortFlags) {
             if ($ascending) {
-                return function (string $a, string $b): int {
+                return static function (string $a, string $b): int {
                     return (\is_numeric($a) ? (string) (float) $a : $a) <=> (\is_numeric($b) ? (string) (float) $b : $b);
                 };
             }
 
-            return function (string $a, string $b): int {
+            return static function (string $a, string $b): int {
                 return (\is_numeric($b) ? (string) (float) $b : $b) <=> (\is_numeric($a) ? (string) (float) $a : $a);
             };
         }
@@ -201,7 +201,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
                 return '\\strcasecmp';
             }
 
-            return function (string $a, string $b): int {
+            return static function (string $a, string $b): int {
                 return \strcasecmp($b, $a);
             };
         }
@@ -210,7 +210,7 @@ abstract class AbstractProxy implements ArrayProxyInterface
             return '\\strcmp';
         }
 
-        return function (string $a, string $b): int {
+        return static function (string $a, string $b): int {
             return \strcmp($b, $a);
         };
     }

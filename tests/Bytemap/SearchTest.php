@@ -145,7 +145,7 @@ final class SearchTest extends AbstractTestOfBytemap
         }
         if (null !== $query) {
             $queryIndices = $query;
-            $query = (function () use ($elements, $queryIndices) {
+            $query = (static function () use ($elements, $queryIndices) {
                 foreach ($queryIndices as $key) {
                     yield $elements[$key];
                 }
@@ -334,7 +334,7 @@ final class SearchTest extends AbstractTestOfBytemap
                 [[1, 2, 3, 4, 5, 1, 2], ['~zx~'], false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
                 [[1, 2, 3, 4, 5, 1, 2], ['~zx~'], false, -7, -42, []],
 
-                [[1, 2, 3, 4, 5, 1, 2], (function (): \Generator {
+                [[1, 2, 3, 4, 5, 1, 2], (static function (): \Generator {
                     yield from ['~x~', '~z~'];
                 })(), true, 7, null, [1, 3 => 4, 5 => 1]],
             ] as [$subject, $patterns, $whitelist, $howMany, $startAfter, $expected]) {

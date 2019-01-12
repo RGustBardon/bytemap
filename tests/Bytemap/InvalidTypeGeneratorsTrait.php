@@ -34,8 +34,8 @@ trait InvalidTypeGeneratorsTrait
                 }
             },
             \fopen('php://memory', 'rb'),
-            function (): int { return 0; },
-            function (): \Generator { yield 0; },
+            static function (): int { return 0; },
+            static function (): \Generator { yield 0; },
         ];
     }
 
@@ -58,8 +58,8 @@ trait InvalidTypeGeneratorsTrait
                 }
             },
             \fopen('php://memory', 'rb'),
-            function (): int { return 0; },
-            function (): \Generator { yield 0; },
+            static function (): int { return 0; },
+            static function (): \Generator { yield 0; },
         ] as $value) {
             if (\gettype($value) !== $expectedType) {
                 yield $value;
