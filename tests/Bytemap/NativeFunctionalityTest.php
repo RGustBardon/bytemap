@@ -30,7 +30,9 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     use ArrayAccessTestTrait;
     use CloneableTestTrait;
     use CountableTestTrait;
+    use InvalidLengthGeneratorTrait;
     use InvalidLengthTestTrait;
+    use InvalidTypeGeneratorsTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;

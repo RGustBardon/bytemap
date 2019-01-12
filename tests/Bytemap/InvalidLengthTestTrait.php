@@ -40,5 +40,5 @@ trait InvalidLengthTestTrait
 
     abstract public static function arrayAccessInstanceProvider(): \Generator;
 
-    abstract public static function generateElementsOfInvalidLength(int $bytesPerElement): \Generator;
+    abstract protected static function generateElementsOfInvalidLength(int $bytesPerElement): \Generator;
 }

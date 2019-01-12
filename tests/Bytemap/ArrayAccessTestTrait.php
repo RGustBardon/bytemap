@@ -20,9 +20,6 @@ namespace Bytemap;
  */
 trait ArrayAccessTestTrait
 {
-    use InvalidLengthGeneratorTrait;
-    use InvalidTypeGeneratorsTrait;
-
     public static function nullIndexProvider(): \Generator
     {
         foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
@@ -247,4 +244,8 @@ trait ArrayAccessTestTrait
     }
 
     abstract public static function arrayAccessInstanceProvider(): \Generator;
+
+    abstract protected static function generateIndicesOfInvalidType(): \Generator;
+
+    abstract protected static function generateElementsOfInvalidType($defaultValue): \Generator;
 }

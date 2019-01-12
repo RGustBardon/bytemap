@@ -25,6 +25,9 @@ final class BitmapTest extends AbstractTestOfBytemap
     use CloneableTestTrait;
     use CountableTestTrait;
     use DeletionTestTrait;
+    // use InsertionTestTrait;
+    use InvalidElementsGeneratorTrait;
+    use InvalidTypeGeneratorsTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
     use MagicPropertiesTestTrait;
@@ -214,8 +217,8 @@ NOWDOC;
         self::assertBinary($expected, $bitmap, $message);
     }
 
-    // `DeletionTestTrait`
-    protected static function deletionInstanceProvider(): \Generator
+    // `InsertionTestTrait`
+    protected static function insertionInstanceProvider(): \Generator
     {
         yield from [
             [new Bitmap(), [false, true, false, true, false, true]],
@@ -223,6 +226,12 @@ NOWDOC;
             [new Bitmap(), [false, false, false, true, true, true]],
             [new Bitmap(), [false, true, true, true, false, false]],
         ];
+    }
+
+    // `DeletionTestTrait`
+    protected static function deletionInstanceProvider(): \Generator
+    {
+        yield from self::insertionInstanceProvider();
     }
 
     private static function stringify(iterable $iterable): string

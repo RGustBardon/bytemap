@@ -20,7 +20,7 @@ namespace Bytemap;
  */
 trait InvalidTypeGeneratorsTrait
 {
-    public static function generateIndicesOfInvalidType(): \Generator
+    protected static function generateIndicesOfInvalidType(): \Generator
     {
         yield from [
             false, true,
@@ -42,7 +42,7 @@ trait InvalidTypeGeneratorsTrait
     /**
      * @param mixed $defaultValue
      */
-    public static function generateElementsOfInvalidType($defaultValue): \Generator
+    protected static function generateElementsOfInvalidType($defaultValue): \Generator
     {
         $expectedType = \gettype($defaultValue);
         foreach ([

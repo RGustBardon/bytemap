@@ -20,7 +20,7 @@ namespace Bytemap;
  */
 trait InvalidLengthGeneratorTrait
 {
-    public static function generateElementsOfInvalidLength(int $bytesPerElement): \Generator
+    protected static function generateElementsOfInvalidLength(int $bytesPerElement): \Generator
     {
         for ($i = 0; $i < $bytesPerElement; ++$i) {
             yield \str_repeat('a', $i);
