@@ -473,7 +473,13 @@ class Bitmap extends Bytemap
                 }
             }
 
-            // TODO(user): Implement prepending and splicing.
+            // Resize the bitmap if the negative first bit index is greater than the new bit count.
+            $newBitCount = $this->bitCount + $howManyBitsToInsert;
+            if (-$originalFirstIndex > $newBitCount) {
+                $overflowInBits = -$originalFirstIndex - $newBitCount - ($howManyBitsToInsert > 0 ? 0 : 1);
+                $padLength = (($overflowInBits + $howManyBitsToInsert + 7) >> 3);
+                $substringToInsert = \str_pad($substringToInsert, $padLength, "\x0", \STR_PAD_RIGHT);
+            }
         }
     }
 
