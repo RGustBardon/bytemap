@@ -476,9 +476,18 @@ class Bitmap extends Bytemap
             // Resize the bitmap if the negative first bit index is greater than the new bit count.
             $newBitCount = $this->bitCount + $howManyBitsToInsert;
             if (-$originalFirstIndex > $newBitCount) {
-                $overflowInBits = -$originalFirstIndex - $newBitCount - ($howManyBitsToInsert > 0 ? 0 : 1);
-                $padLength = (($overflowInBits + $howManyBitsToInsert + 7) >> 3);
-                $substringToInsert = \str_pad($substringToInsert, $padLength, "\x0", \STR_PAD_RIGHT);
+                $originalBitCount = $this->bitCount;
+                $overflowInBits = -$originalFirstIndex - $newBitCount;
+                $padLengthInBits = $overflowInBits + $howManyBitsToInsert;
+                $padLengthInBytes = (($padLengthInBits + 7) >> 3);
+                $substringToInsert = \str_pad($substringToInsert, $padLengthInBytes, "\x0", \STR_PAD_RIGHT);
+
+                $this->map = $substringToInsert.$this->map;
+                $this->deriveProperties();
+                $this->bitCount += $padLengthInBits;
+                if (($padLengthInBits & 7) > 0) {
+                    $this->delete($padLengthInBits, 8 - ($padLengthInBits & 7));
+                }
             }
         }
     }
