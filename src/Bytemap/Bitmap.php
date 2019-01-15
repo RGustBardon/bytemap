@@ -431,7 +431,9 @@ class Bitmap extends Bytemap
                 $byte = 0;
             }
         }
-        $substringToInsert .= \chr($byte);
+        if ($howManyBitsToInsert > 0) {
+            $substringToInsert .= \chr($byte);
+        }
 
         if (-1 === $firstIndex || $firstIndex > $this->bitCount - 1) {
             // Insert the elements.
@@ -444,7 +446,7 @@ class Bitmap extends Bytemap
                 $this->map .= \str_repeat("\x0", $gapInBytes);
                 $this->deriveProperties();
                 $this->bitCount = ($this->elementCount << 3);
-                $this->delete($originalBitCount - 1 + $gapInBits);
+                $this->delete($originalBitCount + $gapInBits);
             }
 
             if ($howManyBitsToInsert > 0) {
@@ -477,14 +479,14 @@ class Bitmap extends Bytemap
             $newBitCount = $this->bitCount + $howManyBitsToInsert;
             if (-$originalFirstIndex > $newBitCount) {
                 $originalBitCount = $this->bitCount;
-                $overflowInBits = -$originalFirstIndex - $newBitCount;
+                $overflowInBits = -$originalFirstIndex - $newBitCount - ($howManyBitsToInsert > 0 ? 0 : 1);
                 $padLengthInBits = $overflowInBits + $howManyBitsToInsert;
                 $padLengthInBytes = (($padLengthInBits + 7) >> 3);
                 $substringToInsert = \str_pad($substringToInsert, $padLengthInBytes, "\x0", \STR_PAD_RIGHT);
-
+                
                 $this->map = $substringToInsert.$this->map;
                 $this->deriveProperties();
-                $this->bitCount += $padLengthInBits;
+                $this->bitCount += ($padLengthInBytes << 3);
                 if (($padLengthInBits & 7) > 0) {
                     $this->delete($padLengthInBits, 8 - ($padLengthInBits & 7));
                 }
