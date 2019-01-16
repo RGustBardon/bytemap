@@ -421,7 +421,7 @@ class Bitmap extends Bytemap
         $byte = 0;
         foreach ($elements as $element) {
             if (true === $element) {
-                $byte = ($byte | (1 << $howManyBitsToInsert));
+                $byte = ($byte | (1 << ($howManyBitsToInsert & 7)));
             } elseif (false !== $element) {
                 throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be a Boolean, '.\gettype($element).' given');
             }
@@ -483,12 +483,42 @@ class Bitmap extends Bytemap
                 $padLengthInBits = $overflowInBits + $howManyBitsToInsert;
                 $padLengthInBytes = (($padLengthInBits + 7) >> 3);
                 $substringToInsert = \str_pad($substringToInsert, $padLengthInBytes, "\x0", \STR_PAD_RIGHT);
-                
+
                 $this->map = $substringToInsert.$this->map;
                 $this->deriveProperties();
                 $this->bitCount += ($padLengthInBytes << 3);
                 if (($padLengthInBits & 7) > 0) {
                     $this->delete($padLengthInBits, 8 - ($padLengthInBits & 7));
+                }
+            } elseif (0 === ($firstIndex & 7)) {
+                if ($firstIndex > 0) {
+                    $this->map = \substr($this->map, 0, $firstIndex >> 3).$substringToInsert.\substr($this->map, $firstIndex >> 3);
+                } else {
+                    $this->map = $substringToInsert.$this->map;
+                }
+                $this->deriveProperties();
+                $this->bitCount += (\strlen($substringToInsert) << 3);
+                if (($howManyBitsToInsert & 7) > 0) {
+                    $this->delete($firstIndex + $howManyBitsToInsert, 8 - ($howManyBitsToInsert & 7));
+                }
+            } else {
+                $originalBitCount = $this->bitCount;
+                $head = \substr($this->map, 0, ($firstIndex >> 3) + 1);
+                $tail = \substr($this->map, $firstIndex >> 3);
+                $this->map = $head.$substringToInsert.$tail;
+                $this->deriveProperties();
+                $this->bitCount = ($this->elementCount << 3);
+                $tailGapLengthInBits = ($originalBitCount & 7) - 8;
+                if ($originalBitCount > 0 && 0 !== $tailGapLengthInBits) {
+                    $this->delete($tailGapLengthInBits);
+                }
+                $middleGapLengthInBits = 8 - ($howManyBitsToInsert & 7) + ($firstIndex & 7);
+                if ($middleGapLengthInBits > 0) {
+                    $this->delete((\strlen($head) << 3) + $howManyBitsToInsert, $middleGapLengthInBits);
+                }
+                $headGapLengthInBits = 8 - ($firstIndex & 7);
+                if ($headGapLengthInBits > 0) {
+                    $this->delete($firstIndex, $headGapLengthInBits);
                 }
             }
         }
