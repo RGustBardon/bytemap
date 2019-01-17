@@ -458,7 +458,7 @@ class Bitmap extends Bytemap
                 $this->bitCount = ($this->elementCount << 3);
 
                 if ($tailRelativeBitIndex > 0) {
-                    $this->delete($bitCountAfterFillingTheGap - 1, 8 - $tailRelativeBitIndex);
+                    $this->delete($bitCountAfterFillingTheGap, 8 - $tailRelativeBitIndex);
                 }
 
                 $this->delete($originalBitCount + $gapInBits + $howManyBitsToInsert);
