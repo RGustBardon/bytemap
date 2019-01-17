@@ -25,7 +25,7 @@ final class BitmapTest extends AbstractTestOfBytemap
     use CloneableTestTrait;
     use CountableTestTrait;
     use DeletionTestTrait;
-    // use InsertionTestTrait;
+    use InsertionTestTrait;
     use InvalidElementsGeneratorTrait;
     use InvalidTypeGeneratorsTrait;
     use IterableTestTrait;
@@ -146,7 +146,7 @@ final class BitmapTest extends AbstractTestOfBytemap
     /**
      * @dataProvider randomizedBitmapProvider
      */
-    public function futureTestInsertionRandomly(BytemapInterface $bitmap): void
+    public function testInsertionRandomly(BytemapInterface $bitmap): void
     {
         $elementCount = \count($bitmap);
         $firstIndex = \mt_rand(0, $elementCount);
