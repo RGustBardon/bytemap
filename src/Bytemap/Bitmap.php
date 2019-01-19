@@ -416,6 +416,7 @@ class Bitmap extends Bytemap
     // `BytemapInterface`
     public function insert(iterable $elements, int $firstIndex = -1): void
     {
+        // Prepare a substring to insert.
         $substringToInsert = '';
         $howManyBitsToInsert = 0;
         $byte = 0;
@@ -435,14 +436,43 @@ class Bitmap extends Bytemap
             $substringToInsert .= \chr($byte);
         }
 
+        // Insert the elements.
+
+        // Conceptually, after the insertion, the string will consist of at most three different substrings.
+        // Elements might already exist in the bitmap. These will be denoted by E.
+        // New elements might need to be inserted. These will be denoted by N.
+        // There might be a gap between existing elements and new elements.
+        // It will be filled with zeros and denoted by G.
+        // The question mark means that the substring is optional.
+        
+        // Substrings will be concatenated quickly, and then the `delete` method will remove shift left all
+        // the substrings that are not supposed to begin as a new byte. For instance, if the bitmap contains
+        // 3 bits and 2 bits are to be inserted with their first index being 10 (0xa), then:
+        
+        // Indices:         0123|4567 89ab|cdef 0123|4567
+        // Original bitmap: EEE0|0000
+        // To be inserted:  NN
+        // Concatenation:   EEE0|0000 GGGG|GGGG NN00|0000
+        // Deletion:        EEEG|GGGG GGNN|0000
+        
+        // The above is a simplified view. In reality, the bits in each byte are reversed:
+        
+        // Indices:         0123|4567 89ab|cdef 0123|4567
+        // Original bitmap: 0000|0EEE
+        // To be inserted:  NN
+        // Concatenation:   0000|0EEE GGGG|GGGG 0000|00NN
+        // Deletion:        GGGG|GEEE 0000|NNGG
         if (-1 === $firstIndex || $firstIndex > $this->bitCount - 1) {
-            // Insert the elements.
+            // Zero or more elements are to be inserted after the existing elements (X?G?N?).
             $originalBitCount = $this->bitCount;
             $tailRelativeBitIndex = ($this->bitCount & 7);
+            
+            // Calculate if a gap should exist between the existing elements and the new ones.
             $gapInBits = \max(0, $firstIndex - $this->bitCount);
             $gapInBytes = ($gapInBits >> 3) + (0 === ($gapInBits & 7) ? 0 : 1);
 
             if ($gapInBytes > 0) {
+                // Append the gap (X?GN?).
                 $this->map .= \str_repeat("\x0", $gapInBytes);
                 $this->deriveProperties();
                 $this->bitCount = ($this->elementCount << 3);
@@ -450,6 +480,7 @@ class Bitmap extends Bytemap
             }
 
             if ($howManyBitsToInsert > 0) {
+                // Append new elements (X?G?N).
                 $bitCountAfterFillingTheGap = $this->bitCount;
                 $tailRelativeBitIndex = ($this->bitCount & 7);
 
@@ -475,9 +506,9 @@ class Bitmap extends Bytemap
                 }
             }
 
-            // Resize the bitmap if the negative first bit index is greater than the new bit count.
             $newBitCount = $this->bitCount + $howManyBitsToInsert;
             if (-$originalFirstIndex > $newBitCount) {
+                // Resize the bitmap if the negative first bit index is greater than the new bit count.
                 $originalBitCount = $this->bitCount;
                 $overflowInBits = -$originalFirstIndex - $newBitCount - ($howManyBitsToInsert > 0 ? 0 : 1);
                 $padLengthInBits = $overflowInBits + $howManyBitsToInsert;
