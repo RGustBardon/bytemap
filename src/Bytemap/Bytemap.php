@@ -25,9 +25,8 @@ class Bytemap extends AbstractBytemap
     protected const BATCH_ELEMENT_COUNT = 256;
 
     /** @var int */
-    protected $bytesInTotal;
-    /** @var bool */
-    private $singleByte;
+    protected /* int */ $bytesInTotal;
+    private /* bool */ $singleByte;
 
     // `ArrayAccess`
     public function offsetGet($index) // : string

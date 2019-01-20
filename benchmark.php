@@ -49,16 +49,16 @@ new class($GLOBALS['argv'][1], $GLOBALS['argv'][2] ?? null) {
     private const JSON_FLAGS =
         \JSON_NUMERIC_CHECK | \JSON_PRESERVE_ZERO_FRACTION | \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES;
 
-    private $impl;
-    private $runtimeId;
+    private /* string */ $impl;
+    private /* string */ $runtimeId;
     private $statusHandle;
 
-    private $initialMemUsage;
-    private $initialMemPeak;
-    private $initialTimestamp;
-    private $totalTime;
+    private /* int */ $initialMemUsage;
+    private /* int */ $initialMemPeak;
+    private /* float */ $initialTimestamp;
+    private /* float */ $totalTime;
 
-    private $snapshots = [];
+    private /* array */ $snapshots = [];
 
     public function __construct(string $impl, ?string $benchmark)
     {

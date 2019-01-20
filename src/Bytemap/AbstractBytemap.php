@@ -29,13 +29,12 @@ abstract class AbstractBytemap implements BytemapInterface
     protected const STREAM_BUFFER_SIZE = 16384;
     protected const UNSERIALIZED_CLASSES = false;
 
-    /** @var string */
-    protected $defaultValue;
+    protected /* string */ $defaultValue;
     /** @var int */
-    protected $bytesPerElement;
+    protected /* int */ $bytesPerElement;
 
     /** @var int */
-    protected $elementCount = 0;
+    protected /* int */ $elementCount = 0;
     protected $map;
 
     /**
@@ -58,27 +57,6 @@ abstract class AbstractBytemap implements BytemapInterface
         $this->createEmptyMap();
 
         $this->deriveProperties();
-    }
-
-    // Property overloading.
-    final public function __get($name)
-    {
-        throw new \ErrorException('Undefined property: '.static::class.'::$'.$name);
-    }
-
-    final public function __set($name, $value): void
-    {
-        self::__get($name);
-    }
-
-    final public function __isset($name): bool
-    {
-        self::__get($name);
-    }
-
-    final public function __unset($name): void
-    {
-        self::__get($name);
     }
 
     // `ArrayAccess`
@@ -287,14 +265,16 @@ abstract class AbstractBytemap implements BytemapInterface
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Failed to unserialize (expected an array of two elements)');
         }
 
-        [$this->defaultValue, $this->map] = $result;
+        [$defaultValue, $this->map] = $result;
 
-        if (!\is_string($this->defaultValue)) {
-            throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the default value must be of type string, '.\gettype($this->defaultValue).' given)');
+        if (!\is_string($defaultValue)) {
+            throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the default value must be of type string, '.\gettype($defaultValue).' given)');
         }
-        if ('' === $this->defaultValue) {
+        if ('' === $defaultValue) {
             throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (the default value cannot be an empty string)');
         }
+
+        $this->defaultValue = $defaultValue;
     }
 
     final protected static function calculateGreatestCommonDivisor(int $a, int $b): int

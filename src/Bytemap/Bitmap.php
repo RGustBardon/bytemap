@@ -23,7 +23,7 @@ class Bitmap extends Bytemap
     protected const DEFAULT_BYTEMAP_VALUE = "\x0";
 
     /** @var int */
-    protected $bitCount = 0;
+    protected /* int */ $bitCount = 0;
 
     public function __construct()
     {
@@ -1009,13 +1009,15 @@ class Bitmap extends Bytemap
         }
 
         $this->defaultValue = self::DEFAULT_BYTEMAP_VALUE;
-        [$this->bitCount, $this->map] = $result;
+        [$bitCount, $this->map] = $result;
 
-        if (!\is_int($this->bitCount)) {
+        if (!\is_int($bitCount)) {
             throw new \TypeError(self::EXCEPTION_PREFIX.'Failed to unserialize (the number of bits must be an integer, '.\gettype($this->bitCount).' given)');
         }
-        if ($this->bitCount < 0) {
+        if ($bitCount < 0) {
             throw new \DomainException(self::EXCEPTION_PREFIX.'Failed to unserialize (the number of bits must not be negative)');
         }
+
+        $this->bitCount = $bitCount;
     }
 }

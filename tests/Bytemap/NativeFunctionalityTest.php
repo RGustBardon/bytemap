@@ -35,7 +35,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
     use InvalidTypeGeneratorsTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
-    use MagicPropertiesTestTrait;
     use SerializableTestTrait;
 
     // `ArrayAccessTestTrait`
@@ -95,14 +94,6 @@ final class NativeFunctionalityTest extends AbstractTestOfBytemap
                 $bytemap = new $impl($defaultValue);
                 yield [$bytemap, $defaultValue, $elements];
             }
-        }
-    }
-
-    // `MagicPropertiesTestTrait`
-    public static function magicPropertiesInstanceProvider(): \Generator
-    {
-        foreach (self::implementationProvider() as [$impl]) {
-            yield [self::instantiate($impl, 'a')];
         }
     }
 

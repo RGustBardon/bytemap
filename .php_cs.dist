@@ -52,7 +52,7 @@ return PhpCsFixer\Config::create()
         'no_unneeded_curly_braces' => true,
         'no_unneeded_final_method' => true,
         'no_unreachable_default_argument_value' => true,
-        // 'no_unset_on_property' => true,
+        'no_unset_on_property' => true,
         'no_useless_else' => true,
         'no_useless_return' => true,
         'ordered_class_elements' => true,
@@ -74,6 +74,7 @@ return PhpCsFixer\Config::create()
         'strict_comparison' => true,
         'strict_param' => true,
         'string_line_ending' => true,
+        'visibility_required' => ['const', 'method'],  // `'property'` removes comments such as `private /* bool */ $singleByte;`
         'yoda_style' => true,
     ])
     ->setFinder($finder);

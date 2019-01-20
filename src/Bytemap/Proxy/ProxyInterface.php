@@ -32,8 +32,6 @@ use Bytemap\BytemapInterface;
  *
  * In addition to the exceptions thrown by the documented methods,
  * the following exceptions may be thrown:
- * - `\ErrorException` (when referring to undefined properties)
- *   thrown by `__isset`, `__get`, `__set`, `__unset`;
  * - `\TypeError` (when attempting to use a value other than an integer as an index)
  *   thrown by `offsetGet`, `offsetSet`;
  * - `\OutOfRangeException` (when attempting to use a negative integer as an index)

@@ -35,7 +35,7 @@ class BytemapListener implements ListenerInterface
     private $setter;
 
     private $key;
-    private $state = self::STATE_INITIAL;
+    private /* string */ $state = self::STATE_INITIAL;
 
     public function __construct(callable $setter)
     {

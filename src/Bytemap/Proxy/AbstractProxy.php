@@ -21,29 +21,7 @@ use Bytemap\BytemapInterface;
  */
 abstract class AbstractProxy implements ArrayProxyInterface
 {
-    /** @var BytemapInterface */
-    protected $bytemap;
-
-    // Property overloading.
-    final public function __get($name)
-    {
-        throw new \ErrorException('Undefined property: '.static::class.'::$'.$name);
-    }
-
-    final public function __set($name, $value): void
-    {
-        self::__get($name);
-    }
-
-    final public function __isset($name): bool
-    {
-        self::__get($name);
-    }
-
-    final public function __unset($name): void
-    {
-        self::__get($name);
-    }
+    protected /* BytemapInterface */ $bytemap;
 
     // `ArrayAccess`
     public function offsetExists($index): bool

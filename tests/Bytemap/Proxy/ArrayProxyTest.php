@@ -23,7 +23,6 @@ use Bytemap\InvalidLengthTestTrait;
 use Bytemap\InvalidTypeGeneratorsTrait;
 use Bytemap\IterableTestTrait;
 use Bytemap\JsonSerializableTestTrait;
-use Bytemap\MagicPropertiesTestTrait;
 use Bytemap\SerializableTestTrait;
 
 /**
@@ -43,12 +42,11 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     use InvalidTypeGeneratorsTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
-    use MagicPropertiesTestTrait;
     use SerializableTestTrait;
 
     private const WALK_NO_USERDATA = 'void';
 
-    private $originalCollation;
+    private /* string */ $originalCollation;
 
     protected function setUp(): void
     {
@@ -105,12 +103,6 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
             yield [new ArrayProxy($defaultValue), $defaultValue, $elements];
         }
-    }
-
-    // `MagicPropertiesTestTrait`
-    public static function magicPropertiesInstanceProvider(): \Generator
-    {
-        yield [new ArrayProxy('a')];
     }
 
     // `SerializableTestTrait`
@@ -452,7 +444,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
                     case \IteratorAggregate::class:
                         foreach ($iterables as $key => $iterable) {
                             $iterables[$key] = new class($iterable) implements \IteratorAggregate {
-                                private $it;
+                                private /* iterable */ $it;
 
                                 public function __construct(iterable $iterable)
                                 {
