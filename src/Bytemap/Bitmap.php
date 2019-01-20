@@ -444,29 +444,35 @@ class Bitmap extends Bytemap
         // There might be a gap between existing elements and new elements.
         // It will be filled with zeros and denoted by G.
         // The question mark means that the substring is optional.
-        
-        // Substrings will be concatenated quickly, and then the `delete` method will remove shift left all
-        // the substrings that are not supposed to begin as a new byte. For instance, if the bitmap contains
-        // 3 bits and 2 bits are to be inserted with their first index being 10 (0xa), then:
-        
-        // Indices:         0123|4567 89ab|cdef 0123|4567
-        // Original bitmap: EEE0|0000
-        // To be inserted:  NN
-        // Concatenation:   EEE0|0000 GGGG|GGGG NN00|0000
-        // Deletion:        EEEG|GGGG GGNN|0000
-        
+
+        // Substrings will be concatenated quickly, and then the `delete` method will remove all the
+        // superfluous bits. For instance, if the bitmap contains 3 bits and 2 bits are to be inserted with
+        // their first index being 10 (0xa), then:
+
+        // Indices:          0123|4567 89ab|cdef 0123|4567
+        // To be inserted:   NN
+        // Original bitmap:  EEE0|0000
+        // Concatenation:    EEE0|0000 GGGG|GGGG NN00|0000
+        // Superfluous bits:    ^ ^^^^         ^   ^^ ^^^^
+        // Deletion:         EEEG|GGGG GGNN|0000
+
         // The above is a simplified view. In reality, the bits in each byte are reversed:
-        
-        // Indices:         0123|4567 89ab|cdef 0123|4567
-        // Original bitmap: 0000|0EEE
-        // To be inserted:  NN
-        // Concatenation:   0000|0EEE GGGG|GGGG 0000|00NN
-        // Deletion:        GGGG|GEEE 0000|NNGG
+
+        // Indices:          0123|4567 89ab|cdef 0123|4567
+        // To be inserted:   NN
+        // Original bitmap:  0000|0EEE
+        // Concatenation:    0000|0EEE GGGG|GGGG 0000|00NN
+        // Deletion:         GGGG|GEEE 0000|NNGG
+
+        // If `$firstIndex` is out of bounds (for instance, in case there are originally 3 bits, -4 or 3
+        // would be an out-of-bound first index) and no elements are to be inserted, then the bitmap
+        // will still be mutated: it will be padded with zeros in the direction where elements would
+        // have been inserted.
         if (-1 === $firstIndex || $firstIndex > $this->bitCount - 1) {
             // Zero or more elements are to be inserted after the existing elements (X?G?N?).
             $originalBitCount = $this->bitCount;
             $tailRelativeBitIndex = ($this->bitCount & 7);
-            
+
             // Calculate if a gap should exist between the existing elements and the new ones.
             $gapInBits = \max(0, $firstIndex - $this->bitCount);
             $gapInBytes = ($gapInBits >> 3) + (0 === ($gapInBits & 7) ? 0 : 1);
@@ -489,12 +495,16 @@ class Bitmap extends Bytemap
                 $this->bitCount = ($this->elementCount << 3);
 
                 if ($tailRelativeBitIndex > 0) {
+                    // The gap did not end at a full byte, so remove the superfluous bits.
                     $this->delete($bitCountAfterFillingTheGap, 8 - $tailRelativeBitIndex);
                 }
 
+                // Delete all the bits after the last inserted bit.
                 $this->delete($originalBitCount + $gapInBits + $howManyBitsToInsert);
             }
         } else {
+            // Elements are to be inserted left of the rightmost bit though not necessarily immediately before it.
+
             $originalFirstIndex = $firstIndex;
             // Calculate the positive index corresponding to the negative one.
             if ($firstIndex < 0) {
@@ -508,7 +518,7 @@ class Bitmap extends Bytemap
 
             $newBitCount = $this->bitCount + $howManyBitsToInsert;
             if (-$originalFirstIndex > $newBitCount) {
-                // Resize the bitmap if the negative first bit index is greater than the new bit count.
+                // Resize the bitmap if the negative first bit index is greater than the new bit count (N?GX?).
                 $originalBitCount = $this->bitCount;
                 $overflowInBits = -$originalFirstIndex - $newBitCount - ($howManyBitsToInsert > 0 ? 0 : 1);
                 $padLengthInBits = $overflowInBits + $howManyBitsToInsert;
@@ -519,40 +529,87 @@ class Bitmap extends Bytemap
                 $this->deriveProperties();
                 $this->bitCount += ($padLengthInBytes << 3);
                 if (($padLengthInBits & 7) > 0) {
+                    // The gap did not end at a full byte, so remove the superfluous bits.
                     $this->delete($padLengthInBits, 8 - ($padLengthInBits & 7));
                 }
             } elseif ($howManyBitsToInsert > 0) {
+                // There will be no gap left or right of the original bitmap (X?NX).
+
                 if (0 === ($firstIndex & 7)) {
+                    // The bits are to be inserted at a full byte.
                     if ($firstIndex > 0) {
+                        // The bits are not to be inserted at the beginning, so splice (XNX).
                         $this->map = \substr($this->map, 0, $firstIndex >> 3).$substringToInsert.\substr($this->map, $firstIndex >> 3);
                     } else {
+                        // The bits are to be inserted add the beginning, so prepend (NX).
                         $this->map = $substringToInsert.$this->map;
                     }
                     $this->deriveProperties();
                     $this->bitCount += (\strlen($substringToInsert) << 3);
                     if (($howManyBitsToInsert & 7) > 0) {
+                        // The inserted bits did not end at a full byte, so remove the superfluous bits.
                         $this->delete($firstIndex + $howManyBitsToInsert, 8 - ($howManyBitsToInsert & 7));
                     }
                 } else {
+                    // Splice inside a byte (XNX).
+
+                    // The part of the original bytemap to the left of what is being inserted will be
+                    // referred to as 'head,' the part to the right will be referred to as 'tail.'
+
+                    // Since splicing does not start at a full byte, both the head and the tail will
+                    // originally have one byte in common. The overlaping bits (rightmost in the head
+                    // and leftmost in the tail) will then by removed by calling the `delete` method.
+
+                    // Head bits will be denoted as H, tail bits will be denoted as T.
+                    // For instance, if the bitmap contains 20 bits and 5 bits are to be inserted with
+                    // their first index being 10 (0xa), then:
+
+                    // Indices:         0123|4567 89ab|cdef 0123|4567 89ab|cdef 0123|4567
+                    // To be inserted:  NNNNN
+                    // Original bitmap: EEEE|EEEE EEEE|EEEE EEEE|0000
+                    //                            ---------
+                    //                                |     same byte
+                    //                                |------------------.
+                    //                                |                   \
+                    //                            ---------           ---------
+                    // Concatenation:   HHHH|HHHH HHHH|HHHH NNNN|N000 TTTT|TTTT TTTT|0000
+                    // `$firstIndex`:               ^
+                    // Overlaping bits:             ^^ ^^^^           ^^
+                    // 1st deletion:                                                 ^^^^
+                    // 2nd deletion:                              ^^^ ^^                  ('middle gap')
+                    // 3rd deletion:                ^^ ^^^^
+                    // Result:          HHHH|HHHH HHNN|NNNT TTTT|TTTT T000|0000
+
+                    // The above is a simplified view. In reality, the bits in each byte are reversed:
+
+                    // Indices:         0123|4567 89ab|cdef 0123|4567 89ab|cdef 0123|4567
+                    // To be inserted:  NNNNN
+                    // Original bitmap: EEEE|EEEE EEEE|EEEE 0000|EEEE
+                    //                            ---------
+                    //                                |     same byte
+                    //                                |------------------.
+                    //                                |                   \
+                    //                            ---------           ---------
+                    // Concatenation:   HHHH|HHHH HHHH|HHHH 000N|NNNN TTTT|TTTT 0000|TTTT
+                    // Result:          HHHH|HHHH TNNN|NNHH TTTT|TTTT 0000|000T
                     $originalBitCount = $this->bitCount;
-                    $head = \substr($this->map, 0, ($firstIndex >> 3) + (($firstIndex & 7) > 0 ? 1 : 0));
+                    $head = \substr($this->map, 0, ($firstIndex >> 3) + 1);
                     $tail = \substr($this->map, $firstIndex >> 3);
                     $this->map = $head.$substringToInsert.$tail;
                     $this->deriveProperties();
                     $this->bitCount = ($this->elementCount << 3);
                     if (($originalBitCount & 7) > 0) {
+                        // The tail did not end at a full byte, so remove the superfluous bits.
                         $this->delete(($originalBitCount & 7) - 8);
                     }
+                    // Remove the middle gap.
                     $middleGapLengthInBits = ($firstIndex & 7);
                     if (($howManyBitsToInsert & 7) > 0) {
                         $middleGapLengthInBits += 8 - ($howManyBitsToInsert & 7);
                     }
-                    if ($middleGapLengthInBits > 0) {
-                        $this->delete((\strlen($head) << 3) + $howManyBitsToInsert, $middleGapLengthInBits);
-                    }
-                    if (($firstIndex & 7) > 0) {
-                        $this->delete($firstIndex, 8 - ($firstIndex & 7));
-                    }
+                    $this->delete((\strlen($head) << 3) + $howManyBitsToInsert, $middleGapLengthInBits);
+                    // The head did not end at a full byte, so remove the superfluous bits.
+                    $this->delete($firstIndex, 8 - ($firstIndex & 7));
                 }
             }
         }
