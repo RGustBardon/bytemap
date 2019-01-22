@@ -188,18 +188,24 @@ abstract class AbstractBytemap implements BytemapInterface
     {
         $elementCount = $this->elementCount;
 
-        // Check if there is anything to delete.
-        if ($howMany < 1 || 0 === $elementCount) {
-            return;
-        }
-
         // Calculate the positive index corresponding to the negative one.
         if ($firstIndex < 0) {
             $firstIndex += $elementCount;
         }
 
+        // If we still end up with a negative index, decrease `$howMany`.
+        if ($firstIndex < 0) {
+            $howMany += $firstIndex;
+            $firstIndex = 0;
+        }
+
+        // Check if there is anything to delete or if the positive index is out of bounds.
+        if ($howMany < 1 || 0 === $elementCount || $firstIndex >= $elementCount) {
+            return;
+        }
+
         // Delete the elements.
-        $this->deleteWithNonNegativeIndex(\max(0, $firstIndex), $howMany, $elementCount);
+        $this->deleteWithNonNegativeIndex($firstIndex, $howMany, $elementCount);
     }
 
     // `AbstractBytemap`

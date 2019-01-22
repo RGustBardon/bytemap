@@ -617,17 +617,19 @@ class Bitmap extends Bytemap
 
     public function delete(int $firstIndex = -1, int $howMany = \PHP_INT_MAX): void
     {
-        // Check if there is anything to delete.
-        if ($howMany < 1 || 0 === $this->bitCount) {
-            return;
-        }
-
         // Calculate the positive index corresponding to the negative one.
         if ($firstIndex < 0) {
             $firstIndex += $this->bitCount;
         }
 
-        if ($firstIndex >= $this->bitCount) {
+        // If we still end up with a negative index, decrease `$howMany`.
+        if ($firstIndex < 0) {
+            $howMany += $firstIndex;
+            $firstIndex = 0;
+        }
+
+        // Check if there is anything to delete or if the positive index is out of bounds.
+        if ($howMany < 1 || 0 === $this->bitCount || $firstIndex >= $this->bitCount) {
             return;
         }
 
