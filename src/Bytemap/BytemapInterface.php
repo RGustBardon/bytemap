@@ -79,7 +79,9 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *
      * @param iterable $elements   The elements to be inserted. Keys are ignored.
      * @param int      $firstIndex the index that the first newly inserted element is going to have.
-     *                             If negative, `-1` represents the last element, `-2` the element preceding it, etc
+     *                             If negative, `-1` represents the last element, `-2` the element preceding it, etc.
+     *                             If the index is out of bounds, the bytemap is padded with the default element to
+     *                             include the index.
      *
      * @throws \TypeError       if any element that is to be inserted is not of the expected type
      * @throws \DomainException if any element that is to be inserted is of the expected type,
