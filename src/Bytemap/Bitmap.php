@@ -458,7 +458,7 @@ class Bitmap extends Bytemap
 
         // The above is a simplified view. In reality, the bits in each byte are reversed:
 
-        // Indices:          0123|4567 89ab|cdef 0123|4567
+        // Indices:          7654|3210 fedc|ba98 7654|3210
         // To be inserted:   NN
         // Original bitmap:  0000|0EEE
         // Concatenation:    0000|0EEE GGGG|GGGG 0000|00NN
@@ -582,7 +582,7 @@ class Bitmap extends Bytemap
 
                     // The above is a simplified view. In reality, the bits in each byte are reversed:
 
-                    // Indices:         0123|4567 89ab|cdef 0123|4567 89ab|cdef 0123|4567
+                    // Indices:         7654|3210 fedc|ba98 7654|3210 fedc|ba98 7654|3210
                     // To be inserted:  NNNNN
                     // Original bitmap: EEEE|EEEE EEEE|EEEE 0000|EEEE
                     //                            ---------
@@ -634,7 +634,13 @@ class Bitmap extends Bytemap
         }
 
         // Delete the elements.
-        $firstIndex = \max(0, $firstIndex);
+
+        // Bit-shifting a substring is expensive, so delete all the full bytes in the range, for example:
+        //
+        // Indices:            0123|4567 89ab|cdef 0123|4567 89ab|cdef 0123|4567 89ab|cdef
+        // To be deleted:             XX XXXX|XXXX XXXX|XXXX XXXX XXX
+        // Full bytes:                   ^^^^ ^^^^ ^^^^ ^^^^
+
         $firstFullByteIndex = ($firstIndex >> 3) + ((0 === $firstIndex & 7) ? 0 : 1);
         $howManyFullBytes = \min($this->elementCount - 1, ($firstIndex + $howMany) >> 3) - $firstFullByteIndex;
         if ($howManyFullBytes > 0) {
@@ -642,28 +648,47 @@ class Bitmap extends Bytemap
             $deletedBitCount = ($howManyFullBytes << 3);
             $this->bitCount -= $deletedBitCount;
             $howMany -= $deletedBitCount;
-        }
-
-        if (0 === $firstIndex & 7) {
-            if ($firstIndex + $howMany >= $this->bitCount) {
-                $this->map = \substr($this->map, 0, $firstIndex >> 3);
-                $this->bitCount = $firstIndex;
-                $this->elementCount = $firstIndex >> 3;
-                $this->bytesInTotal = $this->elementCount;
-
-                return;
-            }
-            if (0 === $howMany & 7) {
-                $originalByteCount = \strlen($this->map);
-                $this->map = \substr_replace($this->map, '', $firstIndex >> 3, $howMany >> 3);
-                $byteCountDifference = $originalByteCount - \strlen($this->map);
-                $this->bitCount -= $byteCountDifference << 3;
-                $this->elementCount -= $byteCountDifference;
-                $this->bytesInTotal -= $byteCountDifference;
-
+            if (0 === $howMany) {
                 return;
             }
         }
+
+        if (0 === $firstIndex & 7 && $firstIndex + $howMany >= $this->bitCount) {
+            // If the first index conceptually begins a byte and everything to its right is to be deleted,
+            // no bit-shifting is necessary.
+
+            $this->map = \substr($this->map, 0, $firstIndex >> 3);
+            $this->bitCount = $firstIndex;
+            $this->elementCount = $firstIndex >> 3;
+            $this->bytesInTotal = $this->elementCount;
+
+            return;
+        }
+
+        // Keep rewritting the target with assembled bytes.
+
+        // During the first iteration, the assembled byte will include some target bits.
+        // After the first iteration, all the assembled bytes will consist of source bits only.
+
+        // Conceptually:
+
+        // Indices:            0123|4567 89ab|cdef 0123|4567 89ab|cdef
+        // To be deleted:             XX XXXX XXX
+        // Source bits:                          ^ ^^^^ ^^^^ ^^^^ ^^^^
+        // Target bits:               ^^ ^^^^ ^^^^ ^^^^ ^^^
+        // 1st assembled byte: ^^^^ ^^           ^ ^                   (includes six target bits)
+        // 2nd assembled byte: 1111|1111            ^^^ ^^^^ ^         (consist entirely of source bits)
+        // 3rd assembled byte: 1111|1111 2222|2222            ^^ ^^^^^ (consist of source bits and zeros)
+
+        // The above is a simplified view. In reality, the bits in each byte are reversed:
+
+        // Indices:            7654|3210 fedc|ba98 7654|3210 fedc|ba98
+        // To be deleted:      XX         XXX XXXX
+        // Source bits:                  ^         ^^^^ ^^^^ ^^^^ ^^^^
+        // Target bits:        ^^        ^^^^ ^^^^  ^^^ ^^^^
+        // 1st assembled byte:   ^^^^ ^^ ^                 ^           (includes six target bits)
+        // 2nd assembled byte: 1111|1111           ^^^^ ^^^          ^ (consist entirely of source bits)
+        // 3rd assembled byte: 1111|1111 2222|2222           ^^^^ ^^^  (consist of source bits and zeros)
 
         $lastByteIndex = $this->elementCount - 1;
         $bitCount = $this->bitCount;
@@ -673,18 +698,22 @@ class Bitmap extends Bytemap
         $sourceHeadBitAbsoluteIndex = $firstIndex + $howMany;
 
         while ($sourceHeadBitAbsoluteIndex < $bitCount) {
+            // Find out how many target bits are needed to assemble a byte.
             $targetHeadBitRelativeBitIndex = $targetHeadBitAbsoluteIndex & 7;
             $targetByteMissingBitCount = 8 - $targetHeadBitRelativeBitIndex;
 
+            // Get the current source byte as an integer (bit-shifting operators do not work for strings).
             $sourceHeadByteIndex = $sourceHeadBitAbsoluteIndex >> 3;
-            $sourceAssembledByte = \ord($map[$sourceHeadByteIndex]);
+            $assembledByte = \ord($map[$sourceHeadByteIndex]);
 
             $sourceHeadShift = $sourceHeadBitAbsoluteIndex & 7;
             if ($sourceHeadShift > 0) {
-                $sourceAssembledByte >>= $sourceHeadShift;
+                // Shift the source bits to be copied to the end of the assembled byte.
+                $assembledByte >>= $sourceHeadShift;
                 $sourceAssembledBitCount = 8 - $sourceHeadShift;
                 if ($sourceAssembledBitCount < $targetByteMissingBitCount && $sourceHeadByteIndex < $lastByteIndex) {
-                    $sourceAssembledByte |= (
+                    // There are not enough bits in the assembled byte, so augment it with the next source byte.
+                    $assembledByte |= (
                             \ord($map[$sourceHeadByteIndex + 1])
                             & 0xff >> (8 - $targetByteMissingBitCount + $sourceAssembledBitCount)
                         ) << $sourceAssembledBitCount;
@@ -693,18 +722,23 @@ class Bitmap extends Bytemap
 
             $targetHeadByteIndex = $targetHeadBitAbsoluteIndex >> 3;
             if ($targetHeadBitRelativeBitIndex > 0) {
-                $sourceAssembledByte =
+                // Some of the bits of the target byte need to be preserved, so augment the assembled byte.
+                $assembledByte =
                     \ord($map[$targetHeadByteIndex])
                     & 0xff >> $targetByteMissingBitCount
-                    | $sourceAssembledByte << $targetHeadBitRelativeBitIndex;
+                    | $assembledByte << $targetHeadBitRelativeBitIndex;
             }
-            $map[$targetHeadByteIndex] = \chr($sourceAssembledByte);
 
+            // Overwrite the target byte with the assembled byte.
+            $map[$targetHeadByteIndex] = \chr($assembledByte);
+
+            // Advance by the number of bits rewritten.
             $targetHeadBitAbsoluteIndex += $targetByteMissingBitCount;
             $sourceHeadBitAbsoluteIndex += $targetByteMissingBitCount;
         }
 
         $this->bitCount -= \min($howMany, $bitCount - $firstIndex);
+        // Remove all the bytes after the last rewritten byte.
         $this->map = \substr_replace($map, '', ($this->bitCount >> 3) + 1, \PHP_INT_MAX);
         $this->deriveProperties();
     }
