@@ -20,6 +20,8 @@ namespace Bytemap;
  * @covers \Bytemap\AbstractBytemap
  * @covers \Bytemap\Benchmark\AbstractDsBytemap
  * @covers \Bytemap\Benchmark\ArrayBytemap
+ * @covers \Bytemap\Benchmark\DsDequeBytemap
+ * @covers \Bytemap\Benchmark\DsVectorBytemap
  * @covers \Bytemap\Benchmark\SplBytemap
  * @covers \Bytemap\Bytemap
  * @covers \Bytemap\JsonListener\BytemapListener
@@ -27,6 +29,22 @@ namespace Bytemap;
 final class JsonStreamTest extends AbstractTestOfBytemap
 {
     use JsonStreamTestTrait;
+
+    // `JsonStreamTestTrait`
+    public static function jsonStreamInstanceProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([
+                ['b', 'd', 'f'],
+                ['bd', 'df', 'gg'],
+            ] as $elements) {
+                $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
+                yield [new $impl($defaultValue), $defaultValue, $elements];
+            }
+        }
+    }
+
+    // `JsonStreamTest`
 
     /**
      * @covers \Bytemap\AbstractBytemap::ensureStream
@@ -161,57 +179,5 @@ final class JsonStreamTest extends AbstractTestOfBytemap
 
         $sequence = [1 => $elements[1], 2 => $elements[2]];
         self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::ensureStream
-     * @dataProvider implementationProvider
-     * @expectedException \TypeError
-     */
-    public function testStreamingToClosedResource(string $impl): void
-    {
-        self::instantiate($impl, "\x0")->streamJson(self::getClosedStream());
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::ensureStream
-     * @dataProvider implementationProvider
-     * @expectedException \InvalidArgumentException
-     */
-    public function testStreamingToNonStream(string $impl): void
-    {
-        $bytemap = self::instantiate($impl, "\x0");
-        $process = self::getProcess();
-
-        try {
-            $bytemap->streamJson($process);
-        } finally {
-            \proc_close($process);
-        }
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::streamJson
-     * @covers \Bytemap\Benchmark\ArrayBytemap::streamJson
-     * @covers \Bytemap\Benchmark\SplBytemap::streamJson
-     * @covers \Bytemap\Bytemap::streamJson
-     * @dataProvider arrayAccessProvider
-     */
-    public function testStreaming(string $impl, array $elements): void
-    {
-        $bytemap = self::instantiate($impl, $elements[0]);
-
-        self::assertStreamWriting([], $bytemap);
-
-        $sequence = [$elements[1], $elements[2], $elements[1]];
-        self::pushElements($bytemap, ...$sequence);
-        $bytemap[4] = $elements[0];
-        \array_push($sequence, $elements[0], $elements[0]);
-
-        self::assertStreamWriting($sequence, $bytemap);
-
-        // The size of streamed JSON data should exceed `AbstractBytemap::STREAM_BUFFER_SIZE`.
-        $bytemap = self::instantiateWithSize($impl, $elements, 32 * 1024);
-        self::assertStreamWriting(\iterator_to_array($bytemap->getIterator()), $bytemap);
     }
 }

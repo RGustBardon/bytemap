@@ -452,11 +452,12 @@ class Bitmap extends Bytemap
         // Indices:          0123|4567 89ab|cdef 0123|4567
         // To be inserted:   NN
         // Original bitmap:  EEE0|0000
+        // `$firstIndex`:                ^
         // Concatenation:    EEE0|0000 GGGG|GGGG NN00|0000
         // Superfluous bits:    ^ ^^^^         ^   ^^ ^^^^
         // Deletion:         EEEG|GGGG GGNN|0000
 
-        // The above is a simplified view. In reality, the bits in each byte are reversed:
+        // The above is a simplified view. In reality, the bits are reversed in each byte:
 
         // Indices:          7654|3210 fedc|ba98 7654|3210
         // To be inserted:   NN
@@ -580,7 +581,7 @@ class Bitmap extends Bytemap
                     // 3rd deletion:                ^^ ^^^^
                     // Result:          HHHH|HHHH HHNN|NNNT TTTT|TTTT T000|0000
 
-                    // The above is a simplified view. In reality, the bits in each byte are reversed:
+                    // The above is a simplified view. In reality, the bits are reversed in each byte:
 
                     // Indices:         7654|3210 fedc|ba98 7654|3210 fedc|ba98 7654|3210
                     // To be inserted:  NNNNN
@@ -678,9 +679,9 @@ class Bitmap extends Bytemap
         // Target bits:               ^^ ^^^^ ^^^^ ^^^^ ^^^
         // 1st assembled byte: ^^^^ ^^           ^ ^                   (includes six target bits)
         // 2nd assembled byte: 1111|1111            ^^^ ^^^^ ^         (consist entirely of source bits)
-        // 3rd assembled byte: 1111|1111 2222|2222            ^^ ^^^^^ (consist of source bits and zeros)
+        // 3rd assembled byte: 1111|1111 2222|2222            ^^^ ^^^^ (consist of source bits and zeros)
 
-        // The above is a simplified view. In reality, the bits in each byte are reversed:
+        // The above is a simplified view. In reality, the bits are reversed in each byte:
 
         // Indices:            7654|3210 fedc|ba98 7654|3210 fedc|ba98
         // To be deleted:      XX         XXX XXXX

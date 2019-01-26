@@ -24,7 +24,69 @@ trait JsonStreamTestTrait
 
     abstract public static function assertSame($expected, $actual, string $message = ''): void;
 
+    abstract public static function jsonStreamInstanceProvider(): \Generator;
+
     abstract public static function markTestSkipped(string $message = ''): void;
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::ensureStream
+     * @dataProvider jsonStreamInstanceProvider
+     * @expectedException \TypeError
+     *
+     * @param mixed $defaultValue
+     */
+    public function testStreamingToClosedResource(BytemapInterface $bytemap, $defaultValue, array $elements): void
+    {
+        $bytemap->streamJson(self::getClosedStream());
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::ensureStream
+     * @dataProvider jsonStreamInstanceProvider
+     * @expectedException \InvalidArgumentException
+     *
+     * @param mixed $defaultValue
+     */
+    public function testStreamingToNonStream(BytemapInterface $bytemap, $defaultValue, array $elements): void
+    {
+        $process = self::getProcess();
+
+        try {
+            $bytemap->streamJson($process);
+        } finally {
+            \proc_close($process);
+        }
+    }
+
+    /**
+     * @covers \Bytemap\Benchmark\AbstractDsBytemap::streamJson
+     * @covers \Bytemap\Benchmark\ArrayBytemap::streamJson
+     * @covers \Bytemap\Benchmark\SplBytemap::streamJson
+     * @covers \Bytemap\Bytemap::streamJson
+     * @dataProvider jsonStreamInstanceProvider
+     *
+     * @param mixed $defaultValue
+     */
+    public function testStreaming(BytemapInterface $bytemap, $defaultValue, array $elements): void
+    {
+        self::assertStreamWriting([], $bytemap);
+
+        $sequence = [];
+        foreach ([1, 2, 1, null, 0] as $sequenceIndex => $elementIndex) {
+            $element = null === $elementIndex ? $defaultValue : $elements[$elementIndex];
+            $sequence[$sequenceIndex] = $element;
+            if (null !== $elementIndex) {
+                $bytemap[$sequenceIndex] = $element;
+            }
+        }
+        self::assertStreamWriting($sequence, $bytemap);
+
+        // The size of streamed JSON data should exceed `AbstractBytemap::STREAM_BUFFER_SIZE`.
+        for ($i = \count($elements), $sizeOfSeed = \count($elements); $i < 32 * 1024; ++$i) {
+            $bytemap[$i] = $elements[$i % $sizeOfSeed];
+        }
+        self::assertStreamWriting(\iterator_to_array($bytemap->getIterator()), $bytemap);
+    }
 
     protected static function getClosedStream()
     {

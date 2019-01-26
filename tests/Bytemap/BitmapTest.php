@@ -30,6 +30,7 @@ final class BitmapTest extends AbstractTestOfBytemap
     use InvalidTypeGeneratorsTrait;
     use IterableTestTrait;
     use JsonSerializableTestTrait;
+    use JsonStreamTestTrait;
     use SerializableTestTrait;
 
     private const BINARY_DUMP_STATUS_DEFAULT = ' ';
@@ -73,6 +74,12 @@ final class BitmapTest extends AbstractTestOfBytemap
     public static function jsonSerializableInstanceProvider(): \Generator
     {
         yield [new Bitmap(), false, [false, true, false]];
+    }
+
+    // `JsonStreamTestTrait`
+    public static function jsonStreamInstanceProvider(): \Generator
+    {
+        yield from self::jsonSerializableInstanceProvider();
     }
 
     // `SerializableTestTrait`

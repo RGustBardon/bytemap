@@ -20,6 +20,8 @@ namespace Bytemap;
  * @covers \Bytemap\AbstractBytemap
  * @covers \Bytemap\Benchmark\AbstractDsBytemap
  * @covers \Bytemap\Benchmark\ArrayBytemap
+ * @covers \Bytemap\Benchmark\DsDequeBytemap
+ * @covers \Bytemap\Benchmark\DsVectorBytemap
  * @covers \Bytemap\Benchmark\SplBytemap
  * @covers \Bytemap\Bytemap
  */
