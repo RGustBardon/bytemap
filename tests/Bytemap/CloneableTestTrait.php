@@ -45,5 +45,11 @@ trait CloneableTestTrait
         self::assertFalse(isset($cloneable[3]));
     }
 
+    abstract public static function assertFalse($condition, string $message = ''): void;
+
+    abstract public static function assertSame($expected, $actual, string $message = ''): void;
+
+    abstract public static function assertNotSame($expected, $actual, string $message = ''): void;
+
     abstract public static function cloneableInstanceProvider(): \Generator;
 }

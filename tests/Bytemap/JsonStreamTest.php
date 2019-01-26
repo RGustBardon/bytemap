@@ -26,6 +26,8 @@ namespace Bytemap;
  */
 final class JsonStreamTest extends AbstractTestOfBytemap
 {
+    use JsonStreamTestTrait;
+
     /**
      * @covers \Bytemap\AbstractBytemap::ensureStream
      * @dataProvider implementationProvider
@@ -211,78 +213,5 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         // The size of streamed JSON data should exceed `AbstractBytemap::STREAM_BUFFER_SIZE`.
         $bytemap = self::instantiateWithSize($impl, $elements, 32 * 1024);
         self::assertStreamWriting(\iterator_to_array($bytemap->getIterator()), $bytemap);
-    }
-
-    private static function assertStreamParsing(
-        array $expectedSequence,
-        array $sequence,
-        int $jsonEncodingOptions,
-        BytemapInterface $instance,
-        $defaultValue,
-        bool $useStreamingParser
-        ): void {
-        $json = \json_encode($sequence, $jsonEncodingOptions);
-        self::assertNotFalse($json);
-
-        $jsonStream = self::getStream($json);
-        if ($useStreamingParser) {
-            unset($_ENV['BYTEMAP_STREAMING_PARSER']);
-        } else {
-            $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
-        }
-        $bytemap = $instance::parseJsonStream($jsonStream, $defaultValue);
-
-        self::assertSame('resource', \gettype($jsonStream));
-        self::assertNotSame($instance, $bytemap);
-        self::assertSequence($expectedSequence, $bytemap);
-        self::assertDefaultValue($defaultValue, $bytemap, \str_repeat("\xff", \strlen($defaultValue)));
-    }
-
-    private static function getClosedStream()
-    {
-        $resource = self::getStream('[]');
-        \fclose($resource);
-
-        return $resource;
-    }
-
-    private static function getProcess()
-    {
-        if (!\function_exists('proc_open')) {
-            self::markTestSkipped('This test requires the proc_open function.');
-        }
-
-        $otherOptions = ['suppress_errors' => true, 'bypass_shell' => false];
-        $process = \proc_open('', [], $pipes, null, null, $otherOptions);
-
-        if (!\is_resource($process)) {
-            self::markTestSkipped('Could not create a process resource.');
-        }
-
-        return $process;
-    }
-
-    private static function getStream(string $contents)
-    {
-        $stream = \fopen('php://memory', 'r+b');
-        self::assertNotFalse($stream);
-        \fwrite($stream, $contents);
-        \rewind($stream);
-
-        return $stream;
-    }
-
-    private static function assertStreamWriting(array $expected, BytemapInterface $bytemap): void
-    {
-        $json = \json_encode($expected);
-        self::assertNotFalse($json);
-
-        $stream = \fopen('php://memory', 'r+b');
-        self::assertNotFalse($stream);
-        $bytemap->streamJson($stream);
-
-        \rewind($stream);
-        self::assertSame($json, \stream_get_contents($stream));
-        \fclose($stream);
     }
 }

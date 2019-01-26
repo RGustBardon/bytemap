@@ -43,5 +43,7 @@ trait CountableTestTrait
         self::assertCount($expectedCount, $countable);
     }
 
+    abstract public static function assertCount(int $expectedCount, $haystack, string $message = ''): void;
+
     abstract public static function countableInstanceProvider(): \Generator;
 }

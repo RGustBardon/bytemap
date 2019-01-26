@@ -245,6 +245,12 @@ trait ArrayAccessTestTrait
 
     abstract public static function arrayAccessInstanceProvider(): \Generator;
 
+    abstract public static function assertFalse($condition, string $message = ''): void;
+
+    abstract public static function assertSame($expected, $actual, string $message = ''): void;
+
+    abstract public static function assertTrue($condition, string $message = ''): void;
+
     abstract protected static function generateIndicesOfInvalidType(): \Generator;
 
     abstract protected static function generateElementsOfInvalidType($defaultValue): \Generator;

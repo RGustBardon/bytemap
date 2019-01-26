@@ -68,5 +68,13 @@ trait IterableTestTrait
         ], $iterations);
     }
 
+    abstract public static function assertFalse($condition, string $message = ''): void;
+
+    abstract public static function assertSame($expected, $actual, string $message = ''): void;
+
+    abstract public static function assertTrue($condition, string $message = ''): void;
+
+    abstract public static function fail(string $message = ''): void;
+
     abstract public static function iterableInstanceProvider(): \Generator;
 }

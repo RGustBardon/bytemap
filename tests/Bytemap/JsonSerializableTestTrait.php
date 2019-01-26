@@ -38,6 +38,8 @@ trait JsonSerializableTestTrait
         self::assertNativeJson($sequence, $jsonSerializable);
     }
 
+    abstract public static function assertSame($expected, $actual, string $message = ''): void;
+
     abstract public static function jsonSerializableInstanceProvider(): \Generator;
 
     private static function assertNativeJson($expected, $actual): void

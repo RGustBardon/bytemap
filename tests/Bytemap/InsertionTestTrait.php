@@ -128,6 +128,8 @@ trait InsertionTestTrait
         self::assertSequence($expectedSequence, $bytemap);
     }
 
+    abstract public static function assertTrue($condition, string $message = ''): void;
+
     abstract protected static function assertSequence(array $sequence, BytemapInterface $bytemap): void;
 
     abstract protected static function generateInvalidElements(BytemapInterface $emptyBytemap, array $elements, $invalidElement): \Generator;

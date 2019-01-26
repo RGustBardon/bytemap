@@ -62,6 +62,18 @@ trait SerializableTestTrait
         self::assertFalse(isset($serializable[3]));
     }
 
+    abstract public static function assertContains($needle, $haystack, string $message = '', bool $ignoreCase = false, bool $checkForObjectIdentity = true, bool $checkForNonObjectIdentity = false): void;
+
+    abstract public static function assertFalse($condition, string $message = ''): void;
+
+    abstract public static function assertNotSame($expected, $actual, string $message = ''): void;
+
+    abstract public static function assertSame($expected, $actual, string $message = ''): void;
+
+    abstract public static function assertTrue($condition, string $message = ''): void;
+
+    abstract public static function fail(string $message = ''): void;
+
     abstract public static function invalidSerializedDataProvider(): \Generator;
 
     abstract public static function serializableInstanceProvider(): \Generator;
