@@ -112,7 +112,7 @@ final class ArrayBytemap extends AbstractBytemap
 
             try {
                 \array_push($this->map, ...$elements);
-            } catch (\ArgumentCountError $e) {
+            } catch (\ArgumentCountError $e) { // @codeCoverageIgnore
             }
             $this->elementCount += \count($this->map) - $elementCount;
             $this->validateInsertedElements($elementCount, $this->elementCount - $elementCount, $originalElementCount, $this->elementCount - $originalElementCount);
