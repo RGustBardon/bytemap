@@ -313,6 +313,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         $keysToReorder = [];
         $swappers = [];
         $format = 'Expected an array, a bytemap, a \\Ds\\Sequence, or an \\SplFixedArray; %s passed as argument %d';
+        /** @var array|object $iterableToReorder */
         foreach ($iterablesToReorder as $index => $iterableToReorder) {
             if (\is_object($iterableToReorder)) {
                 if (
@@ -468,7 +469,11 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
             throw new \OutOfRangeException('Argument has to be between 1 and the number of elements');
         }
 
-        return \array_rand(\range(0, $elementCount - 1), $num);
+        /** @var int[] $result */
+        $result = \array_rand(\range(0, $elementCount - 1), $num);
+        \count($result);  // PHP CS Fixer vs. PHPStan.
+
+        return $result;
     }
 
     public function reduce(callable $callback, $initial = null)
@@ -736,9 +741,10 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
                 ++$index;
             }
         } catch (\OutOfRangeException $e) {
+            throw new \UnderflowException('Both parameters should have an equal number of elements');
         }
 
-        if (isset($e) || \count($bytemap) !== $index) {
+        if (\count($bytemap) !== $index) {
             throw new \UnderflowException('Both parameters should have an equal number of elements');
         }
 
@@ -790,7 +796,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     public function pregFilter($pattern, $replacement, int $limit = -1, ?int &$count = 0): \Generator
     {
         $count = 0;
-        foreach ($this->bytemap->grep(\is_iterable($pattern) ? $pattern : [$pattern]) as $index => $element) {
+        foreach ($this->bytemap->grep(\is_array($pattern) ? $pattern : [$pattern]) as $index => $element) {
             $element = \preg_replace($pattern, $replacement, $element, $limit, $countInIteration);
             $count += $countInIteration;
             yield $index => $element;
@@ -822,11 +828,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
     {
         $count = 0;
 
-        if (\is_iterable($pattern)) {
-            if (!\is_array($pattern)) {
-                $pattern = \iterator_to_array($pattern);
-            }
-
+        if (\is_array($pattern)) {
             if (!$pattern) {
                 yield from $this->bytemap->getIterator();
 
@@ -836,7 +838,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
         $clone = clone $this->bytemap;
         $lastIndex = 0;
-        foreach ($clone->grep(\is_iterable($pattern) ? $pattern : [$pattern]) as $index => $element) {
+        foreach ($clone->grep(\is_array($pattern) ? $pattern : [$pattern]) as $index => $element) {
             for (; $lastIndex < $index; ++$lastIndex) {
                 yield $lastIndex => $clone[$lastIndex];
             }
@@ -850,13 +852,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
     }
 
-    public function pregReplaceCallbackArray(iterable $patternsAndCallbacks, int $limit = -1, ?int &$count = 0): \Generator
+    public function pregReplaceCallbackArray(array $patternsAndCallbacks, int $limit = -1, ?int &$count = 0): \Generator
     {
         $count = 0;
-
-        if (!\is_array($patternsAndCallbacks)) {
-            $patternsAndCallbacks = \iterator_to_array($patternsAndCallbacks);
-        }
 
         if (!$patternsAndCallbacks) {
             return;
@@ -864,7 +862,9 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
 
         if (1 === \count($patternsAndCallbacks)) {
             $callback = \reset($patternsAndCallbacks);
-            yield from $this->pregReplaceCallback(\key($patternsAndCallbacks), $callback, $limit, $count);
+            /** @var string $pattern */
+            $pattern = \key($patternsAndCallbacks);
+            yield from $this->pregReplaceCallback($pattern, $callback, $limit, $count);
 
             return;
         }

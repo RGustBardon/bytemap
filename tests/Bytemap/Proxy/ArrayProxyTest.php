@@ -690,13 +690,14 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         $arrayProxy = new ArrayProxy('cd', ...\array_fill(0, 1000, 'ab'));
 
         $singles = [$arrayProxy->rand(), $arrayProxy->rand(), $arrayProxy->rand()];
-        self::assertTrue(\count(\array_unique($singles)) > 1);
+        self::assertGreaterThan(1, \count(\array_unique($singles)));
         foreach ($singles as $key) {
             self::assertTrue(isset($arrayProxy[$key]));
         }
 
+        /** @var array $batch */
         $batch = $arrayProxy->rand(3);
-        self::assertTrue(\count(\array_unique($batch)) > 1);
+        self::assertGreaterThan(1, \count(\array_unique($batch)));
         foreach ($batch as $key) {
             self::assertTrue(isset($arrayProxy[$key]));
         }
@@ -1299,9 +1300,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ],
             [
                 ['cd', 'xy', 'ef', 'ef', 'zz'],
-                (static function (): \Generator {
-                    yield '~[ef]~';
-                })(),
+                '~[ef]~',
                 $defaultCallback,
                 -1,
                 ['cd', 'xy', 'e,f,', 'e,f,', 'zz'],
@@ -1365,11 +1364,11 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             ],
             [
                 ['cd', 'xy', 'ef', 'ef', 'zz'],
-                (static function (): \Generator {
-                    yield '~[ef]~' => static function (array $matches): string {
+                [
+                    '~[ef]~' => static function (array $matches): string {
                         return 'w';
-                    };
-                })(),
+                    },
+                ],
                 -1,
                 ['cd', 'xy', 'ww', 'ww', 'zz'],
                 4,
@@ -1399,7 +1398,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     /**
      * @dataProvider pregReplaceCallbackArrayProvider
      */
-    public function testPregReplaceCallbackArray(array $elements, iterable $patternsAndCallbacks, int $limit, array $expectedResult, int $expectedCount): void
+    public function testPregReplaceCallbackArray(array $elements, array $patternsAndCallbacks, int $limit, array $expectedResult, int $expectedCount): void
     {
         $arrayProxy = self::instantiate(...$elements);
         $result = $arrayProxy->pregReplaceCallbackArray($patternsAndCallbacks, $limit, $count);

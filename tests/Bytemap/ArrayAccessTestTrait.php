@@ -164,20 +164,16 @@ trait ArrayAccessTestTrait
         $originalElementCount = \count($elements);
 
         $stack = $elements;
-        while (true) {
+        do {
             $presentElementCount = \count($stack);
             for ($i = 0; $i < $originalElementCount; ++$i) {
                 self::assertSame($i < $presentElementCount, isset($arrayAccessObject[$i]));
-            }
-            if (!$stack) {
-                break;
             }
             foreach ($stack as $index => $element) {
                 self::assertSame($element, $arrayAccessObject[$index]);
             }
             unset($arrayAccessObject[$presentElementCount - 1]);
-            \array_pop($stack);
-        }
+        } while (null !== \array_pop($stack));
 
         foreach ($elements as $index => $element) {
             $stack[] = $element;
@@ -192,20 +188,16 @@ trait ArrayAccessTestTrait
         }
 
         $queue = $stack;
-        while (true) {
+        do {
             $presentElementCount = \count($queue);
             for ($i = 0; $i < $originalElementCount; ++$i) {
                 self::assertSame($i < $presentElementCount, isset($arrayAccessObject[$i]));
-            }
-            if (!$queue) {
-                break;
             }
             foreach ($queue as $index => $element) {
                 self::assertSame($element, $arrayAccessObject[$index]);
             }
             unset($arrayAccessObject[0]);
-            \array_shift($queue);
-        }
+        } while (null !== \array_shift($queue));
 
         foreach (\array_reverse($elements, true) as $index => $element) {
             $arrayAccessObject[$index] = $element;
