@@ -1116,11 +1116,20 @@ final class ArrayProxyTest extends AbstractTestOfProxy
      * @expectedException \UnderflowException
      * @expectedExceptionMessage equal number of elements
      */
-    public function testCombineCardinalityMismatch(): void
+    public function testCombineTooManyKeys(): void
     {
         self::instantiate()::combine('cd', [1, 6, 3], ['ab', 'ef']);
     }
 
+    /**
+     * @expectedException \UnderflowException
+     * @expectedExceptionMessage equal number of elements
+     */
+    public function testCombineTooManyValues(): void
+    {
+        self::instantiate()::combine('cd', [1], ['ab', 'ef']);
+    }
+    
     public function testCombine(): void
     {
         $arrayProxy = self::instantiate()::combine('cd', [1, 6, 3], ['ab', 'ef', 'xy']);
