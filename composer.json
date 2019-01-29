@@ -23,6 +23,7 @@
         "jakub-onderka/php-parallel-lint": "^1.0",
         "php-coveralls/php-coveralls": "^2.1",
         "php-ds/php-ds": "^1.2",
+        "phpbench/phpbench": "@dev",
         "phpstan/phpstan": "^0.11",
         "phpstan/phpstan-phpunit": "^0.11",
         "phpunit/phpunit": "^7.4",
