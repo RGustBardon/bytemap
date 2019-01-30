@@ -16,21 +16,28 @@ namespace Bytemap;
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
+ * @BeforeMethods({"setUp"})
+ *
  * @internal
  */
 final class BytemapPerformance
 {
+    private $bytemap;
+
+    private $lastIndex = 0;
+
+    public function setUp(): void
+    {
+        \mt_srand(0);
+        $this->bytemap = new Bytemap("\x0");
+    }
+
     /**
-     * @revs(200)
+     * @revs(100000)
      */
     public function benchNativeExpand(): void
     {
-        $bytemap = new Bytemap("\x00");
-        $elementCount = 0;
-        for ($i = 0; $i < 30000; ++$i) {
-            $index = $elementCount + \mt_rand(1, 100);
-            $bytemap[$index] = "\x01";
-            $elementCount = $index + 1;
-        }
+        $this->lastIndex += \mt_rand(1, 100);
+        $this->bytemap[$this->lastIndex] = "\x1";
     }
 }

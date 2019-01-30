@@ -1129,7 +1129,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     {
         self::instantiate()::combine('cd', [1], ['ab', 'ef']);
     }
-    
+
     public function testCombine(): void
     {
         $arrayProxy = self::instantiate()::combine('cd', [1, 6, 3], ['ab', 'ef', 'xy']);
