@@ -62,7 +62,7 @@ final class BytemapPerformance
         foreach (self::IMPLEMENTATIONS as $implementation => $default_inserted_pairs) {
             $shortName = (new \ReflectionClass($implementation))->getShortName();
             foreach ($default_inserted_pairs as [$default, $inserted]) {
-                $key = $shortName.'-'.(\is_string($default) ? \strlen($default) : \var_export($default, true));
+                $key = $shortName.'-'.\is_string($default);
                 yield $key => [$implementation, $default, $inserted];
             }
         }
@@ -89,7 +89,7 @@ final class BytemapPerformance
 
     /**
      * @ParamProviders({"provideImplementations"})
-     * @revs(20000)
+     * @Revs(20000)
      */
     public function benchNativeExpand(): void
     {
