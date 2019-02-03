@@ -1,0 +1,27 @@
+{
+    "bootstrap": "tests/bootstrap.php",
+    "path": "tests/Bytemap/Performance",
+    "php_config": {
+        "memory_limit": "1G"
+    },
+    "reports": {
+    	"time": {
+    		"extends": "aggregate",
+	        "break": ["set"],
+    		"cols": ["subject", "set", "mem_final", "sum", "diff"],
+    		"diff_col": "sum",
+	        "sort": {"set": "asc", "sum": "asc"}
+    	},
+    	"memory": {
+    		"extends": "aggregate",
+	        "break": ["set"],
+	        "cols": ["subject", "set", "sum", "mem_final", "diff"],
+	        "diff_col": "mem_final",
+	        "sort": {"set": "asc", "mem_final": "asc"}
+	    },
+	    "all": {
+	    	"generator": "composite",
+	    	"reports": ["env", "time", "memory"]
+	    }
+    }
+}
