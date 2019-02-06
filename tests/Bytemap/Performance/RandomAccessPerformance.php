@@ -21,7 +21,7 @@ use Bytemap\BytemapInterface;
  *
  * @internal
  */
-final class OverwritingPerformance extends AbstractTestOfPerformance
+final class RandomAccessPerformance extends AbstractTestOfPerformance
 {
     private const CONTAINER_ELEMENT_COUNT = 100000;
     
@@ -51,7 +51,7 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
     
     public function setUp(array $params): void
     {
-        [$default, , $dataStructure] = $params;
+        [$default, $dataStructure] = $params;
         
         $this->array = [];
         $this->bytemap = new Bytemap($default);
@@ -84,6 +84,9 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
                 
             case self::DATA_STRUCTURE_SPL_FIXED_ARRAY:
                 $this->splFixedArray->setSize(self::CONTAINER_ELEMENT_COUNT);
+                for ($i = 0; $i < self::CONTAINER_ELEMENT_COUNT; ++$i) {
+                    $this->splFixedArray[$i] = $default;
+                }
                 break;
                 
             default:
@@ -96,40 +99,40 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
     public function providePairsAndArray(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_ARRAY;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, ]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
     
     public function providePairsAndBytemap(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_BYTEMAP;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, ]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
     
     public function providePairsAndDsDeque(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_DS_DEQUE;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, ]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
     
     public function providePairsAndDsVector(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_DS_VECTOR;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, ]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
     
     public function providePairsAndSplFixedArray(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_SPL_FIXED_ARRAY;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, ]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
     
@@ -138,10 +141,9 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndArray"})
      * @Revs(100000)
      */
-    public function benchExpandWithArray(array $params): void
+    public function benchRandomAccessWithArray(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->array[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        $GLOBALS['__test'] = $this->array[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)];
     }
     
     /**
@@ -149,10 +151,9 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndBytemap"})
      * @Revs(100000)
      */
-    public function benchExpandWithBytemap(array $params): void
+    public function benchRandomAccessWithBytemap(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->bytemap[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        $GLOBALS['__test'] = $this->bytemap[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)];
     }
     
     /**
@@ -160,10 +161,9 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndDsDeque"})
      * @Revs(100000)
      */
-    public function benchExpandWithDsDeque(array $params): void
+    public function benchRandomAccessWithDsDeque(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->dsDeque[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        $GLOBALS['__test'] = $this->dsDeque[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)];
     }
     
     /**
@@ -171,10 +171,9 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndDsVector"})
      * @Revs(100000)
      */
-    public function benchExpandWithDsVector(array $params): void
+    public function benchRandomAccessWithDsVector(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->dsVector[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        $GLOBALS['__test'] = $this->dsVector[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)];
     }
     
     /**
@@ -182,9 +181,8 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndSplFixedArray"})
      * @Revs(100000)
      */
-    public function benchExpandWithSplFixedArray(array $params): void
+    public function benchRandomAccessWithSplFixedArray(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->splFixedArray[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        $GLOBALS['__test'] = $this->splFixedArray[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)];
     }
 }
