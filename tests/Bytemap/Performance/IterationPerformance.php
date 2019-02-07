@@ -19,9 +19,11 @@ use Bytemap\BytemapInterface;
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
  *
+ * @AfterMethods({"tearDown"})
+ *
  * @internal
  */
-final class OverwritingPerformance extends AbstractTestOfPerformance
+final class IterationPerformance extends AbstractTestOfPerformance
 {
     private const CONTAINER_ELEMENT_COUNT = 100000;
 
@@ -39,6 +41,8 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
         self::DATA_STRUCTURE_SPL_FIXED_ARRAY,
     ];
 
+    private /* int */ $elementCount;
+
     private /* array */ $array;
 
     private /* BytemapInterface */ $bytemap;
@@ -51,7 +55,9 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
 
     public function setUp(array $params): void
     {
-        [$default, , $dataStructure] = $params;
+        [$default, $dataStructure] = $params;
+
+        $this->elementCount = 0;
 
         $this->array = [];
         $this->bytemap = new Bytemap($default);
@@ -84,6 +90,9 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
                 break;
             case self::DATA_STRUCTURE_SPL_FIXED_ARRAY:
                 $this->splFixedArray->setSize(self::CONTAINER_ELEMENT_COUNT);
+                for ($i = 0; $i < self::CONTAINER_ELEMENT_COUNT; ++$i) {
+                    $this->splFixedArray[$i] = $default;
+                }
 
                 break;
             default:
@@ -93,98 +102,108 @@ final class OverwritingPerformance extends AbstractTestOfPerformance
         \mt_srand(0);
     }
 
+    public function tearDown(array $params): void
+    {
+        \assert(self::CONTAINER_ELEMENT_COUNT === $this->elementCount);
+    }
+
     public function providePairsAndArray(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_ARRAY;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
 
     public function providePairsAndBytemap(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_BYTEMAP;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
 
     public function providePairsAndDsDeque(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_DS_DEQUE;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
 
     public function providePairsAndDsVector(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_DS_VECTOR;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
 
     public function providePairsAndSplFixedArray(): \Generator
     {
         $dataStructure = self::DATA_STRUCTURE_SPL_FIXED_ARRAY;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+        foreach (self::DEFAULT_INSERTED_PAIRS as [$default]) {
+            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $dataStructure];
         }
     }
 
     /**
      * @Groups({"Time"})
      * @ParamProviders({"providePairsAndArray"})
-     * @Revs(100000)
+     * @Iterations(5)
      */
-    public function benchOverwritingWithArray(array $params): void
+    public function benchIterationWithArray(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->array[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        foreach ($this->array as $element) {
+            ++$this->elementCount;
+        }
     }
 
     /**
      * @Groups({"Time"})
      * @ParamProviders({"providePairsAndBytemap"})
-     * @Revs(100000)
+     * @Iterations(5)
      */
-    public function benchOverwritingWithBytemap(array $params): void
+    public function benchIterationWithBytemap(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->bytemap[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        foreach ($this->bytemap as $element) {
+            ++$this->elementCount;
+        }
     }
 
     /**
      * @Groups({"Time"})
      * @ParamProviders({"providePairsAndDsDeque"})
-     * @Revs(100000)
+     * @Iterations(5)
      */
-    public function benchOverwritingWithDsDeque(array $params): void
+    public function benchIterationWithDsDeque(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->dsDeque[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        foreach ($this->dsDeque as $element) {
+            ++$this->elementCount;
+        }
     }
 
     /**
      * @Groups({"Time"})
      * @ParamProviders({"providePairsAndDsVector"})
-     * @Revs(100000)
+     * @Iterations(5)
      */
-    public function benchOverwritingWithDsVector(array $params): void
+    public function benchIterationWithDsVector(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->dsVector[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        foreach ($this->dsVector as $element) {
+            ++$this->elementCount;
+        }
     }
 
     /**
      * @Groups({"time"})
      * @ParamProviders({"providePairsAndSplFixedArray"})
-     * @Revs(100000)
+     * @Iterations(5)
      */
-    public function benchOverwritingWithSplFixedArray(array $params): void
+    public function benchIterationWithSplFixedArray(array $params): void
     {
-        [, $inserted, ] = $params;
-        $this->splFixedArray[\mt_rand(0, self::CONTAINER_ELEMENT_COUNT - 1)] = $inserted;
+        foreach ($this->splFixedArray as $element) {
+            ++$this->elementCount;
+        }
     }
 }

@@ -21,7 +21,7 @@ use Bytemap\BytemapInterface;
  *
  * @internal
  */
-final class ExpandPerformance extends AbstractTestOfPerformance
+final class ExpansionPerformance extends AbstractTestOfPerformance
 {
     private const INTERVALS = [1, 10, 100];
 
@@ -64,7 +64,7 @@ final class ExpandPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndIntervals"})
      * @Revs(100000)
      */
-    public function benchExpandBaseline(array $params): void
+    public function benchExpansionBaseline(array $params): void
     {
     }
 
@@ -73,7 +73,7 @@ final class ExpandPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndIntervals"})
      * @Revs(100000)
      */
-    public function benchExpandWithArray(array $params): void
+    public function benchExpansionWithArray(array $params): void
     {
         [, $inserted, $interval] = $params;
         $this->array[$this->lastIndex += $interval] = $inserted;
@@ -84,7 +84,7 @@ final class ExpandPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndIntervals"})
      * @Revs(100000)
      */
-    public function benchExpandWithBytemap(array $params): void
+    public function benchExpansionWithBytemap(array $params): void
     {
         [, $inserted, $interval] = $params;
         $this->bytemap[$this->lastIndex += $interval] = $inserted;
@@ -95,7 +95,7 @@ final class ExpandPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndIntervals"})
      * @Revs(100000)
      */
-    public function benchExpandWithDsDeque(array $params): void
+    public function benchExpansionWithDsDeque(array $params): void
     {
         [$default, $inserted, $interval] = $params;
         if ($interval > 1) {
@@ -115,7 +115,7 @@ final class ExpandPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndIntervals"})
      * @Revs(100000)
      */
-    public function benchExpandWithDsVector(array $params): void
+    public function benchExpansionWithDsVector(array $params): void
     {
         [$default, $inserted, $interval] = $params;
         if ($interval > 1) {
@@ -135,7 +135,7 @@ final class ExpandPerformance extends AbstractTestOfPerformance
      * @ParamProviders({"providePairsAndIntervals"})
      * @Revs(100000)
      */
-    public function benchExpandWithSplFixedArray(array $params): void
+    public function benchExpansionWithSplFixedArray(array $params): void
     {
         [, $inserted, $interval] = $params;
         $this->lastIndex += $interval;
