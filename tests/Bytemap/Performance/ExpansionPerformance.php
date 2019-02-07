@@ -13,88 +13,47 @@ declare(strict_types=1);
 
 namespace Bytemap\Performance;
 
-use Bytemap\Bytemap;
-use Bytemap\BytemapInterface;
-
 /**
  * @author Robert Gust-Bardon <robert@gust-bardon.org>
+ *
+ * @Groups({"Memory"})
+ * @ParamProviders({"providePairsAndIntervals"})
+ * @Revs(100000)
  *
  * @internal
  */
 final class ExpansionPerformance extends AbstractTestOfPerformance
 {
-    private const INTERVALS = [1, 10, 100];
-
     private /* int */ $lastIndex;
-
-    private /* array */ $array;
-
-    private /* BytemapInterface */ $bytemap;
-
-    private /* \Ds\Sequence */ $dsDeque;
-
-    private /* \Ds\Vector */ $dsVector;
-
-    private /* \SplFixedArray */ $splFixedArray;
 
     public function setUp(array $params): void
     {
+        parent::setUp($params);
+
         [$default, , ] = $params;
 
         $this->lastIndex = 0;
 
-        $this->array = [];
-        $this->bytemap = new Bytemap($default);
-        $this->dsDeque = new \Ds\Deque([$default]);
-        $this->dsVector = new \Ds\Vector([$default]);
-        $this->splFixedArray = new \SplFixedArray();
+        $this->dsDeque->push($default);
+        $this->dsVector->push($default);
     }
 
-    public function providePairsAndIntervals(): \Generator
-    {
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            foreach (self::INTERVALS as $interval) {
-                yield \sprintf('elementLength:%d maximumGap:%d', \strlen($default), $interval) => [$default, $inserted, $interval];
-            }
-        }
-    }
-
-    /**
-     * @Groups({"Memory"})
-     * @ParamProviders({"providePairsAndIntervals"})
-     * @Revs(100000)
-     */
     public function benchExpansionBaseline(array $params): void
     {
     }
 
-    /**
-     * @Groups({"Memory"})
-     * @ParamProviders({"providePairsAndIntervals"})
-     * @Revs(100000)
-     */
     public function benchExpansionWithArray(array $params): void
     {
         [, $inserted, $interval] = $params;
         $this->array[$this->lastIndex += $interval] = $inserted;
     }
 
-    /**
-     * @Groups({"Memory"})
-     * @ParamProviders({"providePairsAndIntervals"})
-     * @Revs(100000)
-     */
     public function benchExpansionWithBytemap(array $params): void
     {
         [, $inserted, $interval] = $params;
         $this->bytemap[$this->lastIndex += $interval] = $inserted;
     }
 
-    /**
-     * @Groups({"Memory"})
-     * @ParamProviders({"providePairsAndIntervals"})
-     * @Revs(100000)
-     */
     public function benchExpansionWithDsDeque(array $params): void
     {
         [$default, $inserted, $interval] = $params;
@@ -110,11 +69,6 @@ final class ExpansionPerformance extends AbstractTestOfPerformance
         }
     }
 
-    /**
-     * @Groups({"Memory"})
-     * @ParamProviders({"providePairsAndIntervals"})
-     * @Revs(100000)
-     */
     public function benchExpansionWithDsVector(array $params): void
     {
         [$default, $inserted, $interval] = $params;
@@ -130,11 +84,6 @@ final class ExpansionPerformance extends AbstractTestOfPerformance
         }
     }
 
-    /**
-     * @Groups({"Memory"})
-     * @ParamProviders({"providePairsAndIntervals"})
-     * @Revs(100000)
-     */
     public function benchExpansionWithSplFixedArray(array $params): void
     {
         [, $inserted, $interval] = $params;
