@@ -25,18 +25,11 @@ namespace Bytemap\Performance;
  */
 final class IterationPerformance extends AbstractTestOfPerformance
 {
-    private /* int */ $elementCount;
+    private /* int */ $elementCount = 0;
 
     public function tearDown(array $params): void
     {
         \assert(self::CONTAINER_ELEMENT_COUNT === $this->elementCount);
-    }
-
-    public function setUpFilledContainers(array $params): void
-    {
-        parent::setUpFilledContainers($params);
-
-        $this->elementCount = 0;
     }
 
     /**
