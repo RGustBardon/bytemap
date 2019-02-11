@@ -49,22 +49,24 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     /**
      * @covers \Bytemap\AbstractBytemap::ensureStream
      * @dataProvider implementationProvider
-     * @expectedException \TypeError
-     * @expectedExceptionMessage open resource
      */
     public function testParsingClosedResource(string $impl): void
     {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('open resource');
+
         self::instantiate($impl, "\x0")::parseJsonStream(self::getClosedStream(), "\x0");
     }
 
     /**
      * @covers \Bytemap\AbstractBytemap::ensureStream
      * @dataProvider implementationProvider
-     * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage process
      */
     public function testParsingNonStream(string $impl): void
     {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('process');
+
         $bytemap = self::instantiate($impl, "\x0");
         $process = self::getProcess();
 

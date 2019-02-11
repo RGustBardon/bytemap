@@ -20,35 +20,28 @@ namespace Bytemap;
  */
 trait JsonStreamTestTrait
 {
-    abstract public static function assertNotFalse($condition, string $message = ''): void;
-
-    abstract public static function assertSame($expected, $actual, string $message = ''): void;
-
-    abstract public static function jsonStreamInstanceProvider(): \Generator;
-
-    abstract public static function markTestSkipped(string $message = ''): void;
-
     /**
      * @covers \Bytemap\AbstractBytemap::ensureStream
      * @dataProvider jsonStreamInstanceProvider
-     * @expectedException \TypeError
      *
      * @param mixed $defaultValue
      */
     public function testStreamingToClosedResource(BytemapInterface $bytemap, $defaultValue, array $elements): void
     {
+        $this->expectException(\TypeError::class);
         $bytemap->streamJson(self::getClosedStream());
     }
 
     /**
      * @covers \Bytemap\AbstractBytemap::ensureStream
      * @dataProvider jsonStreamInstanceProvider
-     * @expectedException \InvalidArgumentException
      *
      * @param mixed $defaultValue
      */
     public function testStreamingToNonStream(BytemapInterface $bytemap, $defaultValue, array $elements): void
     {
+        $this->expectException(\InvalidArgumentException::class);
+
         $process = self::getProcess();
 
         try {
@@ -87,6 +80,16 @@ trait JsonStreamTestTrait
         }
         self::assertStreamWriting(\iterator_to_array($bytemap->getIterator()), $bytemap);
     }
+
+    abstract public static function assertNotFalse($condition, string $message = ''): void;
+
+    abstract public static function assertSame($expected, $actual, string $message = ''): void;
+
+    abstract public static function jsonStreamInstanceProvider(): \Generator;
+
+    abstract public static function markTestSkipped(string $message = ''): void;
+
+    abstract public function expectException(string $exception): void;
 
     protected static function getClosedStream()
     {

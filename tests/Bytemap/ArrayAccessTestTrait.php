@@ -82,53 +82,53 @@ trait ArrayAccessTestTrait
     /**
      * @dataProvider nullIndexProvider
      * @dataProvider invalidIndexTypeProvider
-     * @expectedException \TypeError
      *
      * @param mixed $index
      */
     public function testGetInvalidType(\ArrayAccess $arrayAccessObject, array $elements, $index): void
     {
+        $this->expectException(\TypeError::class);
         $arrayAccessObject[$index];
     }
 
     /**
      * @dataProvider negativeIndexProvider
      * @dataProvider outOfRangeIndexProvider
-     * @expectedException \OutOfRangeException
      */
     public function testGetOutOfRange(\ArrayAccess $arrayAccessObject, array $elements, int $index): void
     {
+        $this->expectException(\OutOfRangeException::class);
         $arrayAccessObject[$index];
     }
 
     /**
      * @dataProvider invalidIndexTypeProvider
-     * @expectedException \TypeError
      *
      * @param mixed $index
      */
     public function testSetInvalidIndexType(\ArrayAccess $arrayAccessObject, array $elements, $index): void
     {
+        $this->expectException(\TypeError::class);
         $arrayAccessObject[$index] = $elements[0];
     }
 
     /**
      * @dataProvider negativeIndexProvider
-     * @expectedException \OutOfRangeException
      */
     public function testSetNegativeIndex(\ArrayAccess $arrayAccessObject, array $elements, int $index): void
     {
+        $this->expectException(\OutOfRangeException::class);
         $arrayAccessObject[$index] = $elements[0];
     }
 
     /**
      * @dataProvider invalidElementTypeProvider
-     * @expectedException \TypeError
      *
      * @param mixed $invalidElement
      */
     public function testSetInvalidElementType(\ArrayAccess $arrayAccessObject, array $elements, $invalidElement): void
     {
+        $this->expectException(\TypeError::class);
         $arrayAccessObject[] = $invalidElement;
     }
 
@@ -223,12 +223,12 @@ trait ArrayAccessTestTrait
     /**
      * @dataProvider arrayAccessInstanceProvider
      * @depends testArrayAccess
-     * @expectedException \OutOfRangeException
      *
      * @param mixed $defaultValue
      */
     public function testGetFromEmpty(\ArrayAccess $arrayAccessObject, $defaultValue, array $elements): void
     {
+        $this->expectException(\OutOfRangeException::class);
         for ($i = \count($elements) - 1; $i >= 0; --$i) {
             unset($arrayAccessObject[$i]);
         }
@@ -242,6 +242,8 @@ trait ArrayAccessTestTrait
     abstract public static function assertSame($expected, $actual, string $message = ''): void;
 
     abstract public static function assertTrue($condition, string $message = ''): void;
+
+    abstract public function expectException(string $exception): void;
 
     abstract protected static function generateIndicesOfInvalidType(): \Generator;
 

@@ -61,7 +61,7 @@ final class ExpansionPerformance extends AbstractTestOfPerformance
             $count = $this->lastIndex;
             $this->lastIndex += $interval;
             $this->dsDeque->allocate($this->lastIndex);
-            $elements = \array_fill(0, (int) $this->lastIndex - $count - 1, $default);
+            $elements = \array_fill(0, (int) ($this->lastIndex - $count - 1), $default);
             $elements[] = $inserted;
             $this->dsDeque->push(...$elements);
         } else {
@@ -76,7 +76,7 @@ final class ExpansionPerformance extends AbstractTestOfPerformance
             $count = $this->lastIndex;
             $this->lastIndex += $interval;
             $this->dsVector->allocate($this->lastIndex);
-            $elements = \array_fill(0, (int) $this->lastIndex - $count - 1, $default);
+            $elements = \array_fill(0, (int) ($this->lastIndex - $count - 1), $default);
             $elements[] = $inserted;
             $this->dsVector->push(...$elements);
         } else {

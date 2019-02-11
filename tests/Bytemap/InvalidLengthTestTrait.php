@@ -31,14 +31,16 @@ trait InvalidLengthTestTrait
 
     /**
      * @dataProvider invalidLengthProvider
-     * @expectedException \DomainException
      */
     public function testSetInvalidLength(\ArrayAccess $arrayAccessObject, string $invalidElement): void
     {
+        $this->expectException(\DomainException::class);
         $arrayAccessObject[] = $invalidElement;
     }
 
     abstract public static function arrayAccessInstanceProvider(): \Generator;
+
+    abstract public function expectException(string $exception): void;
 
     abstract protected static function generateElementsOfInvalidLength(int $bytesPerElement): \Generator;
 }

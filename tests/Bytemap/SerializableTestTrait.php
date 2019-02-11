@@ -25,16 +25,10 @@ trait SerializableTestTrait
      */
     public function testUnserializeInvalidData(string $data, string $expectedThrowable, string $expectedMessage): void
     {
-        try {
-            \unserialize($data);
-        } catch (\Throwable $e) {
-            if (!($e instanceof $expectedThrowable)) {
-                $format = 'Failed asserting that a throwable of type %s is thrown as opposed to %s with message "%s"';
-                self::fail(\sprintf($format, $expectedThrowable, \get_class($e), $e->getMessage()));
-            }
-        }
-        self::assertTrue(isset($e), 'Nothing thrown although "\\'.$expectedThrowable.'" was expected.');
-        self::assertContains($expectedMessage, $e->getMessage(), '', true);
+        $this->expectException($expectedThrowable);
+        $this->expectExceptionMessageRegExp($expectedMessage);
+
+        \unserialize($data);
     }
 
     /**
@@ -62,7 +56,7 @@ trait SerializableTestTrait
         self::assertFalse(isset($serializable[3]));
     }
 
-    abstract public static function assertContains($needle, $haystack, string $message = '', bool $ignoreCase = false, bool $checkForObjectIdentity = true, bool $checkForNonObjectIdentity = false): void;
+    abstract public static function assertStringContainsStringIgnoringCase(string $needle, string $haystack, string $message = ''): void;
 
     abstract public static function assertFalse($condition, string $message = ''): void;
 
@@ -71,6 +65,10 @@ trait SerializableTestTrait
     abstract public static function assertSame($expected, $actual, string $message = ''): void;
 
     abstract public static function assertTrue($condition, string $message = ''): void;
+
+    abstract public function expectException(string $exception): void;
+
+    abstract public function expectExceptionMessage(string $message): void;
 
     abstract public static function fail(string $message = ''): void;
 

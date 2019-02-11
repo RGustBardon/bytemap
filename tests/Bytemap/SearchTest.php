@@ -191,11 +191,11 @@ final class SearchTest extends AbstractTestOfBytemap
     /**
      * @covers \Bytemap\AbstractBytemap::grep
      * @dataProvider implementationProvider
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage Empty regular expression
      */
     public function testGreppingInvalidPatterns(string $impl): void
     {
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('Empty regular expression');
         self::instantiate($impl, "\x0")->grep(['~x~', '', '~y~'])->rewind();
     }
 

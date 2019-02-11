@@ -110,10 +110,10 @@ final class ArrayProxyTest extends AbstractTestOfProxy
     {
         yield from [
             // C:24:"Bytemap\Proxy\ArrayProxy":62:{C:15:"Bytemap\Bytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}}}
-            ['C:24:"Bytemap\\Proxy\\ArrayProxy":61:{C:15:"Bytemap\\Bytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}}}', \UnexpectedValueException::class, 'error at offset'],
-            ['C:24:"Bytemap\\Proxy\\ArrayProxy":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, 'expected a bytemap'],
-            ['C:24:"Bytemap\\Proxy\\ArrayProxy":56:{C:15:"Bytemap\\Bytemap":28:{a:2:{i:0;s:2:"fo";i:1;i:42;}}}', \TypeError::class, 'internal representation'],
-            ['C:24:"Bytemap\\Proxy\\ArrayProxy":61:{C:15:"Bytemap\\Bytemap":33:{a:2:{i:0;s:2:"fo";i:1;s:3:"bar";}}}', \DomainException::class, 'default value'],
+            ['C:24:"Bytemap\\Proxy\\ArrayProxy":61:{C:15:"Bytemap\\Bytemap":34:{a:2:{i:0;s:3:"foo";i:1;s:3:"bar";}}}', \UnexpectedValueException::class, '~error at offset~i'],
+            ['C:24:"Bytemap\\Proxy\\ArrayProxy":20:{a:1:{i:0;s:3:"foo";}}', \UnexpectedValueException::class, '~expected a bytemap~i'],
+            ['C:24:"Bytemap\\Proxy\\ArrayProxy":56:{C:15:"Bytemap\\Bytemap":28:{a:2:{i:0;s:2:"fo";i:1;i:42;}}}', \TypeError::class, '~internal representation~i'],
+            ['C:24:"Bytemap\\Proxy\\ArrayProxy":61:{C:15:"Bytemap\\Bytemap":33:{a:2:{i:0;s:2:"fo";i:1;s:3:"bar";}}}', \DomainException::class, '~default value~i'],
         ];
     }
 
@@ -165,12 +165,10 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['xy', 'ef'], $arrayProxy->exportArray());
     }
 
-    /**
-     * @expectedException \OutOfRangeException
-     * @expectedExceptionMessage Size parameter expected to be greater than 0
-     */
     public function testChunkSizeNotPositive(): void
     {
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessage('Size parameter expected to be greater than 0');
         self::instantiate('cd', 'xy', 'ef', 'ef')->chunk(0, false)->rewind();
     }
 
@@ -344,11 +342,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertFalse($arrayProxy->keyExists(4));
     }
 
-    /**
-     * @expectedException \UnderflowException
-     */
     public function testKeyFirstEmptyBytemap(): void
     {
+        $this->expectException(\UnderflowException::class);
         self::instantiate()->keyFirst();
     }
 
@@ -357,11 +353,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(0, self::instantiate('cd', 'xy', 'ef', 'ef')->keyFirst());
     }
 
-    /**
-     * @expectedException \UnderflowException
-     */
     public function testKeyLastEmptyBytemap(): void
     {
+        $this->expectException(\UnderflowException::class);
         self::instantiate()->keyLast();
     }
 
@@ -497,31 +491,25 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($elements, $arrayProxy->exportArray());
     }
 
-    /**
-     * @expectedException \TypeError
-     */
     public function testMultiSortTypeError(): void
     {
+        $this->expectException(\TypeError::class);
         $number = 42;
         self::instantiate('cd', 'ef')->multiSort(\SORT_STRING, true, $number);
     }
 
-    /**
-     * @expectedException \TypeError
-     */
     public function testMultiSortInstanceError(): void
     {
+        $this->expectException(\TypeError::class);
         $heap = new \SplMaxHeap();
         $heap->insert('xy');
         $heap->insert('zz');
         self::instantiate('cd', 'ef')->multiSort(\SORT_STRING, true, $heap);
     }
 
-    /**
-     * @expectedException \UnderflowException
-     */
     public function testMultiSortUnderflowException(): void
     {
+        $this->expectException(\UnderflowException::class);
         $array = ['xy'];
         self::instantiate('cd', 'ef')->multiSort(\SORT_STRING, true, $array);
     }
@@ -634,11 +622,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($elements, $arrayProxy->exportArray());
     }
 
-    /**
-     * @expectedException \UnderflowException
-     */
     public function testPopEmptyBytemap(): void
     {
+        $this->expectException(\UnderflowException::class);
         self::instantiate()->pop();
     }
 
@@ -658,30 +644,24 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['cd', 'xy', 'ef', 'ef'], $arrayProxy->exportArray());
     }
 
-    /**
-     * @expectedException \UnderflowException
-     * @expectedExceptionMessage Iterable is empty
-     */
     public function testRandEmpty(): void
     {
+        $this->expectException(\UnderflowException::class);
+        $this->expectExceptionMessage('Iterable is empty');
         self::instantiate()->rand();
     }
 
-    /**
-     * @expectedException \OutOfRangeException
-     * @expectedExceptionMessage between 1 and the number of elements
-     */
     public function testRandNegative(): void
     {
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessage('between 1 and the number of elements');
         self::instantiate('cd', 'xy')->rand(-1);
     }
 
-    /**
-     * @expectedException \OutOfRangeException
-     * @expectedExceptionMessage between 1 and the number of elements
-     */
     public function testRandOverflow(): void
     {
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessage('between 1 and the number of elements');
         self::instantiate('cd', 'xy')->rand(3);
     }
 
@@ -829,11 +809,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(2, $arrayProxy->search('ef'));
     }
 
-    /**
-     * @expectedException \UnderflowException
-     */
     public function testShiftEmptyBytemap(): void
     {
+        $this->expectException(\UnderflowException::class);
         self::instantiate()->shift();
     }
 
@@ -941,21 +919,17 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($expectedMutation, $arrayProxy->exportArray());
     }
 
-    /**
-     * @expectedException \TypeError
-     * @expectedExceptionMessage must be of type integer
-     */
     public function testUnionStringKey(): void
     {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('must be of type integer');
         self::instantiate()->union(['foo' => 'xy']);
     }
 
-    /**
-     * @expectedException \OutOfRangeException
-     * @expectedExceptionMessage Negative index
-     */
     public function testUnionNegativeKey(): void
     {
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessage('Negative index');
         self::instantiate()->union([-1 => 'xy']);
     }
 
@@ -1060,11 +1034,9 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($elements, \iterator_to_array(self::instantiate(...$elements)->values()));
     }
 
-    /**
-     * @expectedException \ArgumentCountError
-     */
     public function testWalkTooFewArguments(): void
     {
+        $this->expectException(\ArgumentCountError::class);
         self::instantiate()->walk(static function ($element, $index, $foo) {
         });
     }
@@ -1112,21 +1084,17 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame($expected, $arrayProxy->exportArray());
     }
 
-    /**
-     * @expectedException \UnderflowException
-     * @expectedExceptionMessage equal number of elements
-     */
     public function testCombineTooManyKeys(): void
     {
+        $this->expectException(\UnderflowException::class);
+        $this->expectExceptionMessage('equal number of elements');
         self::instantiate()::combine('cd', [1, 6, 3], ['ab', 'ef']);
     }
 
-    /**
-     * @expectedException \UnderflowException
-     * @expectedExceptionMessage equal number of elements
-     */
     public function testCombineTooManyValues(): void
     {
+        $this->expectException(\UnderflowException::class);
+        $this->expectExceptionMessage('equal number of elements');
         self::instantiate()::combine('cd', [1], ['ab', 'ef']);
     }
 
@@ -1136,21 +1104,17 @@ final class ArrayProxyTest extends AbstractTestOfProxy
         self::assertSame(['cd', 'ab', 'cd', 'xy', 'cd', 'cd', 'ef'], $arrayProxy->exportArray());
     }
 
-    /**
-     * @expectedException \OutOfRangeException
-     * @expectedExceptionMessage index can't be negative
-     */
     public function testFillNegativeIndex(): void
     {
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessage('index can\'t be negative');
         self::instantiate()::fill('cd', -2, 3);
     }
 
-    /**
-     * @expectedException \OutOfRangeException
-     * @expectedExceptionMessage elements can't be negative
-     */
     public function testFillNegativeCardinality(): void
     {
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessage('elements can\'t be negative');
         self::instantiate()::fill('cd', 2, -3);
     }
 
