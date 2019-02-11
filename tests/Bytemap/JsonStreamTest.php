@@ -119,6 +119,9 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         string $expectedThrowable,
         string $pattern
     ): void {
+        $this->expectException($expectedThrowable);
+        $this->expectExceptionMessageRegExp('~'.$pattern.'~i');
+        
         $bytemap = self::instantiate($impl, "\x0");
         $jsonStream = self::getStream($invalidJsonData);
         if ($useStreamingParser) {
@@ -126,17 +129,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
         } else {
             $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
         }
-
-        try {
-            $bytemap::parseJsonStream($jsonStream, "\x0");
-        } catch (\Throwable $e) {
-            if (!($e instanceof $expectedThrowable)) {
-                $format = 'Failed asserting that a throwable of type %s is thrown as opposed to %s with message "%s"';
-                self::fail(\sprintf($format, $expectedThrowable, \get_class($e), $e->getMessage()));
-            }
-        }
-        self::assertTrue(isset($e), 'Nothing thrown although "\\'.$expectedThrowable.'" was expected.');
-        self::assertRegExp('~'.$pattern.'~i', $e->getMessage());
+        $bytemap::parseJsonStream($jsonStream, "\x0");
     }
 
     public static function validJsonProvider(): \Generator
