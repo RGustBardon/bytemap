@@ -113,52 +113,51 @@ abstract class AbstractTestOfPerformance
         }
     }
 
-    public function providePairsAndArray(): \Generator
+    public static function providePairs(): \Generator
     {
-        $dataStructure = self::DATA_STRUCTURE_ARRAY;
         foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
+            yield \sprintf('elementLength:%d', \strlen($default)) => [$default, $inserted];
         }
     }
 
-    public function providePairsAndBytemap(): \Generator
+    public static function providePairsAndArray(): \Generator
     {
-        $dataStructure = self::DATA_STRUCTURE_BYTEMAP;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
-        }
+        yield from self::providePairsAndContainer(self::DATA_STRUCTURE_ARRAY);
     }
 
-    public function providePairsAndDsDeque(): \Generator
+    public static function providePairsAndBytemap(): \Generator
     {
-        $dataStructure = self::DATA_STRUCTURE_DS_DEQUE;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
-        }
+        yield from self::providePairsAndContainer(self::DATA_STRUCTURE_BYTEMAP);
     }
 
-    public function providePairsAndDsVector(): \Generator
+    public static function providePairsAndDsDeque(): \Generator
     {
-        $dataStructure = self::DATA_STRUCTURE_DS_VECTOR;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
-        }
+        yield from self::providePairsAndContainer(self::DATA_STRUCTURE_DS_DEQUE);
     }
 
-    public function providePairsAndSplFixedArray(): \Generator
+    public static function providePairsAndDsVector(): \Generator
     {
-        $dataStructure = self::DATA_STRUCTURE_SPL_FIXED_ARRAY;
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
-            yield \sprintf('elementLength:%d dataStructure:%s', \strlen($default), $dataStructure) => [$default, $inserted, $dataStructure];
-        }
+        yield from self::providePairsAndContainer(self::DATA_STRUCTURE_DS_VECTOR);
     }
 
-    public function providePairsAndIntervals(): \Generator
+    public static function providePairsAndSplFixedArray(): \Generator
     {
-        foreach (self::DEFAULT_INSERTED_PAIRS as [$default, $inserted]) {
+        yield from self::providePairsAndContainer(self::DATA_STRUCTURE_SPL_FIXED_ARRAY);
+    }
+
+    public static function providePairsAndIntervals(): \Generator
+    {
+        foreach (self::providePairs() as $key => [$default, $inserted]) {
             foreach (self::INTERVALS as $interval) {
-                yield \sprintf('elementLength:%d maximumGap:%d', \strlen($default), $interval) => [$default, $inserted, $interval];
+                yield $key.\sprintf(' maximumGap:%d', $interval) => [$default, $inserted, $interval];
             }
+        }
+    }
+
+    private static function providePairsAndContainer(string $dataStructure): \Generator
+    {
+        foreach (self::providePairs() as $key => [$default, $inserted]) {
+            yield $key.\sprintf(' dataStructure:%s', $dataStructure) => [$default, $inserted, $dataStructure];
         }
     }
 }

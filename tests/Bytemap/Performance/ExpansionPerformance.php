@@ -24,15 +24,13 @@ namespace Bytemap\Performance;
  */
 final class ExpansionPerformance extends AbstractTestOfPerformance
 {
-    private /* int */ $lastIndex;
+    private /* int */ $lastIndex = 0;
 
     public function setUp(array $params): void
     {
         parent::setUp($params);
 
         [$default, , ] = $params;
-
-        $this->lastIndex = 0;
 
         $this->dsDeque->push($default);
         $this->dsVector->push($default);

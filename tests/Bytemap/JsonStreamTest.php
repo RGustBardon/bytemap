@@ -121,7 +121,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
     ): void {
         $this->expectException($expectedThrowable);
         $this->expectExceptionMessageRegExp('~'.$pattern.'~i');
-        
+
         $bytemap = self::instantiate($impl, "\x0");
         $jsonStream = self::getStream($invalidJsonData);
         if ($useStreamingParser) {
