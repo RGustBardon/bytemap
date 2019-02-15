@@ -83,29 +83,29 @@ abstract class AbstractTestOfPerformance
 
         switch ($dataStructure) {
             case self::DATA_STRUCTURE_ARRAY:
-                $this->array = \array_fill(0, self::CONTAINER_ELEMENT_COUNT, $default);
+                $this->array = \array_fill(0, static::CONTAINER_ELEMENT_COUNT, $default);
 
                 break;
             case self::DATA_STRUCTURE_BYTEMAP:
-                $this->bytemap[self::CONTAINER_ELEMENT_COUNT - 1] = $default;
+                $this->bytemap[static::CONTAINER_ELEMENT_COUNT - 1] = $default;
 
                 break;
             case self::DATA_STRUCTURE_DS_DEQUE:
-                $this->dsDeque->allocate(self::CONTAINER_ELEMENT_COUNT);
-                for ($i = 0; $i < self::CONTAINER_ELEMENT_COUNT; ++$i) {
+                $this->dsDeque->allocate(static::CONTAINER_ELEMENT_COUNT);
+                for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
                     $this->dsDeque->insert($i, $default);
                 }
 
                 break;
             case self::DATA_STRUCTURE_DS_VECTOR:
-                $this->dsVector->allocate(self::CONTAINER_ELEMENT_COUNT);
-                for ($i = 0; $i < self::CONTAINER_ELEMENT_COUNT; ++$i) {
+                $this->dsVector->allocate(static::CONTAINER_ELEMENT_COUNT);
+                for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
                     $this->dsVector->insert($i, $default);
                 }
 
                 break;
             case self::DATA_STRUCTURE_SPL_FIXED_ARRAY:
-                $this->splFixedArray->setSize(self::CONTAINER_ELEMENT_COUNT);
+                $this->splFixedArray->setSize(static::CONTAINER_ELEMENT_COUNT);
 
                 break;
             default:
