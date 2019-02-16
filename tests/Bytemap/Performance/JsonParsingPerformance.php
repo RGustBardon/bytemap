@@ -27,12 +27,18 @@ namespace Bytemap\Performance;
 final class JsonParsingPerformance extends AbstractTestOfPerformance
 {
     protected const CONTAINER_ELEMENT_COUNT = 10000;
-    
+
     private $stream;
-    
-    public function setUpFilledContainers(array $params): void {
+
+    public function tearDown(array $params): void
+    {
+        \fclose($this->stream);
+    }
+
+    public function setUpFilledContainers(array $params): void
+    {
         parent::setUpFilledContainers($params);
-        
+
         \assert(\class_exists('\\JsonStreamingParser\\Parser'));
         $this->stream = \fopen('php://temp/maxmemory:0', 'r+b');
         \assert(\is_resource($this->stream));
@@ -40,12 +46,7 @@ final class JsonParsingPerformance extends AbstractTestOfPerformance
         $this->bytemap->streamJson($this->stream);
         \rewind($this->stream);
     }
-    
-    public function tearDown(array $params): void
-    {
-        \fclose($this->stream);
-    }
-    
+
     /**
      * @ParamProviders({"providePairsAndBytemap"})
      */

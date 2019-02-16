@@ -26,6 +26,7 @@ use Bytemap\BytemapInterface;
 abstract class AbstractTestOfPerformance
 {
     protected const CONTAINER_ELEMENT_COUNT = 100000;
+    protected const CONTAINER_ELEMENT_CYCLE_COUNT = 50;
 
     private const DEFAULT_INSERTED_PAIRS = [
         [self::DEFAULT_ELEMENT_SHORT, self::INSERTED_ELEMENT_SHORT],
@@ -77,35 +78,97 @@ abstract class AbstractTestOfPerformance
 
     public function setUpFilledContainers(array $params): void
     {
+        static $packFormats = [
+            1 => 'C',
+            2 => 'v',
+            3 => 'VX',
+            4 => 'V',
+            5 => 'PXXX',
+            6 => 'PXX',
+            7 => 'PX',
+            8 => 'P',
+        ];
+
         $this->setUp($params);
 
         [$default, , $dataStructure] = $params;
 
+        $packFormat = $packFormats[\strlen($default)];
+        $cachePath = \sprintf('%s/benchmark-%s-%d.ser', \sys_get_temp_dir(), \strtr($dataStructure, '\\', '-'), \strlen($default));
+        if (\file_exists($cachePath)) {
+            $serialized = \file_get_contents($cachePath);
+            \assert(false !== $serialized);
+        }
+
         switch ($dataStructure) {
             case self::DATA_STRUCTURE_ARRAY:
-                $this->array = \array_fill(0, static::CONTAINER_ELEMENT_COUNT, $default);
+                if (isset($serialized) && \is_string($serialized)) {
+                    $this->array = \unserialize($serialized, ['allowed_classes' => false]);
+                    \assert(false !== $this->array);
+                } else {
+                    for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
+                        $this->array[] = \pack($packFormat, $i % static::CONTAINER_ELEMENT_CYCLE_COUNT);
+                    }
+                    $serialized = \serialize($this->array);
+                    \file_put_contents($cachePath, $serialized);
+                }
 
                 break;
             case self::DATA_STRUCTURE_BYTEMAP:
-                $this->bytemap[static::CONTAINER_ELEMENT_COUNT - 1] = $default;
+                if (isset($serialized) && \is_string($serialized)) {
+                    $this->bytemap = \unserialize($serialized, ['allowed_classes' => [Bytemap::class]]);
+                    \assert(false !== $this->bytemap);
+                } else {
+                    $this->bytemap[static::CONTAINER_ELEMENT_COUNT - 1] = $default;
+                    for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
+                        $this->bytemap[$i] = \pack($packFormat, $i % static::CONTAINER_ELEMENT_CYCLE_COUNT);
+                    }
+                    $serialized = \serialize($this->bytemap);
+                    \file_put_contents($cachePath, $serialized);
+                }
 
                 break;
             case self::DATA_STRUCTURE_DS_DEQUE:
-                $this->dsDeque->allocate(static::CONTAINER_ELEMENT_COUNT);
-                for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
-                    $this->dsDeque->insert($i, $default);
+                if (isset($serialized) && \is_string($serialized)) {
+                    $this->dsDeque = \unserialize($serialized, ['allowed_classes' => [\Ds\Deque::class]]);
+                    \assert(false !== $this->dsDeque);
+                } else {
+                    $this->dsDeque->allocate(static::CONTAINER_ELEMENT_COUNT);
+                    for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
+                        $this->dsDeque[] = \pack($packFormat, $i % static::CONTAINER_ELEMENT_CYCLE_COUNT);
+                    }
+                    $serialized = \serialize($this->dsDeque);
+                    \file_put_contents($cachePath, $serialized);
                 }
 
                 break;
             case self::DATA_STRUCTURE_DS_VECTOR:
-                $this->dsVector->allocate(static::CONTAINER_ELEMENT_COUNT);
-                for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
-                    $this->dsVector->insert($i, $default);
+                if (isset($serialized) && \is_string($serialized)) {
+                    $this->dsVector = \unserialize($serialized, ['allowed_classes' => [\Ds\Vector::class]]);
+                    \assert(false !== $this->dsVector);
+                } else {
+                    $this->dsVector->allocate(static::CONTAINER_ELEMENT_COUNT);
+                    for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
+                        $this->dsVector[] = \pack($packFormat, $i % static::CONTAINER_ELEMENT_CYCLE_COUNT);
+                    }
+                    $serialized = \serialize($this->dsVector);
+                    \file_put_contents($cachePath, $serialized);
                 }
 
                 break;
             case self::DATA_STRUCTURE_SPL_FIXED_ARRAY:
-                $this->splFixedArray->setSize(static::CONTAINER_ELEMENT_COUNT);
+                if (isset($serialized) && \is_string($serialized)) {
+                    $this->splFixedArray = \unserialize($serialized, ['allowed_classes' => [\SplFixedArray::class]]);
+                    \assert(false !== $this->splFixedArray);
+                    $this->splFixedArray->__wakeup();
+                } else {
+                    $this->splFixedArray->setSize(static::CONTAINER_ELEMENT_COUNT);
+                    for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
+                        $this->splFixedArray[$i] = \pack($packFormat, $i % static::CONTAINER_ELEMENT_CYCLE_COUNT);
+                    }
+                    $serialized = \serialize($this->splFixedArray);
+                    \file_put_contents($cachePath, $serialized);
+                }
 
                 break;
             default:
