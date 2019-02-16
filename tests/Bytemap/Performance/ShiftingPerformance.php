@@ -63,7 +63,17 @@ final class ShiftingPerformance extends AbstractTestOfPerformance
     /**
      * @ParamProviders({"providePairsAndSplFixedArray"})
      */
-    public function benchShiftingWithSplFixedArray(array $params): void
+    public function benchShiftingWithRecreatedSplFixedArray(array $params): void
+    {
+        $elements = $this->splFixedArray->toArray();
+        unset($elements[0]);
+        $this->splFixedArray = \SplFixedArray::fromArray($elements, false);
+    }
+
+    /**
+     * @ParamProviders({"providePairsAndSplFixedArray"})
+     */
+    public function benchShiftingWithInPlaceSplFixedArray(array $params): void
     {
         // Shift all the subsequent elements left.
         for ($i = 1; $i < $this->elementCount; ++$i) {
