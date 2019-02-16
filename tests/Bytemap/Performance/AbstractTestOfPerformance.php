@@ -94,7 +94,14 @@ abstract class AbstractTestOfPerformance
         [$default, , $dataStructure] = $params;
 
         $packFormat = $packFormats[\strlen($default)];
-        $cachePath = \sprintf('%s/benchmark-%s-%d.ser', \sys_get_temp_dir(), \strtr($dataStructure, '\\', '-'), \strlen($default));
+        $cachePath = \sprintf(
+            '%s/benchmark-%s-%d-%d-%d.ser',
+            \sys_get_temp_dir(),
+            \strtr($dataStructure, '\\', '-'),
+            \strlen($default),
+            static::CONTAINER_ELEMENT_COUNT,
+            static::CONTAINER_ELEMENT_CYCLE_COUNT
+        );
         if (\file_exists($cachePath)) {
             $serialized = \file_get_contents($cachePath);
             \assert(false !== $serialized);
