@@ -22,7 +22,7 @@ namespace Bytemap\Performance;
  *
  * @internal
  */
-final class InsertionAtHeadPerformance extends AbstractTestOfPerformance
+final class BatchInsertionAtHeadPerformance extends AbstractTestOfPerformance
 {
     private /* int */ $elementCycleCount;
 
@@ -42,27 +42,27 @@ final class InsertionAtHeadPerformance extends AbstractTestOfPerformance
         $this->elementCycleCount = \count($this->insertedElements);
     }
 
-    public function benchInsertionAtHeadWithArray(array $params): void
+    public function benchBatchInsertionAtHeadWithArray(array $params): void
     {
         \array_unshift($this->array, ...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
     }
 
-    public function benchInsertionAtHeadWithBytemap(array $params): void
+    public function benchBatchInsertionAtHeadWithBytemap(array $params): void
     {
         $this->bytemap->insert(\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)), 0);
     }
 
-    public function benchInsertionAtHeadWithDsDeque(array $params): void
+    public function benchBatchInsertionAtHeadWithDsDeque(array $params): void
     {
         $this->dsDeque->unshift(...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
     }
 
-    public function benchInsertionAtHeadWithDsVector(array $params): void
+    public function benchBatchInsertionAtHeadWithDsVector(array $params): void
     {
         $this->dsVector->unshift(...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
     }
 
-    public function benchInsertionAtHeadWithRecreatedSplFixedArray(array $params): void
+    public function benchBatchInsertionAtHeadWithRecreatedSplFixedArray(array $params): void
     {
         $insertedElements = \array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount));
         if (\count($this->splFixedArray) > 0) {
@@ -71,7 +71,7 @@ final class InsertionAtHeadPerformance extends AbstractTestOfPerformance
         $this->splFixedArray = \SplFixedArray::fromArray($insertedElements, false);
     }
 
-    public function benchInsertionAtHeadWithInPlaceSplFixedArray(array $params): void
+    public function benchBatchInsertionAtHeadWithInPlaceSplFixedArray(array $params): void
     {
         $insertedElements = \array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount));
 
