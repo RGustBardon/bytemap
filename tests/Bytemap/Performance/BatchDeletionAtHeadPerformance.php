@@ -31,7 +31,7 @@ final class BatchDeletionAtHeadPerformance extends AbstractTestOfPerformance
      */
     public function benchBatchDeletionAtHeadWithArray(array $params): void
     {
-        \array_splice($this->array, 1, \mt_rand(1, self::MAXIMUM_BATCH_ELEMENT_COUNT));
+        \array_splice($this->array, 0, \mt_rand(1, self::MAXIMUM_BATCH_ELEMENT_COUNT));
     }
 
     /**
