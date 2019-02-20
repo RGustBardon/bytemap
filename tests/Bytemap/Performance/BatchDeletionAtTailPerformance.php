@@ -18,7 +18,7 @@ namespace Bytemap\Performance;
  *
  * @BeforeMethods({"setUpFilledContainers"})
  * @Groups({"Time"})
- * @Revs(5)
+ * @Revs(100)
  *
  * @internal
  */
