@@ -36,7 +36,7 @@ namespace Bytemap;
 interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate, \JsonSerializable, \Serializable
 {
     /**
-     * Returns the elements that match a certain whitelist or a certain blacklist.
+     * Returns the elements that either match a whitelist or do not match a blacklist.
      *
      * Values are compared strictly.
      *
@@ -90,7 +90,7 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
     public function insert(iterable $elements, int $firstIndex = -1): void;
 
     /**
-     * Delete a certain number of elements.
+     * Deletes a certain number of elements.
      *
      * Subsequent bytemap elements are shifted left by the number of elements deleted.
      *
