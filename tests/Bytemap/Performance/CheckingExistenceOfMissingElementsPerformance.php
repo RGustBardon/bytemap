@@ -26,27 +26,27 @@ namespace Bytemap\Performance;
 final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOfPerformance
 {
     private const MISSING_ELEMENT_COUNT = 10;
-    
+
     private /* bool */ $exists = false;
-    
+
     private /* array */ $missingElements = [];
-    
-    public function setUpFilledContainers(array $params): void
-    {
-        parent::setUpFilledContainers($params);
-        
-        [, $inserted, ] = $params;
-        
-        for ($i = 0; $i < self::MISSING_ELEMENT_COUNT; ++$i) {
-            $this->missingElements[] = \chr(0xff - $i).\substr($inserted, 1);
-        }
-    }
-    
+
     public function tearDown(array $params): void
     {
         \assert(false === $this->exists);
     }
-    
+
+    public function setUpFilledContainers(array $params): void
+    {
+        parent::setUpFilledContainers($params);
+
+        [, $inserted, ] = $params;
+
+        for ($i = 0; $i < self::MISSING_ELEMENT_COUNT; ++$i) {
+            $this->missingElements[] = \chr(0xff - $i).\substr($inserted, 1);
+        }
+    }
+
     /**
      * @ParamProviders({"providePairsAndArray"})
      */
@@ -54,7 +54,7 @@ final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOf
     {
         $this->exists = !\array_diff($this->array, $this->missingElements);
     }
-    
+
     /**
      * @ParamProviders({"providePairsAndBytemap"})
      */
@@ -64,7 +64,7 @@ final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOf
             $this->exists = true;
         }
     }
-    
+
     /**
      * @ParamProviders({"providePairsAndDsDeque"})
      */
@@ -72,7 +72,7 @@ final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOf
     {
         $this->exists = !\array_diff($this->dsDeque->toArray(), $this->missingElements);
     }
-    
+
     /**
      * @ParamProviders({"providePairsAndDsVector"})
      */
@@ -80,7 +80,7 @@ final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOf
     {
         $this->exists = !\array_diff($this->dsVector->toArray(), $this->missingElements);
     }
-    
+
     /**
      * @ParamProviders({"providePairsAndSplFixedArray"})
      */

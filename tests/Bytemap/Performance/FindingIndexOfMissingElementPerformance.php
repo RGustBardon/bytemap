@@ -23,7 +23,7 @@ namespace Bytemap\Performance;
  *
  * @internal
  */
-final class CheckingExistenceOfMissingElementPerformance extends AbstractTestOfPerformance
+final class FindingIndexOfMissingElementPerformance extends AbstractTestOfPerformance
 {
     private /* bool */ $exists = false;
 
@@ -46,17 +46,17 @@ final class CheckingExistenceOfMissingElementPerformance extends AbstractTestOfP
     /**
      * @ParamProviders({"providePairsAndArray"})
      */
-    public function benchCheckingExistenceOfMissingElementWithArray(array $params): void
+    public function benchFindingIndexOfMissingElementWithArray(array $params): void
     {
-        $this->exists = \in_array($this->missingElement, $this->array, true);
+        $this->exists = \array_search($this->missingElement, $this->array, true);
     }
 
     /**
      * @ParamProviders({"providePairsAndBytemap"})
      */
-    public function benchCheckingExistenceOfMissingElementWithBytemap(array $params): void
+    public function benchFindingIndexOfMissingElementWithBytemap(array $params): void
     {
-        foreach ($this->bytemap->find([$this->missingElement], true, 1) as $element) {
+        foreach ($this->bytemap->find([$this->missingElement], true, 1) as $index => $element) {
             $this->exists = true;
         }
     }
@@ -64,30 +64,24 @@ final class CheckingExistenceOfMissingElementPerformance extends AbstractTestOfP
     /**
      * @ParamProviders({"providePairsAndDsDeque"})
      */
-    public function benchCheckingExistenceOfMissingElementWithDsDeque(array $params): void
+    public function benchFindingIndexOfMissingElementWithDsDeque(array $params): void
     {
-        $this->exists = $this->dsDeque->contains($this->missingElement);
+        $this->exists = $this->dsDeque->find($this->missingElement);
     }
 
     /**
      * @ParamProviders({"providePairsAndDsVector"})
      */
-    public function benchCheckingExistenceOfMissingElementWithDsVector(array $params): void
+    public function benchFindingIndexOfMissingElementWithDsVector(array $params): void
     {
-        $this->exists = $this->dsVector->contains($this->missingElement);
+        $this->exists = $this->dsVector->find($this->missingElement);
     }
 
     /**
      * @ParamProviders({"providePairsAndSplFixedArray"})
      */
-    public function benchCheckingExistenceOfMissingElementWithSplFixedArray(array $params): void
+    public function benchFindingIndexOfMissingElementWithSplFixedArray(array $params): void
     {
-        foreach ($this->splFixedArray as $element) {
-            if ($this->missingElement === $element) {
-                $this->exists = true;
-
-                break;
-            }
-        }
+        $this->exists = \array_search($this->missingElement, $this->splFixedArray->toArray(), true);
     }
 }

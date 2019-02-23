@@ -25,15 +25,15 @@ namespace Bytemap\Performance;
 final class BatchInsertionAtTailPerformance extends AbstractTestOfPerformance
 {
     private /* int */ $elementCycleCount;
-    
+
     private /* array */ $insertedElements = [];
-    
+
     public function setUp(array $params): void
     {
         parent::setUp($params);
-        
+
         [, $inserted] = $params;
-        
+
         for ($i = \ord(' '), $final = \ord('~'); $i <= $final; ++$i) {
             $element = $inserted;
             $element[0] = \chr($i);
@@ -41,27 +41,27 @@ final class BatchInsertionAtTailPerformance extends AbstractTestOfPerformance
         }
         $this->elementCycleCount = \count($this->insertedElements);
     }
-    
+
     public function benchBatchInsertionAtTailWithArray(array $params): void
     {
         \array_push($this->array, ...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
     }
-    
+
     public function benchBatchInsertionAtTailWithBytemap(array $params): void
     {
         $this->bytemap->insert(\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
     }
-    
+
     public function benchBatchInsertionAtTailWithDsDeque(array $params): void
     {
         $this->dsDeque->push(...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
     }
-    
+
     public function benchBatchInsertionAtTailWithDsVector(array $params): void
     {
         $this->dsVector->push(...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
     }
-    
+
     public function benchBatchInsertionAtTailSplFixedArray(array $params): void
     {
         $insertedElements = \array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount));
