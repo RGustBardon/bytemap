@@ -28,16 +28,16 @@ abstract class AbstractTestOfPerformance
     protected const CONTAINER_ELEMENT_COUNT = 100000;
     protected const CONTAINER_ELEMENT_CYCLE_COUNT = 50;
 
+    protected const DATA_STRUCTURE_ARRAY = 'array';
+    protected const DATA_STRUCTURE_BYTEMAP = BytemapInterface::class;
+    protected const DATA_STRUCTURE_DS_DEQUE = \Ds\Deque::class;
+    protected const DATA_STRUCTURE_DS_VECTOR = \Ds\Vector::class;
+    protected const DATA_STRUCTURE_SPL_FIXED_ARRAY = \SplFixedArray::class;
+
     private const DEFAULT_INSERTED_PAIRS = [
         [self::DEFAULT_ELEMENT_SHORT, self::INSERTED_ELEMENT_SHORT],
         [self::DEFAULT_ELEMENT_LONG, self::INSERTED_ELEMENT_LONG],
     ];
-
-    private const DATA_STRUCTURE_ARRAY = 'array';
-    private const DATA_STRUCTURE_BYTEMAP = BytemapInterface::class;
-    private const DATA_STRUCTURE_DS_DEQUE = \Ds\Deque::class;
-    private const DATA_STRUCTURE_DS_VECTOR = \Ds\Vector::class;
-    private const DATA_STRUCTURE_SPL_FIXED_ARRAY = \SplFixedArray::class;
 
     private const DEFAULT_ELEMENT_SHORT = "\x0";
     private const DEFAULT_ELEMENT_LONG = "\x0\x0\x0\x0";
@@ -137,9 +137,14 @@ abstract class AbstractTestOfPerformance
                 break;
             case self::DATA_STRUCTURE_DS_DEQUE:
                 if (isset($serialized) && \is_string($serialized)) {
-                    $this->dsDeque = \unserialize($serialized, ['allowed_classes' => [\Ds\Deque::class]]);
-                    \assert(false !== $this->dsDeque);
-                } else {
+                    $unserialized = @\unserialize($serialized, ['allowed_classes' => [\Ds\Deque::class]]);
+                    if (false !== $unserialized) {
+                        // ext-ds was not toggled between serialization and unserialization.
+                        $this->dsDeque = $unserialized;
+                    }
+                }
+
+                if (!isset($unserialized) || false === $unserialized) {
                     $this->dsDeque->allocate(static::CONTAINER_ELEMENT_COUNT);
                     for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
                         $this->dsDeque[] = \pack($packFormat, $i % static::CONTAINER_ELEMENT_CYCLE_COUNT);
@@ -151,9 +156,14 @@ abstract class AbstractTestOfPerformance
                 break;
             case self::DATA_STRUCTURE_DS_VECTOR:
                 if (isset($serialized) && \is_string($serialized)) {
-                    $this->dsVector = \unserialize($serialized, ['allowed_classes' => [\Ds\Vector::class]]);
-                    \assert(false !== $this->dsVector);
-                } else {
+                    $unserialized = @\unserialize($serialized, ['allowed_classes' => [\Ds\Vector::class]]);
+                    if (false !== $unserialized) {
+                        // ext-ds was not toggled between serialization and unserialization.
+                        $this->dsVector = $unserialized;
+                    }
+                }
+
+                if (!isset($unserialized) || false === $unserialized) {
                     $this->dsVector->allocate(static::CONTAINER_ELEMENT_COUNT);
                     for ($i = 0; $i < static::CONTAINER_ELEMENT_COUNT; ++$i) {
                         $this->dsVector[] = \pack($packFormat, $i % static::CONTAINER_ELEMENT_CYCLE_COUNT);
