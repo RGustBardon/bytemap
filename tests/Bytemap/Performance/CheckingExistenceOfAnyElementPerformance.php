@@ -46,8 +46,8 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
             $this->soughtElements[] = \chr(0xff - $i).\substr($inserted, 1);
         }
 
-        $existingElement = $this->soughtElements[\intdiv(self::SOUGHT_ELEMENT_COUNT, 2)];
         $indexOfExistingElement = \intdiv(self::CONTAINER_ELEMENT_COUNT, 2);
+        $existingElement = $this->soughtElements[\intdiv(self::SOUGHT_ELEMENT_COUNT, 2)];
 
         switch ($dataStructure) {
             case self::DATA_STRUCTURE_ARRAY:
@@ -80,7 +80,13 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
      */
     public function benchCheckingExistenceOfAnyElementWithArray(array $params): void
     {
-        $this->exists = (bool) \array_diff($this->array, $this->soughtElements);
+        $soughtElements = \array_fill_keys($this->soughtElements, true);
+        foreach ($this->array as $element) {
+            if (isset($soughtElements[$element])) {
+                $this->exists = true;
+                break;
+            }
+        }
     }
 
     /**
@@ -98,7 +104,13 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
      */
     public function benchCheckingExistenceOfAnyElementWithDsDeque(array $params): void
     {
-        $this->exists = (bool) \array_diff($this->dsDeque->toArray(), $this->soughtElements);
+        $soughtElements = \array_fill_keys($this->soughtElements, true);
+        foreach ($this->dsDeque as $element) {
+            if (isset($soughtElements[$element])) {
+                $this->exists = true;
+                break;
+            }
+        }
     }
 
     /**
@@ -106,7 +118,14 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
      */
     public function benchCheckingExistenceOfAnyElementWithDsVector(array $params): void
     {
-        $this->exists = (bool) \array_diff($this->dsVector->toArray(), $this->soughtElements);
+        $soughtElements = \array_fill_keys($this->soughtElements, true);
+        foreach ($this->dsVector as $element) {
+            if (isset($soughtElements[$element])) {
+                $this->exists = true;
+                break;
+            }
+        }
+        
     }
 
     /**
@@ -114,6 +133,12 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
      */
     public function benchCheckingExistenceOfAnyElementWithSplFixedArray(array $params): void
     {
-        $this->exists = (bool) \array_diff($this->splFixedArray->toArray(), $this->soughtElements);
+        $soughtElements = \array_fill_keys($this->soughtElements, true);
+        foreach ($this->splFixedArray as $element) {
+            if (isset($soughtElements[$element])) {
+                $this->exists = true;
+                break;
+            }
+        }
     }
 }
