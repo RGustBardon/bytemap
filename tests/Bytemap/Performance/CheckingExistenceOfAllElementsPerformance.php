@@ -23,7 +23,7 @@ namespace Bytemap\Performance;
  *
  * @internal
  */
-final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerformance
+final class CheckingExistenceOfAllElementsPerformance extends AbstractTestOfPerformance
 {
     private const SOUGHT_ELEMENT_COUNT = 100;
 
@@ -42,58 +42,52 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
 
         [, $inserted, $dataStructure] = $params;
 
+        $indexOfExistingElement = 0;
         for ($i = 0; $i < self::SOUGHT_ELEMENT_COUNT; ++$i) {
             $this->soughtElements[] = \chr(0xff - $i).\substr($inserted, 1);
-        }
 
-        $indexOfExistingElement = \intdiv(self::CONTAINER_ELEMENT_COUNT, 2);
-        $existingElement = $this->soughtElements[\intdiv(self::SOUGHT_ELEMENT_COUNT, 2)];
+            $indexOfExistingElement += \intdiv(self::CONTAINER_ELEMENT_COUNT, self::SOUGHT_ELEMENT_COUNT + 1);
+            $existingElement = $this->soughtElements[$i];
 
-        switch ($dataStructure) {
-            case self::DATA_STRUCTURE_ARRAY:
-                $this->array[$indexOfExistingElement] = $existingElement;
+            switch ($dataStructure) {
+                case self::DATA_STRUCTURE_ARRAY:
+                    $this->array[$indexOfExistingElement] = $existingElement;
 
-                break;
-            case self::DATA_STRUCTURE_BYTEMAP:
-                $this->bytemap[$indexOfExistingElement] = $existingElement;
+                    break;
+                case self::DATA_STRUCTURE_BYTEMAP:
+                    $this->bytemap[$indexOfExistingElement] = $existingElement;
 
-                break;
-            case self::DATA_STRUCTURE_DS_DEQUE:
-                $this->dsDeque[$indexOfExistingElement] = $existingElement;
+                    break;
+                case self::DATA_STRUCTURE_DS_DEQUE:
+                    $this->dsDeque[$indexOfExistingElement] = $existingElement;
 
-                break;
-            case self::DATA_STRUCTURE_DS_VECTOR:
-                $this->dsVector[$indexOfExistingElement] = $existingElement;
+                    break;
+                case self::DATA_STRUCTURE_DS_VECTOR:
+                    $this->dsVector[$indexOfExistingElement] = $existingElement;
 
-                break;
-            case self::DATA_STRUCTURE_SPL_FIXED_ARRAY:
-                $this->splFixedArray[$indexOfExistingElement] = $existingElement;
+                    break;
+                case self::DATA_STRUCTURE_SPL_FIXED_ARRAY:
+                    $this->splFixedArray[$indexOfExistingElement] = $existingElement;
 
-                break;
-            default:
-                throw new \DomainException('Unsupported data structure');
+                    break;
+                default:
+                    throw new \DomainException('Unsupported data structure');
+            }
         }
     }
 
     /**
      * @ParamProviders({"providePairsAndArray"})
      */
-    public function benchCheckingExistenceOfAnyElementWithArray(array $params): void
+    public function benchCheckingExistenceOfAllElementsWithArray(array $params): void
     {
-        $soughtElements = \array_fill_keys($this->soughtElements, true);
-        foreach ($this->array as $element) {
-            if (isset($soughtElements[$element])) {
-                $this->exists = true;
-
-                break;
-            }
-        }
+        $this->exists = !\array_diff($this->soughtElements, $this->array);
     }
 
     /**
      * @ParamProviders({"providePairsAndBytemap"})
      */
-    public function benchCheckingExistenceOfAnyElementWithBytemap(array $params): void
+    public function benchCheckingExistenceOfAllElementsWithBytemap(array $params): void
     {
         foreach ($this->bytemap->find($this->soughtElements, true, 1) as $element) {
             $this->exists = true;
@@ -103,11 +97,15 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
     /**
      * @ParamProviders({"providePairsAndDsDeque"})
      */
-    public function benchCheckingExistenceOfAnyElementWithDsDeque(array $params): void
+    public function benchCheckingExistenceOfAllElementsWithDsDeque(array $params): void
     {
+        // What follows is an order of magnitude faster than `$this->dsDeque->contains`.
         $soughtElements = \array_fill_keys($this->soughtElements, true);
         foreach ($this->dsDeque as $element) {
             if (isset($soughtElements[$element])) {
+                unset($soughtElements[$element]);
+            }
+            if (empty($soughtElements)) {
                 $this->exists = true;
 
                 break;
@@ -118,11 +116,15 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
     /**
      * @ParamProviders({"providePairsAndDsVector"})
      */
-    public function benchCheckingExistenceOfAnyElementWithDsVector(array $params): void
+    public function benchCheckingExistenceOfAllElementsWithDsVector(array $params): void
     {
+        // What follows is an order of magnitude faster than `$this->dsVector->contains`.
         $soughtElements = \array_fill_keys($this->soughtElements, true);
         foreach ($this->dsVector as $element) {
             if (isset($soughtElements[$element])) {
+                unset($soughtElements[$element]);
+            }
+            if (empty($soughtElements)) {
                 $this->exists = true;
 
                 break;
@@ -133,11 +135,14 @@ final class CheckingExistenceOfAnyElementPerformance extends AbstractTestOfPerfo
     /**
      * @ParamProviders({"providePairsAndSplFixedArray"})
      */
-    public function benchCheckingExistenceOfAnyElementWithSplFixedArray(array $params): void
+    public function benchCheckingExistenceOfAllElementsWithSplFixedArray(array $params): void
     {
         $soughtElements = \array_fill_keys($this->soughtElements, true);
         foreach ($this->splFixedArray as $element) {
             if (isset($soughtElements[$element])) {
+                unset($soughtElements[$element]);
+            }
+            if (empty($soughtElements)) {
                 $this->exists = true;
 
                 break;
