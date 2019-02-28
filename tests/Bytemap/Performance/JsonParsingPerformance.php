@@ -19,7 +19,7 @@ namespace Bytemap\Performance;
  * @BeforeMethods({"setUpFilledContainers"})
  * @AfterMethods({"tearDown"})
  * @Groups({"Time"})
- * @ParamProviders({"providePairs"})
+ * @ParamProviders({"providePairsAndBytemap"})
  * @Iterations(5)
  *
  * @internal
@@ -47,11 +47,16 @@ final class JsonParsingPerformance extends AbstractTestOfPerformance
         \rewind($this->stream);
     }
 
-    /**
-     * @ParamProviders({"providePairsAndBytemap"})
-     */
-    public function benchJsonParsing(array $params): void
+    public function benchJsonParsingWithoutStreamingParser(array $params): void
     {
+        $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
+        [$default, ] = $params;
+        $this->bytemap::parseJsonStream($this->stream, $default);
+    }
+
+    public function benchJsonParsingWithStreamingParser(array $params): void
+    {
+        $_ENV['BYTEMAP_STREAMING_PARSER'] = '1';
         [$default, ] = $params;
         $this->bytemap::parseJsonStream($this->stream, $default);
     }

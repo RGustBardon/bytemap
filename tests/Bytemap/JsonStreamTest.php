@@ -124,11 +124,7 @@ final class JsonStreamTest extends AbstractTestOfBytemap
 
         $bytemap = self::instantiate($impl, "\x0");
         $jsonStream = self::getStream($invalidJsonData);
-        if ($useStreamingParser) {
-            unset($_ENV['BYTEMAP_STREAMING_PARSER']);
-        } else {
-            $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
-        }
+        $_ENV['BYTEMAP_STREAMING_PARSER'] = ($useStreamingParser ? '1' : '0');
         $bytemap::parseJsonStream($jsonStream, "\x0");
     }
 

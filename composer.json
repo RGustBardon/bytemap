@@ -32,9 +32,6 @@
     "config": {
         "sort-packages": true
     },
-    "suggest": {
-        "salsify/json-streaming-parser": "For instantiating bytemaps from JSON with low memory footprint"
-    },
     "autoload": {
         "psr-4": {"Bytemap\\": "src/Bytemap"}
     },

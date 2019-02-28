@@ -121,6 +121,9 @@ interface BytemapInterface extends \ArrayAccess, \Countable, \IteratorAggregate,
      *
      * The keys must be natural numbers.
      * The decoded values must be strings of the same length.
+     * 
+     * If `$_ENV['BYTEMAP_STREAMING_PARSER']` is truthy and `salsify/json-streaming-parser` can be found
+     * by the autoloader, a streaming JSON parser will be used instead of the native one.
      *
      * @param resource $jsonStream   a stream with JSON data
      * @param string   $defaultValue the default value of the resulting bytemap

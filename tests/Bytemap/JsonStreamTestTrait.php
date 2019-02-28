@@ -151,11 +151,7 @@ trait JsonStreamTestTrait
         self::assertNotFalse($json);
 
         $jsonStream = self::getStream($json);
-        if ($useStreamingParser) {
-            unset($_ENV['BYTEMAP_STREAMING_PARSER']);
-        } else {
-            $_ENV['BYTEMAP_STREAMING_PARSER'] = '0';
-        }
+        $_ENV['BYTEMAP_STREAMING_PARSER'] = ($useStreamingParser ? '1' : '0');
         $bytemap = $instance::parseJsonStream($jsonStream, $defaultValue);
 
         self::assertSame('resource', \gettype($jsonStream));
