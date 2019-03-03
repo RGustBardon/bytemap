@@ -117,8 +117,18 @@ final class GreppingAllElementsPerformance extends AbstractTestOfPerformance
      */
     public function benchGreppingAllElementsWithDsDeque(array $params): void
     {
-        foreach (\preg_grep($this->regularExpression, $this->dsDeque->toArray()) as $index => $element) {
-            $this->actualIndexes[$element][] = $index;
+        [$default, , ] = $params;
+        if (1 === \strlen($default)) {
+            $whitelist = \array_fill_keys($this->soughtElements, true);
+            foreach ($this->dsDeque as $index => $element) {
+                if (isset($whitelist[$element])) {
+                    $this->actualIndexes[$element][] = $index;
+                }
+            }
+        } else {
+            foreach (\preg_grep($this->regularExpression, $this->dsDeque->toArray()) as $index => $element) {
+                $this->actualIndexes[$element][] = $index;
+            }
         }
     }
 
@@ -127,8 +137,18 @@ final class GreppingAllElementsPerformance extends AbstractTestOfPerformance
      */
     public function benchGreppingAllElementsWithDsVector(array $params): void
     {
-        foreach (\preg_grep($this->regularExpression, $this->dsVector->toArray()) as $index => $element) {
-            $this->actualIndexes[$element][] = $index;
+        [$default, , ] = $params;
+        if (1 === \strlen($default)) {
+            $whitelist = \array_fill_keys($this->soughtElements, true);
+            foreach ($this->dsVector as $index => $element) {
+                if (isset($whitelist[$element])) {
+                    $this->actualIndexes[$element][] = $index;
+                }
+            }
+        } else {
+            foreach (\preg_grep($this->regularExpression, $this->dsVector->toArray()) as $index => $element) {
+                $this->actualIndexes[$element][] = $index;
+            }
         }
     }
 
@@ -137,8 +157,18 @@ final class GreppingAllElementsPerformance extends AbstractTestOfPerformance
      */
     public function benchGreppingAllElementsWithSplFixedArray(array $params): void
     {
-        foreach (\preg_grep($this->regularExpression, $this->splFixedArray->toArray()) as $index => $element) {
-            $this->actualIndexes[$element][] = $index;
+        [$default, , ] = $params;
+        if (1 === \strlen($default)) {
+            $whitelist = \array_fill_keys($this->soughtElements, true);
+            foreach ($this->splFixedArray as $index => $element) {
+                if (isset($whitelist[$element])) {
+                    $this->actualIndexes[$element][] = $index;
+                }
+            }
+        } else {
+            foreach (\preg_grep($this->regularExpression, $this->splFixedArray->toArray()) as $index => $element) {
+                $this->actualIndexes[$element][] = $index;
+            }
         }
     }
 }
