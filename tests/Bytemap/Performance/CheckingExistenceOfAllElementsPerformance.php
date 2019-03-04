@@ -104,11 +104,11 @@ final class CheckingExistenceOfAllElementsPerformance extends AbstractTestOfPerf
         foreach ($this->dsDeque as $element) {
             if (isset($soughtElements[$element])) {
                 unset($soughtElements[$element]);
-            }
-            if (empty($soughtElements)) {
-                $this->exists = true;
+                if (!$soughtElements) {
+                    $this->exists = true;
 
-                break;
+                    break;
+                }
             }
         }
     }
@@ -123,11 +123,11 @@ final class CheckingExistenceOfAllElementsPerformance extends AbstractTestOfPerf
         foreach ($this->dsVector as $element) {
             if (isset($soughtElements[$element])) {
                 unset($soughtElements[$element]);
-            }
-            if (empty($soughtElements)) {
-                $this->exists = true;
+                if (!$soughtElements) {
+                    $this->exists = true;
 
-                break;
+                    break;
+                }
             }
         }
     }
@@ -141,11 +141,11 @@ final class CheckingExistenceOfAllElementsPerformance extends AbstractTestOfPerf
         foreach ($this->splFixedArray as $element) {
             if (isset($soughtElements[$element])) {
                 unset($soughtElements[$element]);
-            }
-            if (empty($soughtElements)) {
-                $this->exists = true;
+                if (!$soughtElements) {
+                    $this->exists = true;
 
-                break;
+                    break;
+                }
             }
         }
     }

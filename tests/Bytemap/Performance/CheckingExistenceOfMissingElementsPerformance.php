@@ -52,7 +52,15 @@ final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOf
      */
     public function benchCheckingExistenceOfMissingElementsWithArray(array $params): void
     {
-        $this->exists = !\array_diff($this->array, $this->missingElements);
+        $this->exists = false;
+        $whitelist = \array_fill_keys($this->missingElements, true);
+        foreach ($this->array as $element) {
+            if (isset($whitelist[$element])) {
+                $this->exists = true;
+
+                break;
+            }
+        }
     }
 
     /**
@@ -70,7 +78,15 @@ final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOf
      */
     public function benchCheckingExistenceOfMissingElementsWithDsDeque(array $params): void
     {
-        $this->exists = !\array_diff($this->dsDeque->toArray(), $this->missingElements);
+        $this->exists = false;
+        $whitelist = \array_fill_keys($this->missingElements, true);
+        foreach ($this->dsDeque as $element) {
+            if (isset($whitelist[$element])) {
+                $this->exists = true;
+
+                break;
+            }
+        }
     }
 
     /**
@@ -78,7 +94,15 @@ final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOf
      */
     public function benchCheckingExistenceOfMissingElementsWithDsVector(array $params): void
     {
-        $this->exists = !\array_diff($this->dsVector->toArray(), $this->missingElements);
+        $this->exists = false;
+        $whitelist = \array_fill_keys($this->missingElements, true);
+        foreach ($this->dsVector as $element) {
+            if (isset($whitelist[$element])) {
+                $this->exists = true;
+
+                break;
+            }
+        }
     }
 
     /**
@@ -86,6 +110,14 @@ final class CheckingExistenceOfMissingElementsPerformance extends AbstractTestOf
      */
     public function benchCheckingExistenceOfMissingElementsWithSplFixedArray(array $params): void
     {
-        $this->exists = !\array_diff($this->splFixedArray->toArray(), $this->missingElements);
+        $this->exists = false;
+        $whitelist = \array_fill_keys($this->missingElements, true);
+        foreach ($this->splFixedArray as $element) {
+            if (isset($whitelist[$element])) {
+                $this->exists = true;
+
+                break;
+            }
+        }
     }
 }

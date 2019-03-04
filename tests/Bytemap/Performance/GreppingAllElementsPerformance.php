@@ -119,7 +119,7 @@ final class GreppingAllElementsPerformance extends AbstractTestOfPerformance
     {
         [$default, , ] = $params;
         if (1 === \strlen($default)) {
-            $whitelist = \array_fill_keys($this->soughtElements, true);
+            $whitelist = $this->compileWhitelist();
             foreach ($this->dsDeque as $index => $element) {
                 if (isset($whitelist[$element])) {
                     $this->actualIndexes[$element][] = $index;
@@ -139,7 +139,7 @@ final class GreppingAllElementsPerformance extends AbstractTestOfPerformance
     {
         [$default, , ] = $params;
         if (1 === \strlen($default)) {
-            $whitelist = \array_fill_keys($this->soughtElements, true);
+            $whitelist = $this->compileWhitelist();
             foreach ($this->dsVector as $index => $element) {
                 if (isset($whitelist[$element])) {
                     $this->actualIndexes[$element][] = $index;
@@ -159,7 +159,7 @@ final class GreppingAllElementsPerformance extends AbstractTestOfPerformance
     {
         [$default, , ] = $params;
         if (1 === \strlen($default)) {
-            $whitelist = \array_fill_keys($this->soughtElements, true);
+            $whitelist = $this->compileWhitelist();
             foreach ($this->splFixedArray as $index => $element) {
                 if (isset($whitelist[$element])) {
                     $this->actualIndexes[$element][] = $index;
@@ -170,5 +170,16 @@ final class GreppingAllElementsPerformance extends AbstractTestOfPerformance
                 $this->actualIndexes[$element][] = $index;
             }
         }
+    }
+
+    private function compileWhitelist(): array
+    {
+        $whitelist = [];
+        for ($i = 0x0; $i <= 0xff; ++$i) {
+            $whitelist[] = \chr($i);
+        }
+        $whitelist = \preg_grep($this->regularExpression, $whitelist);
+
+        return \array_fill_keys($whitelist, true);
     }
 }
