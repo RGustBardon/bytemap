@@ -4,3 +4,4 @@ includes:
 parameters:
     ignoreErrors:
         - '~assertFalse\(\) with true will always evaluate to false~'
+        - '~Negated boolean expression is always false~'
