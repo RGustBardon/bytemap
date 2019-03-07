@@ -14,28 +14,50 @@
 
 ## Performance
 
+In the tables that follow, _array_ is the native PHP array, _SPL_ stands for `\SplFixedArray` and _DS_ stands for `\Ds\Sequence` (i.e. `\Ds\Deque` and `\Ds\Vector`; with ext-ds).
+
 ### Memory
 
-A bytemap of 100,000 single-character elements takes 100 kB
-(SplFixedArray: 1.53 MB, DsSequence: 2.00 MB, array: 4.00 MB).
+| Length | array | SPL | DS | Bytemap |
+| --: | --: | --: | --: | --: | --: |
+| 1 | 4.0 MB | 1.5 MB | 2.0 MB | 0.1 MB |
+| 4 | 4.0 MB | 1.5 MB | 2.0 MB | 0.4 MB |
 
-If the elements are four characters long, then a bytemap takes 392 kB,
-(again, SplFixedArray: 1.53 MB, DsSequence: 2.00 MB, array: 4.00 MB).
+Data for 100,000 elements. _Length_ is the number of characters in each element.
 
 ### Time
 
 #### Elementary operations
 
-| Operation | array | \SplFixedArray | \Ds\Deque | \Ds\Vector | Bytemap |
+| Operation | array | SPL | DS | Bytemap |
 | :-- | --: | --: | --: | --: | --: |
-| foreach | 1.0 | 1.7 | 1.5 | 1.4 | 3.1 |
-| pop | 1.0 | 1.6 | 1.2 | 1.2 | 32.2 |
-| push | 1.0 | 1.7 | 1.3 | 1.3 | 3.3 |
-| random read | 1.2 | 1.0 | 1.0 | 1.1 | 2.2 |
-| random write | 1.1 | 1.0 | 1.3 | 1.0 | 2.4 |
-| shift | 1.0 | N/A | 1.6 | 40.8 | 6.6 |
-| serialize | 104.9 | 140.5 | 62.0 | 63.1 | 1.0 | 
-| unserialize | 109.3 | 182.6 | 52.1 | 56.8 | 1.0 | 
+| `foreach` | 1.0 | 1.7 | 1.5 | 3.1 |
+| pop | 1.0 | 1.6 | 1.2  | 32.2 |
+| push | 1.0 | 1.7 | 1.3 | 3.3 |
+| random read | 1.2 | 1.0 | 1.0 | 2.2 |
+| random write | 1.1 | 1.0 | 1.3 | 2.4 |
+| shift | 1.0 | N/A | *1.6 | 6.6 |
+| `serialize` | 104.9 | 140.5 | 62.0 | 1.0 |
+| `unserialize` | 109.3 | 182.6 | 52.1 | 1.0 |
+
+How to read this table: `foreach` over a bytemap is 3.1 times slower than over an array with the same elements.
+
+\* Data for `\Ds\Deque` (`\Ds\Vector` is 40.8 times slower than an array when shifting).
+
+### Batch operations
+
+| Operation | array | SPL | DS | Bytemap |
+| :-- | --: | --: | --: | --: | --: |
+| deletion at head | 374.9 | 858.2 | 85.9 | 1.0 |
+| deletion at tail | 1032.9 | 1.0 | 12.0 | 2.6 |
+| insertion at head | 156.2 | 544.6 | *1.0 | 2.8 |
+| insertion at tail | 1.8 | 1.9 | 1.0 | 2.5 |
+
+When deleting, the size of batches varied between 1 and 1000, but the same sequence of batches was used for every benchmarked container.
+
+When inserting, the size of batches varied between 1 and 95, but but the same sequence of batches was used for every benchmarked container.
+
+\* Data for `\Ds\Deque` (`\Ds\Vector` is 8.7 times slower than `\Ds\Deque` when inserting at head).
 
 ## Author
 
