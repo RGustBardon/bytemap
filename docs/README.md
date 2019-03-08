@@ -40,24 +40,22 @@ Data for 100,000 elements. _Length_ is the number of characters in each element.
 | `serialize` | 104.9 | 140.5 | 62.0 | 1.0 |
 | `unserialize` | 109.3 | 182.6 | 52.1 | 1.0 |
 
-How to read this table: `foreach` over a bytemap is 3.1 times slower than over an array with the same elements.
+How to read this table: `foreach` over a bytemap takes 3.1 times the time it takes to iterate over an array with the same elements.
 
-\* Data for `\Ds\Deque` (`\Ds\Vector` is 40.8 times slower than an array when shifting).
+\* Data for `\Ds\Deque` (`\Ds\Vector` takes 40.8 times the time it takes to shift using `\Ds\Deque`).
 
 ### Batch operations
 
 | Operation | array | SPL | DS | Bytemap |
 | :-- | --: | --: | --: | --: | --: |
-| deletion at head | 374.9 | 858.2 | 85.9 | 1.0 |
-| deletion at tail | 1032.9 | 1.0 | 12.0 | 2.6 |
-| insertion at head | 156.2 | 544.6 | *1.0 | 2.8 |
-| insertion at tail | 1.8 | 1.9 | 1.0 | 2.5 |
+| delete at head | 374.9 | 858.2 | 85.9 | 1.0 |
+| delete at tail | 1032.9 | 1.0 | 12.0 | 2.6 |
+| insert at head | 23.5 | 74.1 | *1.0 | 1.9 |
+| insert at tail | 1.8 | 1.9 | 1.0 | 2.5 |
 
-When deleting, the size of batches varied between 1 and 1000, but the same sequence of batches was used for every benchmarked container.
+Deleted and (in a separate test) inserted a sequence of batches containing 1 to 1000 elements. The same sequence of batches was used for every benchmarked container. The sequence had 50,606 elements in total.
 
-When inserting, the size of batches varied between 1 and 95, but but the same sequence of batches was used for every benchmarked container.
-
-\* Data for `\Ds\Deque` (`\Ds\Vector` is 8.7 times slower than `\Ds\Deque` when inserting at head).
+\* Data for `\Ds\Deque` (`\Ds\Vector` takes 1.5 times the time it takes to insert at head using `\Ds\Deque`).
 
 ## Author
 

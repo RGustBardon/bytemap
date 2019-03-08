@@ -18,7 +18,7 @@ namespace Bytemap\Performance;
  *
  * @Groups({"Time"})
  * @ParamProviders({"providePairs"})
- * @Revs(1000)
+ * @Revs(100)
  *
  * @internal
  */

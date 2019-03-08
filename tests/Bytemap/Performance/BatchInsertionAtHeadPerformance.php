@@ -18,13 +18,13 @@ namespace Bytemap\Performance;
  *
  * @Groups({"Time"})
  * @ParamProviders({"providePairs"})
- * @Revs(1000)
+ * @Revs(100)
  *
  * @internal
  */
 final class BatchInsertionAtHeadPerformance extends AbstractTestOfPerformance
 {
-    private /* int */ $elementCycleCount;
+    private const MAXIMUM_BATCH_ELEMENT_COUNT = 1000;
 
     private /* array */ $insertedElements = [];
 
@@ -39,32 +39,36 @@ final class BatchInsertionAtHeadPerformance extends AbstractTestOfPerformance
             $element[0] = \chr($i);
             $this->insertedElements[] = $element;
         }
-        $this->elementCycleCount = \count($this->insertedElements);
+        
+        $elementCycleCount = \count($this->insertedElements);
+        for ($i = $elementCycleCount; $i < self::MAXIMUM_BATCH_ELEMENT_COUNT; ++$i) {
+            $this->insertedElements[] = $this->insertedElements[$i % $elementCycleCount];
+        }
     }
 
     public function benchBatchInsertionAtHeadWithArray(array $params): void
     {
-        \array_unshift($this->array, ...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
+        \array_unshift($this->array, ...\array_slice($this->insertedElements, 0, \mt_rand(1, self::MAXIMUM_BATCH_ELEMENT_COUNT)));
     }
 
     public function benchBatchInsertionAtHeadWithBytemap(array $params): void
     {
-        $this->bytemap->insert(\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)), 0);
+        $this->bytemap->insert(\array_slice($this->insertedElements, 0, \mt_rand(1, self::MAXIMUM_BATCH_ELEMENT_COUNT)), 0);
     }
 
     public function benchBatchInsertionAtHeadWithDsDeque(array $params): void
     {
-        $this->dsDeque->unshift(...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
+        $this->dsDeque->unshift(...\array_slice($this->insertedElements, 0, \mt_rand(1, self::MAXIMUM_BATCH_ELEMENT_COUNT)));
     }
 
     public function benchBatchInsertionAtHeadWithDsVector(array $params): void
     {
-        $this->dsVector->unshift(...\array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount)));
+        $this->dsVector->unshift(...\array_slice($this->insertedElements, 0, \mt_rand(1, self::MAXIMUM_BATCH_ELEMENT_COUNT)));
     }
 
     public function benchBatchInsertionAtHeadWithRecreatedSplFixedArray(array $params): void
     {
-        $insertedElements = \array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount));
+        $insertedElements = \array_slice($this->insertedElements, 0, \mt_rand(1, self::MAXIMUM_BATCH_ELEMENT_COUNT));
         if (\count($this->splFixedArray) > 0) {
             \array_push($insertedElements, ...$this->splFixedArray->toArray());
         }
@@ -73,7 +77,7 @@ final class BatchInsertionAtHeadPerformance extends AbstractTestOfPerformance
 
     public function benchBatchInsertionAtHeadWithInPlaceSplFixedArray(array $params): void
     {
-        $insertedElements = \array_slice($this->insertedElements, 0, \mt_rand(1, $this->elementCycleCount));
+        $insertedElements = \array_slice($this->insertedElements, 0, \mt_rand(1, self::MAXIMUM_BATCH_ELEMENT_COUNT));
 
         // Resize.
         $originalSize = \count($this->splFixedArray);
