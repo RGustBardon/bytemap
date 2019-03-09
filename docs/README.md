@@ -37,12 +37,17 @@ Data for 100,000 elements. _Length_ is the number of characters in each element.
 | random read | 1.2 | 1.0 | 1.0 | 2.2 |
 | random write | 1.1 | 1.0 | 1.3 | 2.4 |
 | shift | 1.0 | N/A | *1.6 | 6.6 |
+| unshift | 6405.9 | N/A | **1.0 | 22.1 |
 | `serialize` | 104.9 | 140.5 | 62.0 | 1.0 |
 | `unserialize` | 109.3 | 182.6 | 52.1 | 1.0 |
 
-How to read this table: `foreach` over a bytemap takes 3.1 times the time it takes to iterate over an array with the same elements.
+Data for 100,000 single-byte elements.
 
-\* Data for `\Ds\Deque` (`\Ds\Vector` takes 40.8 times the time it takes to shift using `\Ds\Deque`).
+How to read this table: `foreach` over a bytemap takes 3.1 times the time it takes to iterate over an array with the same 100,000 single-byte elements.
+
+\* Data for `\Ds\Deque` (in this test, `\Ds\Vector` took 40.8 times the time it took to shift using `\Ds\Deque`).
+
+\*\* Data for `\Ds\Deque` (in this test, `\Ds\Vector` took 216.2 times the time it took to unshift using `\Ds\Deque`).
 
 ### Batch operations
 
@@ -53,9 +58,9 @@ How to read this table: `foreach` over a bytemap takes 3.1 times the time it tak
 | insert at head | 23.5 | 74.1 | *1.0 | 1.9 |
 | insert at tail | 1.8 | 1.9 | 1.0 | 2.5 |
 
-Deleted and (in a separate test) inserted a sequence of batches containing 1 to 1000 elements. The same sequence of batches was used for every benchmarked container. The sequence had 50,606 elements in total.
+Deleted and (in a separate test) inserted a sequence of batches containing 1 to 1000 single-byte elements. The same sequence of batches was used for every benchmarked container. The sequence had 50,606 elements in total.
 
-\* Data for `\Ds\Deque` (`\Ds\Vector` takes 1.5 times the time it takes to insert at head using `\Ds\Deque`).
+\* Data for `\Ds\Deque` (in this test, `\Ds\Vector` took 1.5 times the time it took to insert at head using `\Ds\Deque`).
 
 ## Author
 
