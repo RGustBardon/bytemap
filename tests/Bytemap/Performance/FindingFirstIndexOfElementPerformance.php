@@ -25,8 +25,6 @@ namespace Bytemap\Performance;
  */
 final class FindingFirstIndexOfElementPerformance extends AbstractTestOfPerformance
 {
-    private const SOUGHT_ELEMENT_COUNT = 100;
-
     private /* int */ $expectedIndex;
 
     private /* int */ $actualIndex;

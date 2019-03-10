@@ -62,6 +62,19 @@ Deleted and (in a separate test) inserted a sequence of batches containing 1 to 
 
 \* Data for `\Ds\Deque` (in this test, `\Ds\Vector` took 1.5 times the time it took to insert at head using `\Ds\Deque`).
 
+### Finding elements
+
+| Operation | Items sought | array | SPL | DS | Bytemap |
+| :-- | :-- | --: | --: | --: | --: |
+| existence check | 1 out of 1| 1.0 | 5.0 | 1.0 | 5.0 |
+| existence check | 1 out of 10 | 1.0 | 1.7 | 1.4 | 1.8 |
+| existence check | 100 out of 100 | 14.5 | 40.5 | 33.1 | 1.0 |
+| find first index | 1 out of 1 | 1.1 | 5.9 | 1.0 | 4.5 |
+| find all indexes | 100 out of 100 | 1.0 | 1.4 | 1.2 | 1.4 |
+| grep | 100 out of 100 | 1.0 | 1.8 | 1.7 | 1.7 |
+
+Data for 100,000 single-byte elements.
+
 ## Author
 
 Robert Gust-Bardon - <robert@gust-bardon.org> - <https://twitter.com/RGustBardon>
