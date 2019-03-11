@@ -64,7 +64,7 @@ Deleted and (in a separate test) inserted a sequence of batches containing 1 to 
 
 ### Finding elements
 
-| Operation | Items sought | array | SPL | DS | Bytemap |
+| Operation | Elements sought | array | SPL | DS | Bytemap |
 | :-- | :-- | --: | --: | --: | --: |
 | existence check | 1 out of 1| 1.0 | 5.0 | 1.0 | 5.0 |
 | existence check | 1 out of 10 | 1.0 | 1.7 | 1.4 | 1.8 |
@@ -74,6 +74,21 @@ Deleted and (in a separate test) inserted a sequence of batches containing 1 to 
 | grep | 100 out of 100 | 1.0 | 1.8 | 1.7 | 1.7 |
 
 Data for 100,000 single-byte elements.
+
+### JSON
+
+| Operation | Element count | Element length | Time |
+| :-- | --: | --: |
+| parsing | 100,000 | 1 | 0.02 s |
+| parsing | 100,000 | 4 | 0.02 s |
+| parsing | 1,000,000 | 1 | 0.19 s |
+| parsing | 1,000,000 | 4 | 0.24 s |
+| streaming | 100,000 | 1 | 0.01 s |
+| streaming | 100,000 | 4 | 0.02 s |
+| streaming | 1,000,000 | 1 | 0.10 s |
+| streaming | 1,000,000 | 4 | 0.15 s |
+
+Data for bytemaps only.
 
 ## Author
 
