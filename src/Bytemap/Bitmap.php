@@ -414,6 +414,15 @@ class Bitmap extends Bytemap
     }
 
     // `BytemapInterface`
+    public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator
+    {
+        // Both `Bitmap` should not extend `Bytemap`.
+        // Instead, their interfaces should extend a generic interface that does not include `grep`.
+        // `BytemapInterface` would then add `grep` for `Bytemap` only.
+        // This issue will be resolved in the next version of the API.
+        throw new \LogicException('Grepping makes no sense when dealing with bits.');
+    }
+
     public function insert(iterable $elements, int $firstIndex = -1): void
     {
         // Prepare a substring to insert.

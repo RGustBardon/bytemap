@@ -130,6 +130,12 @@ final class BitmapTest extends AbstractTestOfBytemap
         self::assertFalse(isset($values[33]));
     }
 
+    public function testUnavailableGrep(): void
+    {
+        $this->expectException(\LogicException::class);
+        (new Bitmap())->grep(['~foo~']);
+    }
+
     public static function randomizedBitmapProvider(): \Generator
     {
         \mt_srand(0);
