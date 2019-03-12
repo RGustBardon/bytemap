@@ -18,12 +18,12 @@ In the tables that follow, _array_ is the native PHP array, _SPL_ stands for `\S
 
 ### Memory
 
-| Length | array | SPL | DS | Bytemap |
+| Element length | array | SPL | DS | Bytemap |
 | --: | --: | --: | --: | --: | --: |
 | 1 | 4.0 MB | 1.5 MB | 2.0 MB | 0.1 MB |
 | 4 | 4.0 MB | 1.5 MB | 2.0 MB | 0.4 MB |
 
-Data for 100,000 elements. _Length_ is the number of characters in each element.
+Data for 100,000 elements.
 
 ### Time
 
@@ -78,7 +78,7 @@ Data for 100,000 single-byte elements.
 ### JSON
 
 | Operation | Element count | Element length | Time |
-| :-- | --: | --: |
+| :-- | --: | --: | --:  |
 | parsing | 100,000 | 1 | 0.02 s |
 | parsing | 100,000 | 4 | 0.02 s |
 | parsing | 1,000,000 | 1 | 0.19 s |
