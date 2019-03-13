@@ -414,6 +414,47 @@ class Bitmap extends Bytemap
     }
 
     // `BytemapInterface`
+    public function find(
+        ?iterable $elements = null,
+        bool $whitelist = true,
+        int $howMany = \PHP_INT_MAX,
+        ?int $startAfter = null
+        ): \Generator {
+        if (0 === $howMany) {
+            return;
+        }
+
+        $howManyToSkip = $this->calculateHowManyToSkip($howMany > 0, $startAfter);
+        if (null === $howManyToSkip) {
+            return;
+        }
+
+        if (null === $elements) {
+            $needles = [false => true];
+            $whitelist = !$whitelist;
+        } else {
+            $needles = [];
+            foreach ($elements as $value) {
+                if (\is_bool($value)) {
+                    $needles[$value] = true;
+                }
+            }
+        }
+
+        $allInclusive = 2 === \count($needles);
+        if ($whitelist && !$needles || !$whitelist && $allInclusive) {
+            return;
+        }
+
+        if ($whitelist && $allInclusive || !$whitelist && !$needles) {
+            // FIXME(rgustbardon): Return all the elements, honoring `$howMany` and `$startAfter`.
+            return;
+        }
+
+        // FIXME(rgustbardon): Return either `false` or `true` elements, honoring `$howMany` and `$startAfter`.
+        yield from [];
+    }
+
     public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator
     {
         // Both `Bitmap` should not extend `Bytemap`.
@@ -1038,6 +1079,23 @@ class Bitmap extends Bytemap
     }
 
     // `AbstractBytemap`
+    protected function calculateHowManyToSkip(bool $searchForwards, ?int $startAfter): ?int
+    {
+        if (null === $startAfter) {
+            return 0;
+        }
+
+        if ($startAfter < 0) {
+            $startAfter += $this->bitCount;
+        }
+
+        if ($searchForwards) {
+            return $startAfter < $this->bitCount - 1 ? \max(0, $startAfter + 1) : null;
+        }
+
+        return $startAfter > 0 ? \max(0, $this->bitCount - $startAfter) : null;
+    }
+
     protected function unserializeAndValidate(string $serialized): void
     {
         $errorMessage = 'details unavailable';

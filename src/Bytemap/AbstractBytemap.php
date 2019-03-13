@@ -209,7 +209,7 @@ abstract class AbstractBytemap implements BytemapInterface
     }
 
     // `AbstractBytemap`
-    final protected function calculateHowManyToSkip(bool $searchForwards, ?int $startAfter): ?int
+    protected function calculateHowManyToSkip(bool $searchForwards, ?int $startAfter): ?int
     {
         if (null === $startAfter) {
             return 0;
