@@ -567,7 +567,7 @@ class Bitmap extends Bytemap
                     // referred to as 'head,' the part to the right will be referred to as 'tail.'
 
                     // Since splicing does not start at a full byte, both the head and the tail will
-                    // originally have one byte in common. The overlaping bits (rightmost in the head
+                    // originally have one byte in common. The overlapping bits (rightmost in the head
                     // and leftmost in the tail) will then by removed by calling the `delete` method.
 
                     // Head bits will be denoted as H, tail bits will be denoted as T.
@@ -584,7 +584,7 @@ class Bitmap extends Bytemap
                     //                            ---------           ---------
                     // Concatenation:   HHHH|HHHH HHHH|HHHH NNNN|N000 TTTT|TTTT TTTT|0000
                     // `$firstIndex`:               ^
-                    // Overlaping bits:             ^^ ^^^^           ^^
+                    // Overlapping bits:            ^^ ^^^^           ^^
                     // 1st deletion:                                                 ^^^^
                     // 2nd deletion:                              ^^^ ^^                  ('middle gap')
                     // 3rd deletion:                ^^ ^^^^
@@ -675,7 +675,7 @@ class Bitmap extends Bytemap
             return;
         }
 
-        // Keep rewritting the target with assembled bytes.
+        // Keep rewriting the target with assembled bytes.
 
         // During the first iteration, the assembled byte will include some target bits.
         // After the first iteration, all the assembled bytes will consist of source bits only.
@@ -687,8 +687,8 @@ class Bitmap extends Bytemap
         // Source bits:                          ^ ^^^^ ^^^^ ^^^^ ^^^^
         // Target bits:               ^^ ^^^^ ^^^^ ^^^^ ^^^
         // 1st assembled byte: ^^^^ ^^           ^ ^                   (includes six target bits)
-        // 2nd assembled byte: 1111|1111            ^^^ ^^^^ ^         (consist entirely of source bits)
-        // 3rd assembled byte: 1111|1111 2222|2222            ^^^ ^^^^ (consist of source bits and zeros)
+        // 2nd assembled byte: 1111|1111            ^^^ ^^^^ ^         (consists entirely of source bits)
+        // 3rd assembled byte: 1111|1111 2222|2222            ^^^ ^^^^ (consists of source bits and zeros)
 
         // The above is a simplified view. In reality, the bits are reversed in each byte:
 
@@ -697,8 +697,8 @@ class Bitmap extends Bytemap
         // Source bits:                  ^         ^^^^ ^^^^ ^^^^ ^^^^
         // Target bits:        ^^        ^^^^ ^^^^  ^^^ ^^^^
         // 1st assembled byte:   ^^^^ ^^ ^                 ^           (includes six target bits)
-        // 2nd assembled byte: 1111|1111           ^^^^ ^^^          ^ (consist entirely of source bits)
-        // 3rd assembled byte: 1111|1111 2222|2222           ^^^^ ^^^  (consist of source bits and zeros)
+        // 2nd assembled byte: 1111|1111           ^^^^ ^^^          ^ (consists entirely of source bits)
+        // 3rd assembled byte: 1111|1111 2222|2222           ^^^^ ^^^  (consists of source bits and zeros)
 
         $lastByteIndex = $this->elementCount - 1;
         $bitCount = $this->bitCount;
