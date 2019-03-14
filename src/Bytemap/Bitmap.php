@@ -420,6 +420,8 @@ class Bitmap extends Bytemap
         int $howMany = \PHP_INT_MAX,
         ?int $startAfter = null
         ): \Generator {
+        static $mask = ["\x1", "\x2", "\x4", "\x8", "\x10", "\x20", "\x40", "\x80"];
+
         if (0 === $howMany) {
             return;
         }
@@ -447,7 +449,22 @@ class Bitmap extends Bytemap
         }
 
         if ($whitelist && $allInclusive || !$whitelist && !$needles) {
-            // FIXME(rgustbardon): Return all the elements, honoring `$howMany` and `$startAfter`.
+            $map = $this->map;
+            if ($howMany > 0) {
+                $bitCount = $this->bitCount;
+                $elementCount = $this->elementCount;
+                $bitIndex = $howManyToSkip;
+                for ($byteIndex = $howManyToSkip >> 3; $byteIndex < $elementCount; ++$byteIndex) {
+                    for ($bit = $bitIndex & 7, $byte = $map[$byteIndex]; $bitIndex < $bitCount && $bit < 8; ++$bitIndex, ++$bit) {
+                        yield $bitIndex => "\x0" !== ($byte & $mask[$bit]);
+                        if (0 === --$howMany) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                // FIXME(rgustbardon): Iterate backwards, honoring `$howMany` and `$startAfter`.
+            }
             return;
         }
 
