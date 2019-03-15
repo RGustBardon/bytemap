@@ -444,17 +444,13 @@ class Bitmap extends Bytemap
         }
 
         $allInclusive = 2 === \count($needles);
-        if ($whitelist && !$needles || !$whitelist && $allInclusive) {
-            return;
-        }
-
         if ($whitelist && $allInclusive || !$whitelist && !$needles) {
             $map = $this->map;
             if ($howMany > 0) {
                 $bitCount = $this->bitCount;
                 $elementCount = $this->elementCount;
                 $bitIndex = $howManyToSkip;
-                for ($byteIndex = $howManyToSkip >> 3; $byteIndex < $elementCount; ++$byteIndex) {
+                for ($byteIndex = $bitIndex >> 3; $byteIndex < $elementCount; ++$byteIndex) {
                     for ($bit = $bitIndex & 7, $byte = $map[$byteIndex]; $bitIndex < $bitCount && $bit < 8; ++$bitIndex, ++$bit) {
                         yield $bitIndex => "\x0" !== ($byte & $mask[$bit]);
                         if (0 === --$howMany) {
@@ -463,13 +459,22 @@ class Bitmap extends Bytemap
                     }
                 }
             } else {
-                // FIXME(rgustbardon): Iterate backwards, honoring `$howMany` and `$startAfter`.
+                $bitCount = $this->bitCount;
+                $bitIndex = $bitCount - 1 - $howManyToSkip;
+                for ($byteIndex = $bitIndex >> 3; $byteIndex >= 0; --$byteIndex) {
+                    for ($bit = $bitIndex & 7, $byte = $map[$byteIndex]; $bit >= 0; --$bitIndex, --$bit) {
+                        yield $bitIndex => "\x0" !== ($byte & $mask[$bit]);
+                        if (0 === ++$howMany) {
+                            return;
+                        }
+                    }
+                }
             }
-            return;
+        } elseif (!($whitelist && !$needles || !$whitelist && $allInclusive)) {
+            // FIXME(rgustbardon): Return either `false` or `true` elements, honoring `$howMany` and `$startAfter`.
+            yield from [];
         }
 
-        // FIXME(rgustbardon): Return either `false` or `true` elements, honoring `$howMany` and `$startAfter`.
-        yield from [];
     }
 
     public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator
