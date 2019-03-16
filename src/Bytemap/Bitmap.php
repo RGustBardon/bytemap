@@ -436,18 +436,18 @@ class Bitmap extends Bytemap
             $whitelist = !$whitelist;
         } else {
             $needles = [];
-            foreach ($elements as $value) {
-                if (\is_bool($value)) {
-                    $needles[$value] = true;
+            foreach ($elements as $element) {
+                if (\is_bool($element)) {
+                    $needles[$element] = true;
                 }
             }
         }
 
         $allInclusive = 2 === \count($needles);
+        $bitCount = $this->bitCount;
         if ($whitelist && $allInclusive || !$whitelist && !$needles) {
             $map = $this->map;
             if ($howMany > 0) {
-                $bitCount = $this->bitCount;
                 $elementCount = $this->elementCount;
                 $bitIndex = $howManyToSkip;
                 for ($byteIndex = $bitIndex >> 3; $byteIndex < $elementCount; ++$byteIndex) {
@@ -459,7 +459,6 @@ class Bitmap extends Bytemap
                     }
                 }
             } else {
-                $bitCount = $this->bitCount;
                 $bitIndex = $bitCount - 1 - $howManyToSkip;
                 for ($byteIndex = $bitIndex >> 3; $byteIndex >= 0; --$byteIndex) {
                     for ($bit = $bitIndex & 7, $byte = $map[$byteIndex]; $bit >= 0; --$bitIndex, --$bit) {
@@ -471,8 +470,37 @@ class Bitmap extends Bytemap
                 }
             }
         } elseif (!($whitelist && !$needles || !$whitelist && $allInclusive)) {
-            // FIXME(rgustbardon): Return either `false` or `true` elements, honoring `$howMany` and `$startAfter`.
-            yield from [];
+            $map = $this->map;
+            $valueSought = !($whitelist xor isset($needles[true]));
+            $bitCount = $this->bitCount;
+            if ($howMany > 0) {
+                $elementCount = $this->elementCount;
+                $bitIndex = $howManyToSkip;
+                for ($byteIndex = $bitIndex >> 3; $byteIndex < $elementCount; ++$byteIndex) {
+                    for ($bit = $bitIndex & 7, $byte = $map[$byteIndex]; $bitIndex < $bitCount && $bit < 8; ++$bitIndex, ++$bit) {
+                        $element = "\x0" !== ($byte & $mask[$bit]);
+                        if ($element === $valueSought) {
+                            yield $bitIndex => $element;
+                            if (0 === --$howMany) {
+                                return;
+                            }
+                        }
+                    }
+                }
+            } else {
+                $bitIndex = $bitCount - 1 - $howManyToSkip;
+                for ($byteIndex = $bitIndex >> 3; $byteIndex >= 0; --$byteIndex) {
+                    for ($bit = $bitIndex & 7, $byte = $map[$byteIndex]; $bit >= 0; --$bitIndex, --$bit) {
+                        $element = "\x0" !== ($byte & $mask[$bit]);
+                        if ($element === $valueSought) {
+                            yield $bitIndex => $element;
+                            if (0 === ++$howMany) {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
     }
