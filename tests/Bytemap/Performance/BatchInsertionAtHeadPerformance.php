@@ -39,7 +39,7 @@ final class BatchInsertionAtHeadPerformance extends AbstractTestOfPerformance
             $element[0] = \chr($i);
             $this->insertedElements[] = $element;
         }
-        
+
         $elementCycleCount = \count($this->insertedElements);
         for ($i = $elementCycleCount; $i < self::MAXIMUM_BATCH_ELEMENT_COUNT; ++$i) {
             $this->insertedElements[] = $this->insertedElements[$i % $elementCycleCount];

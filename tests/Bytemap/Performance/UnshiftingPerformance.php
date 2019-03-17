@@ -25,31 +25,31 @@ namespace Bytemap\Performance;
 final class UnshiftingPerformance extends AbstractTestOfPerformance
 {
     private /* int */ $lastIndex = 0;
-    
+
     public function benchUnshiftingWithArray(array $params): void
     {
         [, $inserted] = $params;
         \array_unshift($this->array, $inserted);
     }
-    
+
     public function benchUnshiftingWithBytemap(array $params): void
     {
         [, $inserted] = $params;
         $this->bytemap->insert([$inserted], 0);
     }
-    
+
     public function benchUnshiftingWithDsDeque(array $params): void
     {
         [, $inserted] = $params;
         $this->dsDeque->unshift($inserted);
     }
-    
+
     public function benchUnshiftingWithDsVector(array $params): void
     {
         [, $inserted] = $params;
         $this->dsVector->unshift($inserted);
     }
-    
+
     public function benchUnshiftingWithRecreatedSplFixedArray(array $params): void
     {
         [, $inserted] = $params;
@@ -57,17 +57,17 @@ final class UnshiftingPerformance extends AbstractTestOfPerformance
         \array_unshift($elements, $inserted);
         $this->splFixedArray = \SplFixedArray::fromArray($elements, false);
     }
-    
+
     public function benchUnshiftingWithInPlaceSplFixedArray(array $params): void
     {
         [, $inserted] = $params;
         $this->splFixedArray->setSize(++$this->lastIndex);
-        
+
         // Shift all the subsequent elements right.
         for ($i = $this->lastIndex - 1; $i >= 1; --$i) {
             $this->splFixedArray[$i] = $this->splFixedArray[$i - 1];
         }
-        
+
         $this->splFixedArray[0] = $inserted;
     }
 }

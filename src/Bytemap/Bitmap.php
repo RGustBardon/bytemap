@@ -502,7 +502,6 @@ class Bitmap extends Bytemap
                 }
             }
         }
-
     }
 
     public function grep(iterable $patterns, bool $whitelist = true, int $howMany = \PHP_INT_MAX, ?int $startAfter = null): \Generator
