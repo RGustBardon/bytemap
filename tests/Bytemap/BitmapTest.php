@@ -25,6 +25,7 @@ final class BitmapTest extends AbstractTestOfBytemap
     use CloneableTestTrait;
     use CountableTestTrait;
     use DeletionTestTrait;
+    use FindingTestTrait;
     use InsertionTestTrait;
     use InvalidElementsGeneratorTrait;
     use InvalidTypeGeneratorsTrait;
@@ -232,6 +233,12 @@ NOWDOC;
             [new Bitmap(), [false, false, false, true, true, true]],
             [new Bitmap(), [false, true, true, true, false, false]],
         ];
+    }
+    
+    // `FindingTestTrait`
+    protected static function seekableInstanceProvider(): \Generator
+    {
+        yield from self::insertionInstanceProvider();
     }
 
     // `DeletionTestTrait`

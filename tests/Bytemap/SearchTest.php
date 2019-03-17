@@ -23,170 +23,12 @@ namespace Bytemap;
  * @covers \Bytemap\Benchmark\DsDequeBytemap
  * @covers \Bytemap\Benchmark\DsVectorBytemap
  * @covers \Bytemap\Benchmark\SplBytemap
+ * @covers \Bytemap\Bitmap
  * @covers \Bytemap\Bytemap
  */
 final class SearchTest extends AbstractTestOfBytemap
 {
-    public static function findingProvider(): \Generator
-    {
-        foreach (self::implementationProvider() as [$impl]) {
-            foreach ([
-                ['z', 'x', 'y', 'w', 'u', 't'],
-                ['zx', 'xy', 'yy', 'wy', 'ut', 'tu'],
-            ] as $elements) {
-                foreach ([
-                    [[], [], false, true, -1, null, []],
-                    [[], [], false, true, 0, null, []],
-                    [[], [], false, false, 1, null, []],
-                    [[], [], true, false, 1, null, []],
-
-                    [[1], [], false, true, \PHP_INT_MAX, null, []],
-                    [[1], [], false, false, 0, null, []],
-                    [[1], [], false, false, 1, null, [1]],
-                    [[1], [], false, false, \PHP_INT_MAX, null, [1]],
-
-                    [[1], [1], false, false, \PHP_INT_MAX, null, []],
-                    [[1], [1], false, true, -2, null, [1]],
-                    [[1], [1], false, true, -1, null, [1]],
-                    [[1], [1], false, true, 0, null, []],
-                    [[1], [1], false, true, 1, null, [1]],
-                    [[1], [1], false, true, 2, null, [1]],
-
-                    [[1], [2], false, false, \PHP_INT_MAX, null, [1]],
-                    [[1], [2], false, true, -2, null, []],
-                    [[1], [2], false, true, -1, null, []],
-                    [[1], [2], false, true, 0, null, []],
-                    [[1], [2], false, true, 1, null, []],
-                    [[1], [2], false, true, 2, null, []],
-
-                    [[1, 1], [1], false, true, -2, null, [1 => 1, 0 => 1]],
-                    [[1, 1], [1], false, true, -1, null, [1 => 1]],
-                    [[1, 1], [1], false, true, 0, null, []],
-                    [[1, 1], [1], false, true, 1, null, [1]],
-                    [[1, 1], [1], false, true, 2, null, [1, 1]],
-
-                    [[1, 1], [1, 1], false, true, -2, null, [1 => 1, 0 => 1]],
-                    [[1, 1], [1, 1], false, true, -1, null, [1 => 1]],
-                    [[1, 1], [1, 1], false, true, 0, null, []],
-                    [[1, 1], [1, 1], false, true, 1, null, [1]],
-                    [[1, 1], [1, 1], false, true, 2, null, [1, 1]],
-
-                    [[1, 1], [2, 1, 3], false, true, -2, null, [1 => 1, 0 => 1]],
-                    [[1, 1], [2, 1, 3], false, true, -1, null, [1 => 1]],
-                    [[1, 1], [2, 1, 3], false, true, 0, null, []],
-                    [[1, 1], [2, 1, 3], false, true, 1, null, [1]],
-                    [[1, 1], [2, 1, 3], false, true, 2, null, [1, 1]],
-
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, -2, null, [2 => 4, 0 => 4]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, -1, null, [2 => 4]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, 0, null, []],
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, 1, null, [0 => 4]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, false, 2, null, [0 => 4, 2 => 4]],
-
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, -2, null, [3 => 1, 1 => 1]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, -1, null, [3 => 1]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, 0, null, []],
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, 1, null, [1 => 1]],
-                    [[4, 1, 4, 1], [2, 1, 3], false, true, 2, null, [1 => 1, 3 => 1]],
-
-                    [[4, 1, 4, 1], [2, 1, 3], true, true, 2, null, [1 => 1, 3 => 1]],
-
-                    [[4, null, 4, 1], [2, 0, 1], false, true, 2, null, [1 => 0, 3 => 1]],
-
-                    [[4, null, 0, 1], null, false, false, 2, null, [1 => 0, 2 => 0]],
-                    [[4, null, 0, 1], null, false, true, 2, null, [0 => 4, 3 => 1]],
-
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, null, [1, 2, 3, 4, 5, 1, 2]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, 0, [1 => 2, 3, 4, 5, 1, 2]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, 2, [3 => 4, 5, 1, 2]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, -2, [6 => 2]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, -7, [1 => 2, 3, 4, 5, 1, 2]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, 6, []],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, 42, []],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, 7, -42, [1, 2, 3, 4, 5, 1, 2]],
-
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, null, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 0, []],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 2, [1 => 2, 0 => 1]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, -2, [4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, -7, []],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 6, [5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, 42, [6 => 2, 5 => 1, 4 => 5, 3 => 4, 2 => 3, 1 => 2, 0 => 1]],
-                    [[1, 2, 3, 4, 5, 1, 2], [0], false, false, -7, -42, []],
-                ] as [$subject, $query, $generator, $whitelist, $howMany, $startAfter, $expected]) {
-                    yield [$impl, $elements, $subject, $query, $generator, $whitelist, $howMany, $startAfter, $expected];
-                }
-            }
-        }
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::find
-     * @dataProvider findingProvider
-     */
-    public function testFinding(
-        string $impl,
-        array $elements,
-        array $subject,
-        ?array $query,
-        bool $generator,
-        bool $whitelist,
-        int $howMany,
-        ?int $startAfter,
-        array $expected
-    ): void {
-        $expectedSequence = [];
-        foreach ($expected as $index => $key) {
-            $expectedSequence[$index] = $elements[$key];
-        }
-        $bytemap = self::instantiate($impl, $elements[0]);
-        foreach ($subject as $index => $key) {
-            if (null !== $key) {
-                $bytemap[$index] = $elements[$key];
-            }
-        }
-        if (null !== $query) {
-            $queryIndices = $query;
-            $query = (static function () use ($elements, $queryIndices) {
-                foreach ($queryIndices as $key) {
-                    yield $elements[$key];
-                }
-            })();
-            if (!$generator) {
-                $query = \iterator_to_array($query);
-            }
-        }
-        self::assertSame($expectedSequence, \iterator_to_array($bytemap->find($query, $whitelist, $howMany, $startAfter)));
-    }
-
-    public static function implementationDirectionProvider(): \Generator
-    {
-        foreach (self::implementationProvider() as [$impl]) {
-            foreach ([true, false] as $forward) {
-                yield [$impl, $forward];
-            }
-        }
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::find
-     * @depends testFinding
-     * @dataProvider implementationDirectionProvider
-     */
-    public function testFindingCloning(string $impl, bool $forward): void
-    {
-        $bytemap = self::instantiate($impl, "\x0");
-        self::pushElements($bytemap, 'a', 'b', 'c', 'a', 'b', 'c');
-
-        $matchCount = 0;
-        foreach ($bytemap->find(['a', 'c'], true, $forward ? \PHP_INT_MAX : -\PHP_INT_MAX) as $element) {
-            ++$matchCount;
-            if (1 === $matchCount) {
-                $bytemap[1] = 'a';
-            }
-        }
-        self::assertSame(4, $matchCount);
-    }
+    use FindingTestTrait;
 
     /**
      * @covers \Bytemap\AbstractBytemap::grep
@@ -396,5 +238,18 @@ final class SearchTest extends AbstractTestOfBytemap
             }
         }
         self::assertSame(18, $matchCount);
+    }
+
+    // `FindingTestTrait`
+    protected static function seekableInstanceProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([
+                ['z', 'x', 'y', 'w', 'u', 't'],
+                ['zx', 'xy', 'yy', 'wy', 'ut', 'tu'],
+            ] as $elements) {
+                yield [self::instantiate($impl, $elements[0]), $elements];
+            }
+        }
     }
 }

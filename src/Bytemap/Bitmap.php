@@ -432,8 +432,7 @@ class Bitmap extends Bytemap
         }
 
         if (null === $elements) {
-            $needles = [false => true];
-            $whitelist = !$whitelist;
+            $needles = [true => true];
         } else {
             $needles = [];
             foreach ($elements as $element) {
@@ -445,8 +444,8 @@ class Bitmap extends Bytemap
 
         $allInclusive = 2 === \count($needles);
         $bitCount = $this->bitCount;
+        $map = $this->map;
         if ($whitelist && $allInclusive || !$whitelist && !$needles) {
-            $map = $this->map;
             if ($howMany > 0) {
                 $elementCount = $this->elementCount;
                 $bitIndex = $howManyToSkip;
@@ -470,7 +469,6 @@ class Bitmap extends Bytemap
                 }
             }
         } elseif (!($whitelist && !$needles || !$whitelist && $allInclusive)) {
-            $map = $this->map;
             $valueSought = !($whitelist xor isset($needles[true]));
             $bitCount = $this->bitCount;
             if ($howMany > 0) {
