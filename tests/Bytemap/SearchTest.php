@@ -214,6 +214,15 @@ final class SearchTest extends AbstractTestOfBytemap
         self::assertSame($expectedSequence, \iterator_to_array($bytemap->grep($patterns, $whitelist, $howMany, $startAfter)));
     }
 
+    public static function implementationDirectionProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([true, false] as $forward) {
+                yield [$impl, $forward];
+            }
+        }
+    }
+
     /**
      * @covers \Bytemap\AbstractBytemap::grep
      * @depends testGrepping
@@ -247,6 +256,18 @@ final class SearchTest extends AbstractTestOfBytemap
             foreach ([
                 ['z', 'x', 'y', 'w', 'u', 't'],
                 ['zx', 'xy', 'yy', 'wy', 'ut', 'tu'],
+            ] as $elements) {
+                yield [self::instantiate($impl, $elements[0]), $elements];
+            }
+        }
+    }
+
+    protected static function seekableWithDefaultFirstProvider(): \Generator
+    {
+        foreach (self::implementationProvider() as [$impl]) {
+            foreach ([
+                ['z', 'x'],
+                ['zx', 'xy'],
             ] as $elements) {
                 yield [self::instantiate($impl, $elements[0]), $elements];
             }

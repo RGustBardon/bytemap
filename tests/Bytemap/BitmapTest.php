@@ -234,11 +234,19 @@ NOWDOC;
             [new Bitmap(), [false, true, true, true, false, false]],
         ];
     }
-    
+
     // `FindingTestTrait`
     protected static function seekableInstanceProvider(): \Generator
     {
-        yield from self::insertionInstanceProvider();
+        yield from [
+            [new Bitmap(), [false, true]],
+            [new Bitmap(), [true, false]],
+        ];
+    }
+
+    protected static function seekableWithDefaultFirstProvider(): \Generator
+    {
+        yield [new Bitmap(), [false, true]];
     }
 
     // `DeletionTestTrait`
