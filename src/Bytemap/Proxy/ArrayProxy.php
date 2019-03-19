@@ -201,7 +201,7 @@ class ArrayProxy extends AbstractProxy implements ArrayProxyInterface
         }
 
         foreach ($clone as $index => $element) {
-            if ($iteration === $uniqueValues[$element] ?? 0) {
+            if (($uniqueValues[$element] ?? 0) === $iteration) {
                 yield $index => $element;
             }
         }

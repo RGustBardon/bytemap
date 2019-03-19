@@ -317,6 +317,7 @@ final class ArrayProxyTest extends AbstractTestOfProxy
             [['100'], [['1e2']], []],
             [["\u{2010}"], [["\u{2011}"]], []],
             [['a', 'b', 'c', 'x', 'a'], [['x', 'a', 'b', 'd'], ['a', 'x', 'b', 'f']], ['a', 'b', 3 => 'x', 'a']],
+            [['a', 'b', 'c', 'x', 'a'], [['x', 'a', 'b', 'd'], ['c', 'a', 'x', 'b', 'f']], ['a', 'b', 3 => 'x', 'a']],
             [['100', '1e2', "\u{2010}", "\u{2011}"], [["\u{2010}", '100', '1e2', "\u{2011}"]], ['100', '1e2', "\u{2010}", "\u{2011}"]],
         ] as [$elements, $iterables, $expected]) {
             yield [$elements, $iterables, $expected];
