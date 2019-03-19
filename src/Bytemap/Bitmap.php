@@ -639,7 +639,7 @@ class Bitmap extends Bytemap
                         // The bits are not to be inserted at the beginning, so splice (XNX).
                         $this->map = \substr($this->map, 0, $firstIndex >> 3).$substringToInsert.\substr($this->map, $firstIndex >> 3);
                     } else {
-                        // The bits are to be inserted add the beginning, so prepend (NX).
+                        // The bits are to be inserted at the beginning, so prepend (NX).
                         $this->map = $substringToInsert.$this->map;
                     }
                     $this->deriveProperties();

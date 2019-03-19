@@ -86,7 +86,7 @@ trait InsertionTestTrait
                     [[0, 1, 2, 3, 0, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
                     [[0, 1, 2, 3, null, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
 
-                    // The bits are to be inserted add the beginning, so prepend (NX).
+                    // The bits are to be inserted at the beginning, so prepend (NX).
                     [
                         [0, 1, 2, 3, 0, 1, 2, 3],
                         [0, 1, 2, 3, 0, 1, 2, 3],
