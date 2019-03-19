@@ -19,7 +19,7 @@ In the tables that follow, _array_ is the native PHP array, _SPL_ stands for `\S
 ### Memory
 
 | Element length | array | SPL | DS | Bytemap |
-| --: | --: | --: | --: | --: | --: |
+| --: | --: | --: | --: | --: |
 | 1 | 4.0 MB | 1.5 MB | 2.0 MB | 0.1 MB |
 | 4 | 4.0 MB | 1.5 MB | 2.0 MB | 0.4 MB |
 
@@ -30,7 +30,7 @@ Data for 100,000 elements.
 #### Elementary operations
 
 | Operation | array | SPL | DS | Bytemap |
-| :-- | --: | --: | --: | --: | --: |
+| :-- | --: | --: | --: | --: |
 | `foreach` | 1.0 | 1.7 | 1.5 | 3.1 |
 | pop | 1.0 | 1.6 | 1.2  | 32.2 |
 | push | 1.0 | 1.7 | 1.3 | 3.3 |
@@ -52,7 +52,7 @@ How to read this table: `foreach` over a bytemap takes 3.1 times the time it tak
 ### Batch operations
 
 | Operation | array | SPL | DS | Bytemap |
-| :-- | --: | --: | --: | --: | --: |
+| :-- | --: | --: | --: | --: |
 | delete at head | 374.9 | 858.2 | 85.9 | 1.0 |
 | delete at tail | 1032.9 | 1.0 | 12.0 | 2.6 |
 | insert at head | 23.5 | 74.1 | *1.0 | 1.9 |
