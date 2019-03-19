@@ -85,6 +85,32 @@ trait InsertionTestTrait
                     [[], [1], 1, [0, 1]],
                     [[0, 1, 2, 3, 0, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
                     [[0, 1, 2, 3, null, 1, 2], [4, 5], 3, [0, 1, 2, 4, 5, 3, 0, 1, 2]],
+
+                    // The bits are to be inserted add the beginning, so prepend (NX).
+                    [
+                        [0, 1, 2, 3, 0, 1, 2, 3],
+                        [0, 1, 2, 3, 0, 1, 2, 3],
+                        0,
+                        [
+                            0, 1, 2, 3, 0, 1, 2, 3,
+                            0, 1, 2, 3, 0, 1, 2, 3,
+                        ],
+                    ],
+
+                    // The bits are not to be inserted at the beginning, so splice (XNX).
+                    [
+                        [
+                            0, 1, 2, 3, 0, 1, 2, 3,
+                            0, 1, 2, 3, 0, 1, 2, 3,
+                        ],
+                        [0, 1, 2, 3, 0, 1, 2, 3],
+                        8,
+                        [
+                            0, 1, 2, 3, 0, 1, 2, 3,
+                            0, 1, 2, 3, 0, 1, 2, 3,
+                            0, 1, 2, 3, 0, 1, 2, 3,
+                        ],
+                    ],
                 ] as [$sequence, $inserted, $firstIndex, $expected]) {
                     $clone = clone $emptyBytemap;
                     foreach ($sequence as $index => $key) {

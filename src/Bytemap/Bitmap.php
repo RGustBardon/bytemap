@@ -739,7 +739,7 @@ class Bitmap extends Bytemap
         // To be deleted:             XX XXXX|XXXX XXXX|XXXX XXXX XXX
         // Full bytes:                   ^^^^ ^^^^ ^^^^ ^^^^
 
-        $firstFullByteIndex = ($firstIndex >> 3) + ((0 === $firstIndex & 7) ? 0 : 1);
+        $firstFullByteIndex = ($firstIndex >> 3) + ((0 === ($firstIndex & 7)) ? 0 : 1);
         $howManyFullBytes = \min($this->elementCount - 1, ($firstIndex + $howMany) >> 3) - $firstFullByteIndex;
         if ($howManyFullBytes > 0) {
             parent::deleteWithNonNegativeIndex($firstFullByteIndex, $howManyFullBytes, $this->elementCount);
@@ -751,7 +751,7 @@ class Bitmap extends Bytemap
             }
         }
 
-        if (0 === $firstIndex & 7 && $firstIndex + $howMany >= $this->bitCount) {
+        if (0 === ($firstIndex & 7) && $firstIndex + $howMany >= $this->bitCount) {
             // If the first index conceptually begins a byte and everything to its right is to be deleted,
             // no bit-shifting is necessary.
 

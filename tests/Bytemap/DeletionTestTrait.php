@@ -64,6 +64,40 @@ trait DeletionTestTrait
                 [[0, 1, 2, 3, 4, 5], -7, 3, [2, 3, 4, 5]],
                 [[1, 2, 1, 2, 1, 2], 2, 3, [1, 2, 2]],
                 [[1, null, 1, 2, 1, 0], 2, 3, [1, 0, 0]],
+
+                // `$howManyFullBytes > 0` and then `0 === $howMany`
+                [
+                    [
+                        0, 1, 2, 3, 0, 1, 2, 3,
+                        0, 1, 2, 3, 0, 1, 2, 3,
+                        0,
+                    ],
+                    8,
+                    8,
+                    [
+                        0, 1, 2, 3, 0, 1, 2, 3,
+                        0,
+                    ],
+                ],
+
+                // There are not enough bits in the assembled byte,
+                // so augment it with the next source byte.
+                [
+                    [
+                        0, 1, 2, 3, 0, 1, 2, 3,
+                        0, 1, 2, 3, 0, 1, 2, 3,
+                        0, 1, 2, 3, 0, 1, 2, 3,
+                        0, 1, 2, 3, 0, 1, 2, 3,
+                        0,
+                    ],
+                    8,
+                    17,
+                    [
+                        0, 1, 2, 3, 0, 1, 2, 3,
+                        1, 2, 3, 0, 1, 2, 3,
+                        0,
+                    ],
+                ],
             ] as [$sequence, $firstIndex, $howMany, $expected]) {
                 $clone = clone $emptyBytemap;
                 foreach ($sequence as $index => $key) {
