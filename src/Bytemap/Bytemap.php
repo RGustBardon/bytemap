@@ -208,7 +208,7 @@ class Bytemap extends AbstractBytemap
             self::parseJsonStreamOnline($jsonStream, new BytemapListener([$bytemap, 'offsetSet']));
         } else {
             $map = self::parseJsonStreamNatively($jsonStream);
-            [$maxKey, $sorted] = self::validateMapAndGetMaxKey($map, $defaultValue);
+            [$maxKey, $sorted] = static::validateMapAndGetMaxKey($map, $defaultValue);
             $size = \count($map);
             if ($size > 0) {
                 if ($maxKey + 1 === $size) {

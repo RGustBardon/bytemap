@@ -1171,4 +1171,31 @@ class Bitmap extends Bytemap
 
         $this->bitCount = $bitCount;
     }
+
+    protected static function validateMapAndGetMaxKey($map, string $defaultValue): array
+    {
+        if (!\is_array($map)) {
+            throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Invalid JSON (expected an array or an object, '.\gettype($map).' given)');
+        }
+
+        $sorted = true;
+        $maxKey = -1;
+        foreach ($map as $key => $value) {
+            if (\is_int($key) && $key >= 0 && (false === $value || true === $value)) {
+                if ($maxKey < $key) {
+                    $maxKey = $key;
+                } else {
+                    $sorted = false;
+                }
+            } elseif (!\is_int($key)) {
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Index must be of type integer, '.\gettype($key).' given');
+            } elseif ($key < 0) {
+                throw new \OutOfRangeException(self::EXCEPTION_PREFIX.'Negative index: '.$key);
+            } else {
+                throw new \TypeError(self::EXCEPTION_PREFIX.'Value must be a Boolean, '.\gettype($value).' given');
+            }
+        }
+
+        return [$maxKey, $sorted];
+    }
 }

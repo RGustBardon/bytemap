@@ -25,9 +25,118 @@ trait JsonStreamTestTrait
      * @dataProvider jsonStreamInstanceProvider
      *
      * @param mixed $defaultValue
+     * @param mixed $outOfRangeValue
      */
-    public function testStreamingToClosedResource(BytemapInterface $bytemap, $defaultValue, array $elements): void
+    public function testParsingClosedResource(
+        BytemapInterface $bytemap,
+        $defaultValue,
+        $outOfRangeValue,
+        array $elements
+    ): void {
+        $this->expectException(\TypeError::class);
+        $this->expectExceptionMessage('open resource');
+
+        $bytemap::parseJsonStream(self::getClosedStream(), "\x0");
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::ensureStream
+     * @dataProvider jsonStreamInstanceProvider
+     *
+     * @param mixed $defaultValue
+     * @param mixed $outOfRangeValue
+     */
+    public function testParsingNonStream(
+        BytemapInterface $bytemap,
+        $defaultValue,
+        $outOfRangeValue,
+        array $elements
+    ): void {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('process');
+
+        $process = self::getProcess();
+
+        try {
+            $bytemap::parseJsonStream($process, "\x0");
+        } finally {
+            \proc_close($process);
+        }
+    }
+
+    public static function invalidJsonDataProvider(): \Generator
     {
+        foreach (self::jsonStreamInstanceProvider() as [$bytemap, $defaultValue, $outOfRangeValue, $elements]) {
+            $wrongTypeValue = \is_string($defaultValue) ? (int) \str_repeat('1', \strlen($defaultValue)) : 'ab';
+            $wrongTypeValue = \json_encode($wrongTypeValue);
+            foreach ([false, true] as $useStreamingParser) {
+                foreach ([
+                    ['}', \UnexpectedValueException::class, 'failed to parse JSON'],
+                    ['"a"', \UnexpectedValueException::class, 'expected an array or an object|failed to parse JSON'],
+                    ['{0:'.$defaultValue.'}', \UnexpectedValueException::class, 'failed to parse JSON'],
+                    // ['['.$wrongTypeValue.']', \TypeError::class, 'value must be'],
+                    ['{"a":'.\json_encode($defaultValue).'}', \TypeError::class, 'must be of (?:the )?type int'],
+                    ['{"-1":'.\json_encode($defaultValue).'}', \OutOfRangeException::class, 'negative index'],
+                ] as [$invalidJsonData, $expectedThrowable, $pattern]) {
+                    yield [clone $bytemap, $useStreamingParser, $invalidJsonData, $expectedThrowable, $pattern];
+                }
+
+                if (null !== $outOfRangeValue) {
+                    $outOfRangeValue = \json_encode($outOfRangeValue);
+                    foreach ([
+                        ['['.$outOfRangeValue.']', \DomainException::class, 'value must be'],
+                        ['['.\json_encode($defaultValue).', '.$outOfRangeValue.']', \DomainException::class, 'value must be'],
+                        ['{"0":'.$outOfRangeValue.'}', \DomainException::class, 'value must be exactly'],
+                        ['{"0":'.\json_encode($defaultValue).',"1":'.$outOfRangeValue.'}', \DomainException::class, 'value must be exactly'],
+                    ] as [$invalidJsonData, $expectedThrowable, $pattern]) {
+                        yield [clone $bytemap, $useStreamingParser, $invalidJsonData, $expectedThrowable, $pattern];
+                    }
+                }
+            }
+
+            yield from [
+                [clone $bytemap, false, '[[]]', \TypeError::class, 'value must be'],
+                [clone $bytemap, true, '[[]]', \UnexpectedValueException::class, 'failed to parse JSON'],
+            ];
+        }
+    }
+
+    /**
+     * @covers \Bytemap\Benchmark\AbstractDsBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
+     * @covers \Bytemap\Bytemap::parseJsonStream
+     * @covers \Bytemap\JsonListener\BytemapListener
+     * @dataProvider invalidJsonDataProvider
+     */
+    public function testParsingInvalidData(
+        BytemapInterface $bytemap,
+        bool $useStreamingParser,
+        string $invalidJsonData,
+        string $expectedThrowable,
+        string $pattern
+    ): void {
+        $this->expectException($expectedThrowable);
+        $this->expectExceptionMessageRegExp('~'.$pattern.'~i');
+
+        $jsonStream = self::getStream($invalidJsonData);
+        $_ENV['BYTEMAP_STREAMING_PARSER'] = ($useStreamingParser ? '1' : '0');
+        $bytemap::parseJsonStream($jsonStream, "\x0");
+    }
+
+    /**
+     * @covers \Bytemap\AbstractBytemap::ensureStream
+     * @dataProvider jsonStreamInstanceProvider
+     *
+     * @param mixed $defaultValue
+     * @param mixed $outOfRangeValue
+     */
+    public function testStreamingToClosedResource(
+        BytemapInterface $bytemap,
+        $defaultValue,
+        $outOfRangeValue,
+        array $elements
+    ): void {
         $this->expectException(\TypeError::class);
         $bytemap->streamJson(self::getClosedStream());
     }
@@ -37,9 +146,14 @@ trait JsonStreamTestTrait
      * @dataProvider jsonStreamInstanceProvider
      *
      * @param mixed $defaultValue
+     * @param mixed $outOfRangeValue
      */
-    public function testStreamingToNonStream(BytemapInterface $bytemap, $defaultValue, array $elements): void
-    {
+    public function testStreamingToNonStream(
+        BytemapInterface $bytemap,
+        $defaultValue,
+        $outOfRangeValue,
+        array $elements
+    ): void {
         $this->expectException(\InvalidArgumentException::class);
 
         $process = self::getProcess();
@@ -59,9 +173,14 @@ trait JsonStreamTestTrait
      * @dataProvider jsonStreamInstanceProvider
      *
      * @param mixed $defaultValue
+     * @param mixed $outOfRangeValue
      */
-    public function testStreaming(BytemapInterface $bytemap, $defaultValue, array $elements): void
-    {
+    public function testStreaming(
+        BytemapInterface $bytemap,
+        $defaultValue,
+        $outOfRangeValue,
+        array $elements
+    ): void {
         self::assertStreamWriting([], $bytemap);
 
         $sequence = [];

@@ -39,95 +39,13 @@ final class JsonStreamTest extends AbstractTestOfBytemap
                 ['bd', 'df', 'gg'],
             ] as $elements) {
                 $defaultValue = \str_repeat("\x0", \strlen($elements[0]));
-                yield [new $impl($defaultValue), $defaultValue, $elements];
+                $invalidValue = $defaultValue."\x0";
+                yield [new $impl($defaultValue), $defaultValue, $invalidValue, $elements];
             }
         }
     }
 
     // `JsonStreamTest`
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::ensureStream
-     * @dataProvider implementationProvider
-     */
-    public function testParsingClosedResource(string $impl): void
-    {
-        $this->expectException(\TypeError::class);
-        $this->expectExceptionMessage('open resource');
-
-        self::instantiate($impl, "\x0")::parseJsonStream(self::getClosedStream(), "\x0");
-    }
-
-    /**
-     * @covers \Bytemap\AbstractBytemap::ensureStream
-     * @dataProvider implementationProvider
-     */
-    public function testParsingNonStream(string $impl): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('process');
-
-        $bytemap = self::instantiate($impl, "\x0");
-        $process = self::getProcess();
-
-        try {
-            $bytemap::parseJsonStream($process, "\x0");
-        } finally {
-            \proc_close($process);
-        }
-    }
-
-    public static function invalidJsonDataProvider(): \Generator
-    {
-        foreach (self::implementationProvider() as [$impl]) {
-            foreach ([false, true] as $useStreamingParser) {
-                foreach ([
-                    ['}', \UnexpectedValueException::class, 'failed to parse JSON'],
-                    ['"a"', \UnexpectedValueException::class, 'expected an array or an object|failed to parse JSON'],
-                    ['{0:"a"}', \UnexpectedValueException::class, 'failed to parse JSON'],
-                    ['[2]', \TypeError::class, 'must be of (?:the )?type string'],
-                    ['["ab"]', \DomainException::class, 'value must be exactly'],
-                    ['["a", "ab"]', \DomainException::class, 'value must be exactly'],
-                    ['{"a": "a"}', \TypeError::class, 'must be of (?:the )?type int'],
-                    ['{"-1":"a"}', \OutOfRangeException::class, 'negative index'],
-                    ['{"0":"ab"}', \DomainException::class, 'value must be exactly'],
-                    ['{"0":"a","1":"ab"}', \DomainException::class, 'value must be exactly'],
-                ] as [$invalidJsonData, $expectedThrowable, $pattern]) {
-                    yield [$impl, $useStreamingParser, $invalidJsonData, $expectedThrowable, $pattern];
-                }
-            }
-
-            yield from [
-                [$impl, false, '[[]]', \TypeError::class, 'must be of type string'],
-                [$impl, true, '[[]]', \UnexpectedValueException::class, 'failed to parse JSON'],
-            ];
-        }
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::parseJsonStream
-     * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
-     * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
-     * @covers \Bytemap\Bytemap::parseJsonStream
-     * @covers \Bytemap\JsonListener\BytemapListener
-     * @dataProvider invalidJsonDataProvider
-     */
-    public function testParsingInvalidData(
-        string $impl,
-        bool $useStreamingParser,
-        string $invalidJsonData,
-        string $expectedThrowable,
-        string $pattern
-    ): void {
-        $this->expectException($expectedThrowable);
-        $this->expectExceptionMessageRegExp('~'.$pattern.'~i');
-
-        $bytemap = self::instantiate($impl, "\x0");
-        $jsonStream = self::getStream($invalidJsonData);
-        $_ENV['BYTEMAP_STREAMING_PARSER'] = ($useStreamingParser ? '1' : '0');
-        $bytemap::parseJsonStream($jsonStream, "\x0");
-    }
-
     public static function validJsonProvider(): \Generator
     {
         foreach (self::arrayAccessProvider() as [$impl, $elements]) {

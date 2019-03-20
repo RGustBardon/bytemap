@@ -80,7 +80,7 @@ final class BitmapTest extends AbstractTestOfBytemap
     // `JsonStreamTestTrait`
     public static function jsonStreamInstanceProvider(): \Generator
     {
-        yield from self::jsonSerializableInstanceProvider();
+        yield [new Bitmap(), false, null, [false, true, false]];
     }
 
     // `SerializableTestTrait`
