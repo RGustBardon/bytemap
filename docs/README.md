@@ -89,6 +89,7 @@ Data for 100,000 single-byte elements.
 | streaming | 1,000,000 | 4 | 0.15 s |
 
 Data for bytemaps only.
+Parsing performed using the built-in JSON parser (`json_decode`).
 
 ## Author
 
