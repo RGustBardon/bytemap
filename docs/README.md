@@ -38,8 +38,8 @@ Data for 100,000 elements.
 | random write | 1.1 | 1.0 | 1.3 | 2.4 |
 | shift | 1.0 | N/A | *1.6 | 6.6 |
 | unshift | 6405.9 | N/A | **1.0 | 22.1 |
-| `serialize` | 104.9 | 140.5 | 62.0 | 1.0 |
-| `unserialize` | 109.3 | 182.6 | 52.1 | 1.0 |
+| `\serialize` | 104.9 | 140.5 | 62.0 | 1.0 |
+| `\unserialize` | 109.3 | 182.6 | 52.1 | 1.0 |
 
 Data for 100,000 single-byte elements.
 
@@ -89,7 +89,7 @@ Data for 100,000 single-byte elements.
 | streaming | 1,000,000 | 4 | 0.15 s |
 
 Data for bytemaps only.
-Parsing performed using the built-in JSON parser (`json_decode`).
+Parsing performed using the built-in JSON parser (`\json_decode`).
 
 ## Author
 
