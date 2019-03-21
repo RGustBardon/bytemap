@@ -389,7 +389,7 @@ abstract class AbstractBytemap implements BytemapInterface
         throw new \DomainException(self::EXCEPTION_PREFIX.'Value must be exactly '.$bytesPerElement.' bytes, '.\strlen($element).' given');
     }
 
-    protected static function validateMapAndGetMaxKey($map, string $defaultValue): array
+    protected static function validateMapAndGetMaxKey($map, $defaultValue): array
     {
         if (!\is_array($map)) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Invalid JSON (expected an array or an object, '.\gettype($map).' given)');

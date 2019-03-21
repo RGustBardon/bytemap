@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Bytemap;
 
+use Bytemap\JsonListener\BytemapListener;
+
 /**
  * An implementation of the `BytemapInterface` using a string to store Boolean values.
  *
@@ -1125,6 +1127,40 @@ class Bitmap extends Bytemap
         self::stream($stream, $buffer.']');
     }
 
+    public static function parseJsonStream($jsonStream, $defaultValue): BytemapInterface
+    {
+        if (false !== $defaultValue) {
+            throw new \UnexpectedValueException('The default value of a bitmap must be `false`.');
+        }
+
+        self::ensureStream($jsonStream);
+
+        $bitmap = new self();
+        if (self::hasStreamingParser()) {
+            self::parseJsonStreamOnline($jsonStream, new BytemapListener([$bitmap, 'offsetSet']));
+        } else {
+            $map = self::parseJsonStreamNatively($jsonStream);
+            [$maxKey, $sorted] = static::validateMapAndGetMaxKey($map, $defaultValue);
+            $size = \count($map);
+            if ($size > 0) {
+                if ($maxKey + 1 === $size) {
+                    if (!$sorted) {
+                        \ksort($map, \SORT_NUMERIC);
+                    }
+                    $bitmap->insert($map, 0);
+                } else {
+                    $bitmap[$maxKey] = $map[$maxKey];  // Avoid unnecessary resizing.
+                    foreach ($map as $key => $value) {
+                        $bitmap[$key] = $value;
+                    }
+                }
+                $bitmap->deriveProperties();
+            }
+        }
+
+        return $bitmap;
+    }
+
     // `AbstractBytemap`
     protected function calculateHowManyToSkip(bool $searchForwards, ?int $startAfter): ?int
     {
@@ -1172,7 +1208,7 @@ class Bitmap extends Bytemap
         $this->bitCount = $bitCount;
     }
 
-    protected static function validateMapAndGetMaxKey($map, string $defaultValue): array
+    protected static function validateMapAndGetMaxKey($map, $defaultValue): array
     {
         if (!\is_array($map)) {
             throw new \UnexpectedValueException(self::EXCEPTION_PREFIX.'Invalid JSON (expected an array or an object, '.\gettype($map).' given)');

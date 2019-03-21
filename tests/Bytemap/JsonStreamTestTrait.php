@@ -36,7 +36,7 @@ trait JsonStreamTestTrait
         $this->expectException(\TypeError::class);
         $this->expectExceptionMessage('open resource');
 
-        $bytemap::parseJsonStream(self::getClosedStream(), "\x0");
+        $bytemap::parseJsonStream(self::getClosedStream(), $defaultValue);
     }
 
     /**
@@ -58,7 +58,7 @@ trait JsonStreamTestTrait
         $process = self::getProcess();
 
         try {
-            $bytemap::parseJsonStream($process, "\x0");
+            $bytemap::parseJsonStream($process, $defaultValue);
         } finally {
             \proc_close($process);
         }
@@ -78,7 +78,7 @@ trait JsonStreamTestTrait
                     ['{"a":'.\json_encode($defaultValue).'}', \TypeError::class, 'must be of (?:the )?type int'],
                     ['{"-1":'.\json_encode($defaultValue).'}', \OutOfRangeException::class, 'negative index'],
                 ] as [$invalidJsonData, $expectedThrowable, $pattern]) {
-                    yield [clone $bytemap, $useStreamingParser, $invalidJsonData, $expectedThrowable, $pattern];
+                    yield [clone $bytemap, $defaultValue, $useStreamingParser, $invalidJsonData, $expectedThrowable, $pattern];
                 }
 
                 if (null !== $outOfRangeValue) {
@@ -89,14 +89,14 @@ trait JsonStreamTestTrait
                         ['{"0":'.$outOfRangeValue.'}', \DomainException::class, 'value must be exactly'],
                         ['{"0":'.\json_encode($defaultValue).',"1":'.$outOfRangeValue.'}', \DomainException::class, 'value must be exactly'],
                     ] as [$invalidJsonData, $expectedThrowable, $pattern]) {
-                        yield [clone $bytemap, $useStreamingParser, $invalidJsonData, $expectedThrowable, $pattern];
+                        yield [clone $bytemap, $defaultValue, $useStreamingParser, $invalidJsonData, $expectedThrowable, $pattern];
                     }
                 }
             }
 
             yield from [
-                [clone $bytemap, false, '[[]]', \TypeError::class, 'value must be'],
-                [clone $bytemap, true, '[[]]', \UnexpectedValueException::class, 'failed to parse JSON'],
+                [clone $bytemap, $defaultValue, false, '[[]]', \TypeError::class, 'value must be'],
+                [clone $bytemap, $defaultValue, true, '[[]]', \UnexpectedValueException::class, 'failed to parse JSON'],
             ];
         }
     }
@@ -108,9 +108,12 @@ trait JsonStreamTestTrait
      * @covers \Bytemap\Bytemap::parseJsonStream
      * @covers \Bytemap\JsonListener\BytemapListener
      * @dataProvider invalidJsonDataProvider
+     *
+     * @param mixed $defaultValue
      */
     public function testParsingInvalidData(
         BytemapInterface $bytemap,
+        $defaultValue,
         bool $useStreamingParser,
         string $invalidJsonData,
         string $expectedThrowable,
@@ -121,7 +124,7 @@ trait JsonStreamTestTrait
 
         $jsonStream = self::getStream($invalidJsonData);
         $_ENV['BYTEMAP_STREAMING_PARSER'] = ($useStreamingParser ? '1' : '0');
-        $bytemap::parseJsonStream($jsonStream, "\x0");
+        $bytemap::parseJsonStream($jsonStream, $defaultValue);
     }
 
     /**
