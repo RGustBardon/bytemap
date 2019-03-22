@@ -105,6 +105,7 @@ trait JsonStreamTestTrait
      * @covers \Bytemap\Benchmark\AbstractDsBytemap::parseJsonStream
      * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
      * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
+     * @covers \Bytemap\Bitmap::parseJsonStream
      * @covers \Bytemap\Bytemap::parseJsonStream
      * @covers \Bytemap\JsonListener\BytemapListener
      * @dataProvider invalidJsonDataProvider
@@ -125,6 +126,56 @@ trait JsonStreamTestTrait
         $jsonStream = self::getStream($invalidJsonData);
         $_ENV['BYTEMAP_STREAMING_PARSER'] = ($useStreamingParser ? '1' : '0');
         $bytemap::parseJsonStream($jsonStream, $defaultValue);
+    }
+
+    public static function jsonStreamInstanceWithOptionsProvider(): \Generator
+    {
+        foreach ([0, \JSON_FORCE_OBJECT] as $jsonEncodingOptions) {
+            foreach ([false, true] as $useStreamingParser) {
+                foreach (self::jsonStreamInstanceProvider() as [$bytemap, $defaultValue, , $elements]) {
+                    yield [$bytemap, $defaultValue, $elements, $jsonEncodingOptions, $useStreamingParser];
+                }
+            }
+        }
+    }
+
+    /**
+     * @covers \Bytemap\Benchmark\AbstractDsBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
+     * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
+     * @covers \Bytemap\Bitmap::parseJsonStream
+     * @covers \Bytemap\Bytemap::parseJsonStream
+     * @covers \Bytemap\JsonListener\BytemapListener
+     * @dataProvider jsonStreamInstanceWithOptionsProvider
+     *
+     * @param mixed $defaultValue
+     */
+    public function testParsing(
+        BytemapInterface $bytemap,
+        $defaultValue,
+        array $elements,
+        int $jsonEncodingOptions,
+        bool $useStreamingParser
+    ): void {
+        self::assertStreamParsing([], [], $jsonEncodingOptions, $bytemap, $defaultValue, $useStreamingParser);
+
+        $sequence = [$elements[1], $elements[2], $elements[1], $elements[0], $elements[0]];
+        self::assertStreamParsing($sequence, $sequence, $jsonEncodingOptions, $bytemap, $defaultValue, $useStreamingParser);
+
+        $expectedSequence = $sequence;
+        $expectedSequence[3] = $defaultValue;
+        unset($sequence[3]);
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $defaultValue, $useStreamingParser);
+
+        $sequence = \array_reverse($sequence, true);
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $defaultValue, $useStreamingParser);
+
+        $expectedSequence = [$defaultValue, $elements[1], $elements[2]];
+        $sequence = [1 => $elements[1], 0 => $defaultValue, 2 => $elements[2]];
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $defaultValue, $useStreamingParser);
+
+        $sequence = [1 => $elements[1], 2 => $elements[2]];
+        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $defaultValue, $useStreamingParser);
     }
 
     /**
@@ -279,7 +330,7 @@ trait JsonStreamTestTrait
         self::assertSame('resource', \gettype($jsonStream));
         self::assertNotSame($instance, $bytemap);
         self::assertSequence($expectedSequence, $bytemap);
-        self::assertDefaultValue($defaultValue, $bytemap, \str_repeat("\xff", \strlen($defaultValue)));
+        self::assertDefaultValue($defaultValue, $bytemap, $defaultValue);
     }
 
     abstract protected static function assertDefaultValue($defaultValue, BytemapInterface $bytemap, $newElement): void;

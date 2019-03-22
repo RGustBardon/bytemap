@@ -44,49 +44,4 @@ final class JsonStreamTest extends AbstractTestOfBytemap
             }
         }
     }
-
-    // `JsonStreamTest`
-    public static function validJsonProvider(): \Generator
-    {
-        foreach (self::arrayAccessProvider() as [$impl, $elements]) {
-            foreach ([0, \JSON_FORCE_OBJECT] as $jsonEncodingOptions) {
-                foreach ([false, true] as $useStreamingParser) {
-                    yield [$impl, $elements, $jsonEncodingOptions, $useStreamingParser];
-                }
-            }
-        }
-    }
-
-    /**
-     * @covers \Bytemap\Benchmark\AbstractDsBytemap::parseJsonStream
-     * @covers \Bytemap\Benchmark\ArrayBytemap::parseJsonStream
-     * @covers \Bytemap\Benchmark\SplBytemap::parseJsonStream
-     * @covers \Bytemap\Bytemap::parseJsonStream
-     * @covers \Bytemap\JsonListener\BytemapListener
-     * @dataProvider validJsonProvider
-     */
-    public function testParsing(string $impl, array $elements, int $jsonEncodingOptions, bool $useStreamingParser): void
-    {
-        $bytemap = self::instantiate($impl, $elements[1]);
-
-        self::assertStreamParsing([], [], $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
-
-        $sequence = [$elements[1], $elements[2], $elements[1], $elements[0], $elements[0]];
-        self::assertStreamParsing($sequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
-
-        $expectedSequence = $sequence;
-        $expectedSequence[3] = $elements[0];
-        unset($sequence[3]);
-        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
-
-        $sequence = \array_reverse($sequence, true);
-        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
-
-        $expectedSequence = [$elements[0], $elements[1], $elements[2]];
-        $sequence = [1 => $elements[1], 0 => $elements[0], 2 => $elements[2]];
-        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
-
-        $sequence = [1 => $elements[1], 2 => $elements[2]];
-        self::assertStreamParsing($expectedSequence, $sequence, $jsonEncodingOptions, $bytemap, $elements[0], $useStreamingParser);
-    }
 }

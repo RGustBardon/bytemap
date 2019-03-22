@@ -137,6 +137,13 @@ final class BitmapTest extends AbstractTestOfBytemap
         (new Bitmap())->grep(['~foo~']);
     }
 
+    public function testInvalidDefaultJsonValue(): void
+    {
+        $this->expectException(\UnexpectedValueException::class);
+        $resource = self::getStream('[]');
+        Bitmap::parseJsonStream($resource, true);
+    }
+
     public static function randomizedBitmapProvider(): \Generator
     {
         \mt_srand(0);
