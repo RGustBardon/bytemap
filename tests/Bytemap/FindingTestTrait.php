@@ -102,7 +102,7 @@ trait FindingTestTrait
             [[1, 1, 1, 1, 1, 1, 1], [0], false, false, -7, 42, [6 => 1, 5 => 1, 4 => 1, 3 => 1, 2 => 1, 1 => 1, 0 => 1]],
             [[1, 1, 1, 1, 1, 1, 1], [0], false, false, -7, -42, []],
         ] as [$subject, $query, $generator, $whitelist, $howMany, $startAfter, $expected]) {
-            foreach (self::seekableInstanceProvider() as [$emptyBytemap, $elements]) {
+            foreach (static::seekableInstanceProvider() as [$emptyBytemap, $elements]) {
                 $uniqueElementsCount = \count(\array_unique($elements));
 
                 if ($subject && $uniqueElementsCount <= \max($subject)) {
@@ -174,7 +174,7 @@ trait FindingTestTrait
     public static function seekableWithDefaultFirstAndBooleanProvider(): \Generator
     {
         foreach ([true, false] as $forward) {
-            foreach (self::seekableWithDefaultFirstProvider() as [$emptyBytemap, $elements]) {
+            foreach (static::seekableWithDefaultFirstProvider() as [$emptyBytemap, $elements]) {
                 yield [$emptyBytemap, $elements, $forward];
             }
         }

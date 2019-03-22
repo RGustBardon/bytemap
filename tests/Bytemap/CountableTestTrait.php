@@ -22,7 +22,7 @@ trait CountableTestTrait
 {
     public static function countableTestProvider(): \Generator
     {
-        foreach (self::countableInstanceProvider() as [$countable, $elements]) {
+        foreach (static::countableInstanceProvider() as [$countable, $elements]) {
             yield [clone $countable, 0];
             $countable[] = $elements[0];
             yield [clone $countable, 1];

@@ -22,15 +22,15 @@ trait ArrayAccessTestTrait
 {
     public static function nullIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
+        foreach (static::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             yield [$arrayAccessObject, $elements, null];
         }
     }
 
     public static function invalidIndexTypeProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
-            foreach (self::generateIndicesOfInvalidType() as $index) {
+        foreach (static::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
+            foreach (static::generateIndicesOfInvalidType() as $index) {
                 yield [$arrayAccessObject, $elements, $index];
             }
         }
@@ -38,22 +38,22 @@ trait ArrayAccessTestTrait
 
     public static function negativeIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
+        foreach (static::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             yield [$arrayAccessObject, $elements, -1];
         }
     }
 
     public static function outOfRangeIndexProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
+        foreach (static::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
             yield [$arrayAccessObject, $elements, \count($elements)];
         }
     }
 
     public static function invalidElementTypeProvider(): \Generator
     {
-        foreach (self::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
-            foreach (self::generateElementsOfInvalidType($defaultValue) as $invalidElement) {
+        foreach (static::arrayAccessInstanceProvider() as [$arrayAccessObject, $defaultValue, $elements]) {
+            foreach (static::generateElementsOfInvalidType($defaultValue) as $invalidElement) {
                 yield [$arrayAccessObject, $elements, $invalidElement];
             }
         }

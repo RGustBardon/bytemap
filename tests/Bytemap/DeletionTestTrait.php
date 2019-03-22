@@ -22,7 +22,7 @@ trait DeletionTestTrait
 {
     public static function deletionProvider(): \Generator
     {
-        foreach (self::deletionInstanceProvider() as [$emptyBytemap, $elements]) {
+        foreach (static::deletionInstanceProvider() as [$emptyBytemap, $elements]) {
             foreach ([
                 [[], -1, 0, []],
                 [[], 0, 0, []],

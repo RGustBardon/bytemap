@@ -66,7 +66,7 @@ trait JsonStreamTestTrait
 
     public static function invalidJsonDataProvider(): \Generator
     {
-        foreach (self::jsonStreamInstanceProvider() as [$bytemap, $defaultValue, $outOfRangeValue, $elements]) {
+        foreach (static::jsonStreamInstanceProvider() as [$bytemap, $defaultValue, $outOfRangeValue, $elements]) {
             $wrongTypeValue = \is_string($defaultValue) ? (int) \str_repeat('1', \strlen($defaultValue)) : 'ab';
             $wrongTypeValue = \json_encode($wrongTypeValue);
             foreach ([false, true] as $useStreamingParser) {
@@ -132,7 +132,7 @@ trait JsonStreamTestTrait
     {
         foreach ([0, \JSON_FORCE_OBJECT] as $jsonEncodingOptions) {
             foreach ([false, true] as $useStreamingParser) {
-                foreach (self::jsonStreamInstanceProvider() as [$bytemap, $defaultValue, , $elements]) {
+                foreach (static::jsonStreamInstanceProvider() as [$bytemap, $defaultValue, , $elements]) {
                     yield [$bytemap, $defaultValue, $elements, $jsonEncodingOptions, $useStreamingParser];
                 }
             }
@@ -298,6 +298,23 @@ trait JsonStreamTestTrait
         return $stream;
     }
 
+    /**
+     * Ensure that the information on the default value is preserved when cloning and serializing.
+     *
+     * @param bool|int|string $defaultValue
+     * @param bool|int|string $newElement
+     */
+    protected static function assertDefaultValue($defaultValue, BytemapInterface $bytemap, $newElement): void
+    {
+        $indexOfDefaultValue = \count($bytemap);
+        $indexOfNewElement = $indexOfDefaultValue + 1;
+        $bytemap[$indexOfNewElement] = $newElement;
+        self::assertSame($defaultValue, $bytemap[$indexOfDefaultValue]);
+        self::assertSame($newElement, $bytemap[$indexOfNewElement]);
+        unset($bytemap[$indexOfNewElement]);
+        unset($bytemap[$indexOfDefaultValue]);
+    }
+
     protected static function assertStreamWriting(array $expected, BytemapInterface $bytemap): void
     {
         $json = \json_encode($expected);
@@ -332,8 +349,6 @@ trait JsonStreamTestTrait
         self::assertSequence($expectedSequence, $bytemap);
         self::assertDefaultValue($defaultValue, $bytemap, $defaultValue);
     }
-
-    abstract protected static function assertDefaultValue($defaultValue, BytemapInterface $bytemap, $newElement): void;
 
     abstract protected static function assertSequence(array $sequence, BytemapInterface $bytemap): void;
 }

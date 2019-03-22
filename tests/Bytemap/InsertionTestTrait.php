@@ -22,7 +22,7 @@ trait InsertionTestTrait
 {
     public static function invalidInsertedElementTypeProvider(): \Generator
     {
-        foreach (self::insertionInstanceProvider() as [$emptyBytemap, $elements]) {
+        foreach (static::insertionInstanceProvider() as [$emptyBytemap, $elements]) {
             foreach (self::generateElementsOfInvalidType($elements[0]) as $invalidElement) {
                 yield from self::generateInvalidElements($emptyBytemap, $elements, $invalidElement);
             }
@@ -65,7 +65,7 @@ trait InsertionTestTrait
 
     public static function insertionProvider(): \Generator
     {
-        foreach (self::insertionInstanceProvider() as [$emptyBytemap, $elements]) {
+        foreach (static::insertionInstanceProvider() as [$emptyBytemap, $elements]) {
             foreach ([false, true] as $useGenerator) {
                 foreach ([
                     [[], [], -3, [0, 0]],
